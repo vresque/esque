@@ -34,7 +34,7 @@ pub fn load_file<'a>(
     dir: Option<Directory>,
     path: &str,
     handle: Handle,
-    table: &mut SystemTable<Boot>,
+    mut table: &SystemTable<Boot>,
 ) -> Result<RegularFile, Status> {
     let loaded_img = unsafe {
         &mut *(table
@@ -99,7 +99,10 @@ pub fn load_kernel(mut kfile: RegularFile, mut table: &SystemTable<Boot>) -> Res
         if let ProgramHeader::Ph64(hdr) = phdr {
             match hdr.get_type().unwrap() {
                 program::Type::Load => {
-                    info!("Allocating for program header (at {:#x?})", hdr.physical_addr);
+                    info!(
+                        "Allocating for program header (at {:#x?})",
+                        hdr.physical_addr
+                    );
                     let pages = (hdr.mem_size + 0x1000 - 1) / 0x1000;
                     let segment = hdr.physical_addr as usize;
                     table
@@ -164,10 +167,9 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
             return e;
         }
     };
-
     let kmain: extern "sysv64" fn(info: Handover) -> u32 = unsafe { core::mem::transmute(entry) };
     let mut handover = create_handover(handle, &mut table);
-
+    info!("Jumping to kernel...");
     info!("{}", kmain(handover));
 
     Status::SUCCESS

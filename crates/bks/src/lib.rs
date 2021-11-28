@@ -6,13 +6,15 @@ pub struct Handover {
     // Must always be 42: If not, a bad bootloader was used
     checknum: u32,
     framebuffer: Framebuffer,
+    font: Psf1Font,
 }
 
 impl Handover {
-    pub fn new(fb: Framebuffer) -> Self {
+    pub fn new(fb: Framebuffer, font: Psf1Font) -> Self {
         Self {
             checknum: 42,
             framebuffer: fb,
+            font: font,
         }
     }
 
@@ -23,6 +25,56 @@ impl Handover {
     pub fn framebuffer(&mut self) -> &mut Framebuffer {
         &mut self.framebuffer
     }
+
+    pub fn font(&mut self) -> &mut Psf1Font {
+        &mut self.font
+    }
+}
+
+#[derive(Debug)]
+pub struct Psf1Header {
+    pub magic: [u8; 2],
+    pub mode: u8,
+    pub charsize: u8,
+}
+
+impl Psf1Header {
+    pub fn charsize(&mut self) -> u8 {
+        self.charsize
+    }
+}
+
+pub struct Psf1Font {
+    pub header: Psf1Header,
+    pub buffer: *mut u8,
+    pub size: usize,
+}
+
+impl Psf1Font {
+    pub fn new(header: Psf1Header, buffer: *mut u8, size: usize) -> Self {
+        Self {
+            header,
+            buffer,
+            size,
+        }
+    }
+
+    pub fn header(&mut self) -> &mut Psf1Header {
+        &mut self.header
+    }
+
+    pub fn buffer(&self) -> &[u8] {
+        unsafe { self.retrieve_buffer() }
+    }
+
+    pub fn buffer_mut(&mut self) -> &mut [u8] {
+        unsafe { self.retrieve_buffer() }
+    }
+
+    unsafe fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
+        slice::from_raw_parts_mut(self.buffer, self.size)
+    }
+
 }
 
 pub struct Framebuffer {
@@ -30,7 +82,7 @@ pub struct Framebuffer {
     size: usize,
     width: usize,
     height: usize,
-    stride: usize,
+    pub stride: usize,
 }
 
 impl Framebuffer {
@@ -44,6 +96,10 @@ impl Framebuffer {
         }
     }
 
+    pub fn raw_buffer(&mut self) -> *mut u8 {
+        self.base
+    }
+
     pub fn buffer(&self) -> &[u8] {
         unsafe { self.retrieve_buffer() }
     }
@@ -52,14 +108,17 @@ impl Framebuffer {
         unsafe { self.retrieve_buffer() }
     }
 
-    pub fn clear_bcolor(&mut self, color: u8) {
+    pub fn clear_bcolor(&mut self, color: u32) {
         for byte in self.buffer_mut() {
-            *byte = color;
+            // This upcast allows colours up to u32::MAX
+            // Without this, a u8 will be used which only allows
+            // 256 colours.
+            unsafe { *(byte as *mut u8 as *mut u32) = color };
         }
     }
 
-    fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
-        unsafe { slice::from_raw_parts_mut(self.base, self.size) }
+    unsafe fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
+        slice::from_raw_parts_mut(self.base, self.size)
     }
 }
 

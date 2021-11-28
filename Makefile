@@ -47,6 +47,7 @@ mkimg:
 	mmd -i $(FPATH) ::/EFI/BOOT
 	mcopy -i $(FPATH) $(OUTDIR)/BOOTX64.EFI ::/EFI/BOOT
 	mcopy -i $(FPATH) $(OUTDIR)/esque ::
+	mcopy -i $(FPATH) $(BINDIR)/font/font.psf ::
 	mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
 
 run:
