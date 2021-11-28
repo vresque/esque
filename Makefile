@@ -24,6 +24,7 @@ all: kernel boot mkimg run
 build: kernel boot mkimg
 
 clean:
+#	rust-analyzer may place weird files into target/debug/deps that cannot be removed
 	rm -rf build || rm -rf target/{kernel,boot} || true
 	rm -rf target || true
 	mkdir build || true
