@@ -24,7 +24,7 @@ all: kernel boot mkimg run
 build: kernel boot mkimg
 
 clean:
-	rm -rf build || true
+	rm -rf build || rm -rf target/{kernel,boot} || true
 	rm -rf target || true
 	mkdir build || true
 
