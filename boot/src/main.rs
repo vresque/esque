@@ -91,6 +91,7 @@ pub fn load_kernel(mut kfile: RegularFile, mut table: &SystemTable<Boot>) -> Res
 
     info!("Found entry point at {:#x?}", elf.header.pt2.entry_point());
     for phdr in elf.program_iter() {
+        program::sanity_check(phdr, &elf);
         // We only support 64 bits, therefore
         // All 32 bit headers can be discarded
         // Otherwise, all hdr calls match the header

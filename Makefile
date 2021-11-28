@@ -23,6 +23,11 @@ all: kernel boot mkimg run
 
 build: kernel boot mkimg
 
+clean:
+	rm -rf build || true
+	rm -rf target || true
+	mkdir build || true
+
 
 .PHONY: kernel
 kernel:

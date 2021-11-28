@@ -4,3 +4,4 @@ Cargo.lock
 **/*.rs.bk
 **/build
 *.pbd
+**/.vscode
