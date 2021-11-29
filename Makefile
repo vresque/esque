@@ -17,7 +17,7 @@ QEMUFLAGS = \
 	-drive if=pflash,format=raw,unit=0,file=$(BINDIR)/OVMF/OVMF_CODE.fd,readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(BINDIR)/OVMF/OVMF_VARS.fd \
 	-net none \
-	-serial stdio
+	-serial mon:stdio \
 
 all: kernel boot mkimg run
 

@@ -74,14 +74,13 @@ impl Psf1Font {
     unsafe fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
         slice::from_raw_parts_mut(self.buffer, self.size)
     }
-
 }
 
 pub struct Framebuffer {
     base: *mut u8,
     size: usize,
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     pub stride: usize,
 }
 
