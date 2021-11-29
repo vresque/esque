@@ -1,12 +1,11 @@
+use core::{fmt::Write, cell::UnsafeCell};
+
 use spin::Mutex;
 
 use bks::{Framebuffer, Handover, Psf1Font};
 use lazy_static::lazy_static;
 
-lazy_static! {
-    pub static mut ref FRAMEBUFFER_WRITER: Option<FramebufferWriter> = None;
-}
-
+pub static mut FRAMEBUFFER_WRITER: Option<FramebufferWriter> = None;
 
 #[repr(u32)]
 pub enum Color {
@@ -95,5 +94,17 @@ impl<'a> FramebufferWriter<'a> {
             }
             font_ptr = font_ptr.add(1);
         }
+    }
+}
+
+impl<'a> Write for FramebufferWriter<'a> {
+    fn write_char(&mut self, c: char) -> core::fmt::Result {
+        unsafe { self.draw_char(c); };
+        Ok(())
+    }
+
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        unsafe { self.print(s); };
+        Ok(())
     }
 }

@@ -76,6 +76,7 @@ impl Psf1Font {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Framebuffer {
     base: *mut u8,
     size: usize,
