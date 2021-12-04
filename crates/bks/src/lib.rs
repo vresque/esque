@@ -31,7 +31,7 @@ impl Handover {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Psf1Header {
     pub magic: [u8; 2],
     pub mode: u8,
@@ -44,6 +44,7 @@ impl Psf1Header {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Psf1Font {
     pub header: Psf1Header,
     pub buffer: *mut u8,

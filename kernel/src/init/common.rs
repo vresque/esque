@@ -1,5 +1,7 @@
 use bks::Handover;
-use crate::{log::{FramebufferWriter, FRAMEBUFFER_WRITER, Color}, HANDOVER};
+use crate::{log::{FramebufferGuard, Color, FRAMEBUFFER_GUARD}, kprintln};
 
-pub fn init_common() {
-    unsafe { FRAMEBUFFER_WRITER = Some(FramebufferWriter::new(&mut HANDOVER.unwrap());
+pub fn init_common(mut handover: &mut Handover) {
+    unsafe { FRAMEBUFFER_GUARD.write(FramebufferGuard::new(*handover.framebuffer(), *handover.font(), Color::Black, Color::White)); }
+    kprintln!("Hello, World (Lol)");
+}
