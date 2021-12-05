@@ -114,7 +114,7 @@ impl Framebuffer {
             // This upcast allows colours up to u32::MAX
             // Without this, a u8 will be used which only allows
             // 256 colours.
-            unsafe { *(byte as *mut u8 as *mut u32) = color };
+            unsafe { *(byte as *mut u8) = color as u8 };
         }
     }
 
