@@ -1,5 +1,13 @@
 # Esque
-A modern exokernel
+A modern exokernel (In the future)
+
+## Screenshots
+#![A Blue Screen of Death (Kernel Panic) in Esque](binaries/screenshots/bsod.png)
+A Blue Screen of Death in Esque (Kernel Panic)
+
+#![Debugging the Memory map](binaries/screenshots/mem-map.png)
+A simple dump of the memory map
+
 
 ## Building
 

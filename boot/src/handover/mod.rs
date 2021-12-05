@@ -1,5 +1,9 @@
+use core::mem::size_of;
 use core::mem::transmute;
 
+use alloc::vec;
+use alloc::vec::Vec;
+use bks::EfiMemoryDescriptor;
 use bks::Framebuffer;
 use bks::Handover;
 use bks::Psf1Font;
@@ -9,7 +13,10 @@ use log::info;
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::proto::media::file::File;
+use uefi::table::boot::MemoryDescriptor;
+use uefi::table::boot::MemoryMapKey;
 use uefi::table::boot::MemoryType;
+use uefi::table::Runtime;
 use uefi::Handle;
 
 use crate::load_file;
@@ -79,15 +86,4 @@ pub fn create_font(handle: Handle, mut table: &SystemTable<Boot>) -> Option<Psf1
         .expect_success("Failed to read data into buffer");
     let font = Psf1Font::new(header, glyph_buffer.as_mut_ptr(), buffer_size as usize);
     Some(font)
-}
-
-pub fn create_handover(handle: Handle, mut table: &SystemTable<Boot>) -> Handover {
-    let framebuffer = init_gop(handle, table);
-    info!("{}", framebuffer);
-    let font = match create_font(handle, table) {
-        Some(t) => t,
-        None => panic!("Failed to find font"),
-    };
-    info!("Creating font...");
-    Handover::new(framebuffer, font)
 }

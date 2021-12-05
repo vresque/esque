@@ -11,3 +11,4 @@ uefi-services = "0.9.0"
 log = { version = "0.4.14", default-features = false }
 xmas-elf = "0.8.0"
 bks = { path = "../crates/bks" }
+collect_slice = { git = "https://github.com/visionizer/collect_slice" }

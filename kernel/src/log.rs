@@ -5,7 +5,8 @@ use spin::Mutex;
 use bks::{Framebuffer, Handover, Psf1Font};
 use lazy_static::lazy_static;
 
-pub static mut FRAMEBUFFER_GUARD: MaybeUninit<FramebufferGuard> = MaybeUninit::uninit();
+pub static mut FRAMEBUFFER_GUARD: Mutex<MaybeUninit<FramebufferGuard>> =
+    Mutex::new(MaybeUninit::uninit());
 
 #[repr(u32)]
 pub enum Color {
@@ -155,13 +156,13 @@ impl FramebufferGuard {
 #[macro_export]
 macro_rules! kprintln {
     () => {
-        unsafe { FRAMEBUFFER_GUARD.assume_init_mut().write_str("\n"); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n"); };
     };
     ($($arg:tt)*) => ({
         use crate::log::FRAMEBUFFER_GUARD;
         use core::fmt::Write;
 
-        unsafe { FRAMEBUFFER_GUARD.assume_init_mut().write_fmt(format_args_nl!($($arg)*)); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args_nl!($($arg)*)); };
     })
 }
 
@@ -171,8 +172,21 @@ macro_rules! kprint {
         use crate::log::FRAMEBUFFER_GUARD;
         use core::fmt::Write;
 
-        unsafe { FRAMEBUFFER_GUARD.assume_init_mut().write_fmt(format_args!($($arg)*)); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args!($($arg)*)); };
     })
+}
+
+#[macro_export]
+macro_rules! kcolorchange {
+    (bg: $bg:expr, fg: $fg:expr) => {{
+        use crate::log::FRAMEBUFFER_GUARD;
+        unsafe {
+            FRAMEBUFFER_GUARD
+                .lock()
+                .assume_init_mut()
+                .set_color($bg, $fg);
+        }
+    }};
 }
 
 impl Write for FramebufferGuard {

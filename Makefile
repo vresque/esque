@@ -1,5 +1,5 @@
 ARCH ?= x86_64
-MEMLIM ?= 512M
+MEMLIM ?= 2G
 
 OUTDIR = build
 BINDIR = binaries
@@ -17,11 +17,13 @@ QEMUFLAGS = \
 	-drive if=pflash,format=raw,unit=0,file=$(BINDIR)/OVMF/OVMF_CODE.fd,readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(BINDIR)/OVMF/OVMF_VARS.fd \
 	-net none \
-	-serial mon:stdio \
 
 all: kernel boot mkimg run
 
-build: kernel boot mkimg
+build: format kernel boot mkimg
+
+format:
+	cargo fmt
 
 clean:
 #	rust-analyzer may place weird files into target/debug/deps that cannot be removed

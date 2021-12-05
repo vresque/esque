@@ -2,19 +2,115 @@
 
 use core::slice;
 
+mod util;
+
+c_like_enum! {
+    pub enum MemoryType: u32 => {
+        ReservedMemory          = 0,
+        LoaderCode              = 1,
+        LoaderData              = 2,
+        BootServicesCode        = 3,
+        BootServicesData        = 4,
+        RuntimeServicesCode     = 5,
+        RuntimeServicesData     = 6,
+        ConventialMemory        = 7,
+        UnusableMemory          = 8,
+        ACPIReclaimMemory       = 9,
+        ACPIMemoryNVS           = 10,
+        MemoryMappedIO          = 11,
+        MemoryMappedIOPortSpace = 12,
+        PalCode                 = 13,
+        PersistentMemory        = 14,
+        EmptyTemporaryMemory    = 254,
+    }
+}
+
+impl MemoryType {
+    pub fn custom(val: u32) -> Self {
+        Self(val)
+    }
+}
+
+// From https://github.com/rust-osdev/uefi-rs/blob/master/src/table/boot.rs#L1072-L1099
+bitflags::bitflags! {
+    pub struct MemoryAttribute: u64 {
+        const Unreachable           = 0x1;
+        const WriteCombine          = 0x2;
+        const WriteThrough          = 0x4;
+        const WriteBack             = 0x8;
+        const UnreachableExported   = 0x10;
+        const WriteProtect          = 0x1000;
+        const ReadProtect           = 0x2000;
+        const ExecuteProtect        = 0x4000;
+        const NonVolatile           = 0x8000;
+        const MoreReliable          = 0x10000;
+        const ReadOnly              = 0x20000;
+        const Runtime               = 0x8000_0000_0000_000;
+    }
+}
+
+#[derive(Eq, PartialEq, Clone, Copy)]
+#[repr(C)]
+pub struct EfiMemoryDescriptor {
+    pub ty: MemoryType,
+    // So that we can mem::transmute the other descriptor
+    padding: u32,
+    pub phys_base: u64,
+    pub virt_base: u64,
+    pub page_count: u64,
+    pub attributes: MemoryAttribute,
+}
+
+impl EfiMemoryDescriptor {
+    pub fn empty() -> Self {
+        Self {
+            ty: MemoryType::EmptyTemporaryMemory,
+            padding: 0,
+            phys_base: 0,
+            virt_base: 0,
+            page_count: 0,
+            attributes: MemoryAttribute::Unreachable,
+        }
+    }
+}
+
+impl core::fmt::Debug for EfiMemoryDescriptor {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "EfiMemoryDescriptor\n")?;
+        write!(f, "\t::Type: {:#x?}\n", self.ty)?;
+        write!(f, "\t::Base: {:#8x?}\n", self.phys_base)?;
+        write!(f, "\t::Virt: {:#8x?}\n", self.virt_base)?;
+        write!(f, "\t::Pages: {:#x?}\n", self.page_count)?;
+        write!(f, "\t::Attrs: {:#?}\n", self.attributes)?;
+        Ok(())
+    }
+}
+
 pub struct Handover {
     // Must always be 42: If not, a bad bootloader was used
     checknum: u32,
     framebuffer: Framebuffer,
     font: Psf1Font,
+    mmap_size: usize,
+    memory_map: *mut EfiMemoryDescriptor,
+    pub mmap_entries: usize,
 }
 
 impl Handover {
-    pub fn new(fb: Framebuffer, font: Psf1Font) -> Self {
+    pub fn new(
+        fb: Framebuffer,
+        font: Psf1Font,
+        mmap: *mut EfiMemoryDescriptor,
+        mmap_size: usize,
+        mmap_entries: usize,
+    ) -> Self {
         Self {
             checknum: 42,
             framebuffer: fb,
             font: font,
+            memory_map: mmap,
+            mmap_size: mmap_size,
+            mmap_entries: mmap_entries,
         }
     }
 
@@ -28,6 +124,22 @@ impl Handover {
 
     pub fn font(&mut self) -> &mut Psf1Font {
         &mut self.font
+    }
+
+    pub fn memory_map(&mut self) -> &[EfiMemoryDescriptor] {
+        unsafe { self.retrieve_memory_map() }
+    }
+
+    pub fn memory_map_mut(&mut self) -> &mut [EfiMemoryDescriptor] {
+        unsafe { self.retrieve_memory_map() }
+    }
+
+    pub fn raw_memory_map(&mut self) -> *mut EfiMemoryDescriptor {
+        self.memory_map
+    }
+
+    unsafe fn retrieve_memory_map(&mut self) -> &mut [EfiMemoryDescriptor] {
+        core::slice::from_raw_parts_mut(self.memory_map, self.mmap_entries)
     }
 }
 

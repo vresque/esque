@@ -11,7 +11,7 @@ use core::{
 };
 mod init;
 mod log;
-use bks::Handover;
+use bks::{EfiMemoryDescriptor, Handover};
 use init::common::init_common;
 use log::Color;
 
@@ -22,9 +22,21 @@ static mut COUNTER: u32 = 0;
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init_common(&mut handover);
-    kprintln!("Hello, (Lol). Here is an int {}", 23);
     kprintln!("Hello, World!");
-    let x: &str = Err("D").unwrap();
+    kprintln!("Entries: {}", handover.mmap_entries);
+    for ent in handover.memory_map() {
+        kcolorchange!(bg: Color::Black, fg: Color::White);
+        kprint!("{:#?}", ent.ty);
+        kcolorchange!(bg: Color::Black, fg: Color::Purple);
+        kprint!(
+            " {}kb = {}mb = {}gb\n",
+            ent.page_count * 4096 / 1024,
+            ent.page_count * 4096 / 1024 / 1024,
+            ent.page_count * 4096 / 1024 / 1024 / 1024,
+        );
+    }
+
+    panic!("Oh no... Something happened!");
     loop {}
 }
 
@@ -36,6 +48,7 @@ fn panic_handler(info: &PanicInfo) -> ! {
 
     unsafe {
         FRAMEBUFFER_GUARD
+            .lock()
             .assume_init_mut()
             .set_color(0x0827F5_u32, 0xfac102_u32)
     }
@@ -44,26 +57,28 @@ fn panic_handler(info: &PanicInfo) -> ! {
         None => ("Unknown", 0, 0),
     };
     unsafe {
+        let width = FRAMEBUFFER_GUARD.lock().assume_init_mut().resolution().0;
+        let height = FRAMEBUFFER_GUARD.lock().assume_init_mut().resolution().1;
         FRAMEBUFFER_GUARD
+            .lock()
             .assume_init_mut()
             .clear_color(0x0827F5_u32);
 
-        let by_how_much = if FRAMEBUFFER_GUARD.assume_init_mut().resolution().0 / 2 > 200 && FRAMEBUFFER_GUARD.assume_init_mut().resolution().1 / 2 > 200 {
+        let by_how_much = if width / 2 > 200 && height / 2 > 200 {
             200_usize
         } else {
             0_usize
         };
 
-        FRAMEBUFFER_GUARD.assume_init_mut().set_location(
-            FRAMEBUFFER_GUARD.assume_init_mut().resolution().1 / 2 - by_how_much,
-            FRAMEBUFFER_GUARD.assume_init_mut().resolution().0 / 2 - by_how_much,
-        );
+        FRAMEBUFFER_GUARD
+            .lock()
+            .assume_init_mut()
+            .set_location(height / 2 - by_how_much, width / 2 - by_how_much);
 
         FRAMEBUFFER_GUARD
+            .lock()
             .assume_init_mut()
-            .set_column_starting_point(
-                FRAMEBUFFER_GUARD.assume_init_mut().resolution().0 / 2 - by_how_much,
-            );
+            .set_column_starting_point(width / 2 - by_how_much);
     }
 
     kprintln!("*+~*+~*+~*+~*+~*+~*+~*+~*+~ Kernel Panic *+~*+~*+~*+~*+~*+~*+~*+~");
@@ -77,6 +92,7 @@ fn panic_handler(info: &PanicInfo) -> ! {
         kprint!("\t-> ");
         unsafe {
             FRAMEBUFFER_GUARD
+                .lock()
                 .assume_init_mut()
                 .write_fmt(*args)
                 .unwrap()
