@@ -5,7 +5,7 @@ OUTDIR = build
 BINDIR = binaries
 FINAL = Esque.img
 FPATH = $(OUTDIR)/$(FINAL)
-MODE ?= release
+MODE ?= debug
 
 QEMU = qemu-system-$(ARCH)
 QEMUFLAGS = \
@@ -16,7 +16,7 @@ QEMUFLAGS = \
 	-cpu host \
 	-drive if=pflash,format=raw,unit=0,file=$(BINDIR)/OVMF/OVMF_CODE.fd,readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(BINDIR)/OVMF/OVMF_VARS.fd \
-	-net none \
+	-net none -d int \
 
 all: kernel boot strip mkimg run
 

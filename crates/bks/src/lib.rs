@@ -94,7 +94,7 @@ pub struct Handover {
     framebuffer: Framebuffer,
     font: Psf1Font,
     #[allow(unused)]
-    mmap_size: usize,
+    pub mmap_size: usize,
     memory_map: *mut EfiMemoryDescriptor,
     pub mmap_entries: usize,
 }

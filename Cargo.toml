@@ -10,3 +10,6 @@ members = [
 
 [profile.release]
 strip = true
+
+[profile.dev]
+strip = true

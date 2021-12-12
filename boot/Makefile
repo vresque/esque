@@ -8,4 +8,5 @@ endif
 
 
 build:
+	echo $(CARGO_ADDITIONAL)
 	@cargo build --target ../.targets/$(ARCH)/boot.json $(CARGO_ADDITIONAL)
