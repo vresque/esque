@@ -1,6 +1,12 @@
+cargo-features = [ "strip" ]
+
+
 [workspace]
 members = [
     "boot",
     "kernel",
     "crates/*"
 ]
+
+[profile.release]
+strip = true

@@ -5,7 +5,7 @@ OUTDIR = build
 BINDIR = binaries
 FINAL = Esque.img
 FPATH = $(OUTDIR)/$(FINAL)
-MODE ?= debug
+MODE ?= release
 
 QEMU = qemu-system-$(ARCH)
 QEMUFLAGS = \
@@ -18,9 +18,9 @@ QEMUFLAGS = \
 	-drive if=pflash,format=raw,unit=1,file=$(BINDIR)/OVMF/OVMF_VARS.fd \
 	-net none \
 
-all: kernel boot mkimg run
+all: kernel boot strip mkimg run
 
-build: format kernel boot mkimg
+build: format kernel boot strip mkimg
 
 format:
 	cargo fmt
@@ -34,23 +34,30 @@ clean:
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel build ARCH=$(ARCH)
-	cp target/kernel/$(MODE)/kernel $(OUTDIR)/esque
+	@$(MAKE) -C kernel build ARCH=$(ARCH) MODE=$(MODE)
+	@cp target/kernel/$(MODE)/kernel $(OUTDIR)/esque
 
 .PHONY: boot
 boot:
-	$(MAKE) -C boot build ARCH=$(ARCH)
-	cp target/boot/$(MODE)/boot.efi $(OUTDIR)/BOOTX64.EFI
+	@$(MAKE) -C boot build ARCH=$(ARCH) MODE=$(MODE)
+	@cp target/boot/$(MODE)/boot.efi $(OUTDIR)/BOOTX64.EFI 
+
+
+.PHONY: strip
+strip:
+	@strip $(OUTDIR)/esque
+	@strip $(OUTDIR)/BOOTX64.EFI
+
 
 mkimg:
-	dd if=/dev/zero of=$(FPATH) bs=512 count=93750
-	mkfs.vfat -F 32 $(FPATH)
-	mmd -i $(FPATH) ::/EFI
-	mmd -i $(FPATH) ::/EFI/BOOT
-	mcopy -i $(FPATH) $(OUTDIR)/BOOTX64.EFI ::/EFI/BOOT
-	mcopy -i $(FPATH) $(OUTDIR)/esque ::
-	mcopy -i $(FPATH) $(BINDIR)/font/font.psf ::
-	mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
+	@dd if=/dev/zero of=$(FPATH) bs=512 count=93750
+	@mkfs.vfat -F 32 $(FPATH)
+	@mmd -i $(FPATH) ::/EFI
+	@mmd -i $(FPATH) ::/EFI/BOOT
+	@mcopy -i $(FPATH) $(OUTDIR)/BOOTX64.EFI ::/EFI/BOOT
+	@mcopy -i $(FPATH) $(OUTDIR)/esque ::
+	@mcopy -i $(FPATH) $(BINDIR)/font/font.psf ::
+	@mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
 
 run:
 	$(QEMU) $(QEMUFLAGS)
