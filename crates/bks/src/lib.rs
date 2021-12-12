@@ -4,6 +4,8 @@ use core::slice;
 
 mod util;
 
+pub const PAGE_SIZE: u64 = 4096;
+
 c_like_enum! {
     pub enum MemoryType: u32 => {
         ReservedMemory          = 0,

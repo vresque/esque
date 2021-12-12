@@ -5,27 +5,16 @@ use spin::Mutex;
 
 use crate::kprintln;
 
-pub static BITMAP: Mutex<MaybeUninit<Bitmap<EfiMemoryDescriptor>>> =
-    Mutex::new(MaybeUninit::uninit());
-
 #[derive(Debug)]
-pub struct Bitmap<T>
-where
-    T: 'static,
-{
-    base: u64,
-    map: &'static mut [T],
-    entries: usize,
-    size: usize,
+pub struct Bitmap {
+    pub base: u64,
+    pub size: usize,
 }
 
-impl<T> Bitmap<T> {
-    pub fn new(base: *mut u8, entries: usize, size: usize) -> Self {
-        let array = unsafe { core::slice::from_raw_parts_mut(base as *mut u8 as *mut T, entries) };
+impl Bitmap {
+    pub fn new(base: *mut u8, size: usize) -> Self {
         Self {
             base: base as u64,
-            map: array,
-            entries: entries,
             size,
         }
     }
@@ -43,7 +32,7 @@ impl<T> Bitmap<T> {
     }
 }
 
-impl<T> core::ops::Index<usize> for Bitmap<T> {
+impl core::ops::Index<usize> for Bitmap {
     type Output = bool;
     fn index(&self, idx: usize) -> &Self::Output {
         let byte_index = idx / 8;
@@ -55,27 +44,6 @@ impl<T> core::ops::Index<usize> for Bitmap<T> {
             } else {
                 return &false;
             }
-        }
-    }
-}
-
-impl Bitmap<EfiMemoryDescriptor> {
-    pub fn total_memory(&mut self) -> u64 {
-        static mut mem_sz_bytes: u64 = 0;
-        // If calculated before, just return it
-        if unsafe { mem_sz_bytes } > 0 {
-            unsafe {
-                return mem_sz_bytes;
-            }
-        }
-        let mut sum_of_mem_sizes = 0;
-        for i in self.map.iter() {
-            sum_of_mem_sizes += i.page_count;
-        }
-
-        unsafe {
-            mem_sz_bytes = sum_of_mem_sizes;
-            mem_sz_bytes
         }
     }
 }
