@@ -1,6 +1,6 @@
 use crate::{
+    framebuffer::{Color, FramebufferGuard, FRAMEBUFFER_GUARD},
     kprintln,
-    log::{Color, FramebufferGuard, FRAMEBUFFER_GUARD},
 };
 use bks::Handover;
 

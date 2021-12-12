@@ -103,6 +103,10 @@ impl FramebufferGuard {
         self.background = background.into();
     }
 
+    pub fn get_color(&mut self) -> (u32, u32) {
+        (self.background, self.foreground)
+    }
+
     pub fn set_location(&mut self, row: usize, col: usize) {
         self.row = row;
         self.col = col;
@@ -156,42 +160,6 @@ impl FramebufferGuard {
     }
 }
 
-#[macro_export]
-macro_rules! kprintln {
-    () => {
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n").unwrap(); };
-    };
-    ($($arg:tt)*) => ({
-        use crate::log::FRAMEBUFFER_GUARD;
-        use core::fmt::Write;
-
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args_nl!($($arg)*)).unwrap(); }
-    })
-}
-
-#[macro_export]
-macro_rules! kprint {
-    ($($arg:tt)*) => ({
-        use crate::log::FRAMEBUFFER_GUARD;
-        use core::fmt::Write;
-
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args!($($arg)*)).unwrap(); };
-    })
-}
-
-#[macro_export]
-macro_rules! kcolorchange {
-    (bg: $bg:expr, fg: $fg:expr) => {{
-        use crate::log::FRAMEBUFFER_GUARD;
-        unsafe {
-            FRAMEBUFFER_GUARD
-                .lock()
-                .assume_init_mut()
-                .set_color($bg, $fg);
-        }
-    }};
-}
-
 pub fn clear_screen<T>(color: T)
 where
     T: Into<u32>,
@@ -220,6 +188,78 @@ impl Write for FramebufferGuard {
         unsafe {
             self.print(s);
         };
+
         Ok(())
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// ------------------------------------ Macros ----------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////
+#[macro_export]
+macro_rules! kprintln {
+    () => {
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n").unwrap(); };
+    };
+    ($($arg:tt)*) => ({
+        use crate::framebuffer::FRAMEBUFFER_GUARD;
+        use core::fmt::Write;
+
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args_nl!($($arg)*)).unwrap(); }
+    })
+}
+
+#[macro_export]
+macro_rules! kprint {
+    ($($arg:tt)*) => ({
+        use crate::framebuffer::FRAMEBUFFER_GUARD;
+        use core::fmt::Write;
+
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args!($($arg)*)).unwrap(); };
+    })
+}
+
+#[macro_export]
+macro_rules! kinfo {
+    ($($arg:tt)*) => ({
+        kprint!("[ INFO ][{}:{}:{}] -> ", file!(), line!(), column!());
+        kprintln!($($arg)*);
+    })
+}
+
+#[macro_export]
+macro_rules! kemerg {
+    ($($arg:tt)*) => ({
+        kcolorchange!()
+        kprint!("[ INFO ][{}:{}:{}] -> ", file!(), line!(), column!());
+        kprintln!($($arg)*);
+    })
+}
+
+#[macro_export]
+macro_rules! kcolorchange {
+    (bg: $bg:expr, fg: $fg:expr) => {{
+        use crate::framebuffer::FRAMEBUFFER_GUARD;
+        unsafe {
+            FRAMEBUFFER_GUARD
+                .lock()
+                .assume_init_mut()
+                .set_color($bg, $fg);
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! kscopedcolorchange {
+    (bg: $bg:expr, fg: $fg:expr => $blck:block) => {{
+        use crate::framebuffer::FRAMEBUFFER_GUARD;
+        let old = unsafe {
+            FRAMEBUFFER_GUARD.lock().assume_init_mut().get_color()
+        };
+        kcolorchange!(bg: $bg, fg: $fg);
+        {
+            $blck
+        }
+        kcolorchange!(bg: old.0, fg: old.1);
+    }};
 }

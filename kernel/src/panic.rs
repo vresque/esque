@@ -1,5 +1,6 @@
-use crate::log::clear_screen;
-use crate::log::FRAMEBUFFER_GUARD;
+use crate::framebuffer::clear_screen;
+use crate::framebuffer::FRAMEBUFFER_GUARD;
+use crate::kcolorchange;
 use crate::{kprint, kprintln};
 use core::panic::PanicInfo;
 
@@ -9,12 +10,8 @@ fn panic_handler(info: &PanicInfo) -> ! {
     // This is the last thing that this OS does - It does not have to be performant
     use core::fmt::Write;
 
-    unsafe {
-        FRAMEBUFFER_GUARD
-            .lock()
-            .assume_init_mut()
-            .set_color(0x0827F5_u32, 0xfac102_u32)
-    }
+    kcolorchange!(bg: 0x0827F5_u32, fg: 0xfac102_u32);
+
     let (file, line, col) = match info.location() {
         Some(loc) => (loc.file(), loc.line(), loc.column()),
         None => ("Unknown", 0, 0),

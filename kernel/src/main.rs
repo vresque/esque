@@ -5,8 +5,8 @@
 #![feature(format_args_nl)]
 #![feature(asm)]
 
+mod framebuffer;
 mod init;
-mod log;
 mod panic;
 use bks::Handover;
 
@@ -14,5 +14,10 @@ use bks::Handover;
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::common::init_common(&mut handover);
     init::memory::init_memory(&mut handover);
+    kinfo!("Lol");
+    kscopedcolorchange!(bg: framebuffer::Color::Red, fg: framebuffer::Color::White => {
+        { kprintln!("Lol!"); }
+    });
+    kprintln!("Scope ended here!");
     loop {}
 }

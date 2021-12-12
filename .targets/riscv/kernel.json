@@ -1,19 +1,19 @@
 {
-    "llvm-target": "x86_64-unknown-none",
+    "llvm-target": "riscv64-unknown-none",
     "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
-    "arch": "x86_64",
+    "arch": "riscv64",
+    "cpu": "generic-rv64",
     "target-endian": "little",
     "target-pointer-width": "64",
     "target-c-int-width": "32",
     "os": "none",
     "executables": true,
     "linker-flavor": "ld.lld",
-    "code-model": "kernel",
     "linker": "rust-lld",
     "pre-link-args": {
         "ld.lld": [
             "--gc-sections",
-            "--script=.targets/x86_64/kernel.lds",
+            "--script=.targets/riscv/kernel.lds",
             "-ekmain"
         ]
     },
