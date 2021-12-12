@@ -33,19 +33,20 @@ impl MemoryType {
 
 // From https://github.com/rust-osdev/uefi-rs/blob/master/src/table/boot.rs#L1072-L1099
 bitflags::bitflags! {
+    #[allow(non_upper_case_globals)]
     pub struct MemoryAttribute: u64 {
-        const Unreachable           = 0x1;
-        const WriteCombine          = 0x2;
-        const WriteThrough          = 0x4;
-        const WriteBack             = 0x8;
-        const UnreachableExported   = 0x10;
-        const WriteProtect          = 0x1000;
-        const ReadProtect           = 0x2000;
-        const ExecuteProtect        = 0x4000;
-        const NonVolatile           = 0x8000;
-        const MoreReliable          = 0x10000;
-        const ReadOnly              = 0x20000;
-        const Runtime               = 0x8000_0000_0000_000;
+        const UNREACHABLE           = 0x1;
+        const WRITE_COMBINE          = 0x2;
+        const WRITE_THROUGH          = 0x4;
+        const WRITE_BACK             = 0x8;
+        const UNREACHABLE_EXPORTED   = 0x10;
+        const WRITE_PROTECT          = 0x1000;
+        const READ_PROTECT           = 0x2000;
+        const EXECUTE_PROTECT        = 0x4000;
+        const NON_VOLATILE           = 0x8000;
+        const MORE_READABLE          = 0x10000;
+        const READ_ONLY              = 0x20000;
+        const RUNTIME               = 0x8000_0000_0000_000;
     }
 }
 
@@ -69,7 +70,7 @@ impl EfiMemoryDescriptor {
             phys_base: 0,
             virt_base: 0,
             page_count: 0,
-            attributes: MemoryAttribute::Unreachable,
+            attributes: MemoryAttribute::UNREACHABLE,
         }
     }
 }
@@ -86,11 +87,13 @@ impl core::fmt::Debug for EfiMemoryDescriptor {
     }
 }
 
+#[repr(C)]
 pub struct Handover {
     // Must always be 42: If not, a bad bootloader was used
     checknum: u32,
     framebuffer: Framebuffer,
     font: Psf1Font,
+    #[allow(unused)]
     mmap_size: usize,
     memory_map: *mut EfiMemoryDescriptor,
     pub mmap_entries: usize,
@@ -144,6 +147,7 @@ impl Handover {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[repr(C)]
 pub struct Psf1Header {
     pub magic: [u8; 2],
     pub mode: u8,
@@ -157,17 +161,19 @@ impl Psf1Header {
 }
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub struct Psf1Font {
     pub header: Psf1Header,
-    pub buffer: *mut u8,
+    pub buffer: u32,
     pub size: usize,
 }
 
 impl Psf1Font {
     pub fn new(header: Psf1Header, buffer: *mut u8, size: usize) -> Self {
+        let cast = buffer as u32;
         Self {
             header,
-            buffer,
+            buffer: cast,
             size,
         }
     }
@@ -185,13 +191,14 @@ impl Psf1Font {
     }
 
     unsafe fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
-        slice::from_raw_parts_mut(self.buffer, self.size)
+        slice::from_raw_parts_mut(self.buffer as *mut u8, self.size)
     }
 }
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub struct Framebuffer {
-    base: *mut u8,
+    base: u64,
     size: usize,
     pub width: usize,
     pub height: usize,
@@ -199,7 +206,7 @@ pub struct Framebuffer {
 }
 
 impl Framebuffer {
-    pub fn new(base: *mut u8, size: usize, width: usize, height: usize, stride: usize) -> Self {
+    pub fn new(base: u64, size: usize, width: usize, height: usize, stride: usize) -> Self {
         Self {
             base,
             size,
@@ -210,7 +217,7 @@ impl Framebuffer {
     }
 
     pub fn raw_buffer(&mut self) -> *mut u8 {
-        self.base
+        self.base as *mut u8
     }
 
     pub fn buffer(&self) -> &[u8] {
@@ -231,18 +238,18 @@ impl Framebuffer {
     }
 
     unsafe fn retrieve_buffer<'a>(&self) -> &'a mut [u8] {
-        slice::from_raw_parts_mut(self.base, self.size)
+        slice::from_raw_parts_mut(self.base as *mut u8, self.size)
     }
 }
 
 impl core::fmt::Display for Framebuffer {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        writeln!(f, "Framebuffer Information: ");
-        writeln!(f, "   Base Address: {:#x?}", self.base);
-        writeln!(f, "   Size: {:#x}", self.size);
-        writeln!(f, "   Width: {}", self.width);
-        writeln!(f, "   Height: {}", self.height);
-        writeln!(f, "   Stride: {}", self.stride);
+        writeln!(f, "Framebuffer Information: ")?;
+        writeln!(f, "   Base Address: {:#x?}", self.base)?;
+        writeln!(f, "   Size: {:#x}", self.size)?;
+        writeln!(f, "   Width: {}", self.width)?;
+        writeln!(f, "   Height: {}", self.height)?;
+        writeln!(f, "   Stride: {}", self.stride)?;
         Ok(())
     }
 }

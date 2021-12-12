@@ -1,22 +1,11 @@
-use core::mem::size_of;
-use core::mem::transmute;
-
-use alloc::vec;
-use alloc::vec::Vec;
-use bks::EfiMemoryDescriptor;
 use bks::Framebuffer;
-use bks::Handover;
 use bks::Psf1Font;
 use bks::Psf1Header;
 use log::error;
 use log::info;
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
-use uefi::proto::media::file::File;
-use uefi::table::boot::MemoryDescriptor;
-use uefi::table::boot::MemoryMapKey;
 use uefi::table::boot::MemoryType;
-use uefi::table::Runtime;
 use uefi::Handle;
 
 use crate::load_file;
@@ -24,7 +13,7 @@ use crate::load_file;
 const PSF1_MAGIC0: u8 = 0x36;
 const PSF1_MAGIC1: u8 = 0x04;
 
-pub fn init_gop(handle: Handle, mut table: &SystemTable<Boot>) -> Framebuffer {
+pub fn init_gop(_handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
     let gop = unsafe {
         &mut *(table
             .boot_services()
@@ -34,7 +23,7 @@ pub fn init_gop(handle: Handle, mut table: &SystemTable<Boot>) -> Framebuffer {
     };
 
     Framebuffer::new(
-        gop.frame_buffer().as_mut_ptr(),
+        gop.frame_buffer().as_mut_ptr() as u64,
         gop.frame_buffer().size(),
         gop.current_mode_info().resolution().0,
         gop.current_mode_info().resolution().1,
@@ -42,7 +31,7 @@ pub fn init_gop(handle: Handle, mut table: &SystemTable<Boot>) -> Framebuffer {
     )
 }
 
-pub fn create_font(handle: Handle, mut table: &SystemTable<Boot>) -> Option<Psf1Font> {
+pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font> {
     let file = &mut load_file(None, "font.psf", handle, table).unwrap();
 
     let ptr = table

@@ -22,6 +22,8 @@ macro_rules! c_like_enum {
         impl $name_of_enum {
             // Each variant is a const with the value of $name_of_enum and inner of value
             $(
+                // Allow it to be "Enum-Like" instead of "Const-Like"
+                #[allow(non_upper_case_globals)]
                 $(#[$attributes_of_variant])*
                 pub const $name_of_variant: $name_of_enum = $name_of_enum($value_of_variant);
             )*

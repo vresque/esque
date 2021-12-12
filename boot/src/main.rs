@@ -13,11 +13,8 @@ use core::mem::size_of;
 use crate::alloc::vec::Vec;
 use alloc::vec;
 use bks::{EfiMemoryDescriptor, Handover};
-use collect_slice::CollectSlice;
-use collect_slice::*;
 use log::{error, info};
 use uefi::{
-    alloc::Allocator,
     prelude::*,
     proto::{
         loaded_image::LoadedImage,
@@ -26,10 +23,7 @@ use uefi::{
             fs::SimpleFileSystem,
         },
     },
-    table::{
-        boot::{AllocateType, MemoryDescriptor, MemoryType},
-        runtime::ResetType,
-    },
+    table::boot::{AllocateType, MemoryDescriptor, MemoryType},
 };
 use xmas_elf::{
     header::sanity_check,
@@ -41,7 +35,7 @@ pub fn load_file<'a>(
     dir: Option<Directory>,
     path: &str,
     handle: Handle,
-    mut table: &SystemTable<Boot>,
+    table: &SystemTable<Boot>,
 ) -> Result<RegularFile, Status> {
     let loaded_img = unsafe {
         &mut *(table
@@ -60,7 +54,7 @@ pub fn load_file<'a>(
     };
 
     let mut directory = match dir {
-        Some(mut d) => d,
+        Some(d) => d,
         None => filesystem
             .open_volume()
             .expect_success("Failed to open root volume"),
@@ -69,7 +63,7 @@ pub fn load_file<'a>(
     let filehandle = match directory.open(path, FileMode::Read, FileAttribute::READ_ONLY) {
         Ok(fh) => fh.unwrap(),
         Err(e) => {
-            error!("Failed to open file '{}'", path);
+            error!("Failed to open file '{}'\nError: {:?}", path, e);
             return Err(Status::NOT_FOUND);
         }
     };
@@ -77,7 +71,7 @@ pub fn load_file<'a>(
     Ok(unsafe { RegularFile::new(filehandle) })
 }
 
-pub fn load_kernel(mut kfile: RegularFile, mut table: &SystemTable<Boot>) -> Result<u64, Status> {
+pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<u64, Status> {
     let mut info_buf: [u8; 512] = [0; 512];
     let info = kfile
         .get_info::<FileInfo>(&mut info_buf)
@@ -159,10 +153,10 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     }
 
     info!("Loading Kernel... (/esque)");
-    let mut kernel = match load_file(None, "esque", handle, &mut table) {
+    let kernel = match load_file(None, "esque", handle, &mut table) {
         Ok(k) => k,
         Err(e) => {
-            error!("Failed to find kernel!");
+            error!("Failed to find kernel!\n Error: {:?}", e);
             return e;
         }
     };
@@ -180,10 +174,10 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
 
     let mmap_size: usize = table.boot_services().memory_map_size();
     let buf_size: usize = mmap_size + 8 * size_of::<MemoryDescriptor>();
-    let mut buffer = vec![0_u8; buf_size];
+    let buffer = vec![0_u8; buf_size];
     info!("{}", buffer.len());
 
-    let mut descriptors: &mut [EfiMemoryDescriptor; 255] = &mut [EfiMemoryDescriptor::empty(); 255];
+    let descriptors: &mut [EfiMemoryDescriptor; 255] = &mut [EfiMemoryDescriptor::empty(); 255];
 
     let mmap_sz = table.boot_services().memory_map_size();
     let mmap_storage = {
@@ -203,7 +197,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         None => panic!("Failed to find font"),
     };
 
-    let (rt_table, memory_map) = table
+    let (_rt_table, memory_map) = table
         .exit_boot_services(handle, mmap_storage)
         .expect_success("Failed to exit boot services");
 
@@ -227,6 +221,10 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         count + 1
     });
 
+    // I am not sure about this
+    // But, as the kernel uses it as mut, I do not wish
+    // that this is ever placed into readonly-memory
+    #[allow(unused_mut)]
     let mut handover = Handover::new(
         framebuffer,
         font,

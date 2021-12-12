@@ -1,14 +1,16 @@
-use core::{cell::UnsafeCell, fmt::Write, mem::MaybeUninit};
+use core::{fmt::Write, mem::MaybeUninit};
 
 use spin::Mutex;
 
-use bks::{Framebuffer, Handover, Psf1Font};
-use lazy_static::lazy_static;
+use bks::{Framebuffer, Psf1Font};
 
-pub static mut FRAMEBUFFER_GUARD: Mutex<MaybeUninit<FramebufferGuard>> =
+// DISCUSS: Should Option be used here?
+pub static FRAMEBUFFER_GUARD: Mutex<MaybeUninit<FramebufferGuard>> =
     Mutex::new(MaybeUninit::uninit());
 
 #[repr(u32)]
+// Not all colours are constructed
+#[allow(dead_code)]
 pub enum Color {
     Black = 0x00000000,
     White = 0xffffffff,
@@ -33,7 +35,7 @@ impl Into<u32> for Color {
 
 pub struct FramebufferGuard {
     framebuffer: Framebuffer,
-    framebuffer_buffer: *mut u32,
+    framebuffer_buffer: u32,
     font: Psf1Font,
     col: usize,
     row: usize,
@@ -45,12 +47,12 @@ pub struct FramebufferGuard {
 impl FramebufferGuard {
     pub fn new(
         mut framebuffer: Framebuffer,
-        mut font: Psf1Font,
+        font: Psf1Font,
         background: Color,
         foreground: Color,
     ) -> Self {
         Self {
-            framebuffer_buffer: framebuffer.raw_buffer() as *mut u32,
+            framebuffer_buffer: framebuffer.raw_buffer() as *mut u32 as u32,
             framebuffer: framebuffer,
             font: font,
             row: 20,
@@ -106,6 +108,8 @@ impl FramebufferGuard {
         self.col = col;
     }
 
+    // DISCUSS: Should printing be considered unsafe?
+    // In theory, we can ensure that nothing goes wrong, in practice that cannot be asserted
     pub unsafe fn print(&mut self, str: &str) {
         for c in str.chars() {
             match c {
@@ -114,7 +118,7 @@ impl FramebufferGuard {
                     self.row += 16;
                 }
                 '\t' => {
-                    for i in 0..4 {
+                    for _ in 0..4 {
                         self.draw_char(' ');
                     }
                 }
@@ -135,13 +139,12 @@ impl FramebufferGuard {
         let charsize = self.font.header().charsize as usize;
         let stride = self.framebuffer.stride;
         let font_offset = (chr as u8 as usize * charsize) as usize;
-        let mut font_ptr = self.font.buffer.add(font_offset);
-        let mut index = 0;
+        let mut font_ptr = (self.font.buffer as *mut u8).add(font_offset);
 
         for y in self.row..(self.row + 16) {
             for x in self.col..(self.col + 8) {
                 let offset = x + (y * stride);
-                let ptr = self.framebuffer_buffer.add(offset);
+                let ptr = (self.framebuffer_buffer as *mut u32).add(offset);
                 if (*font_ptr & (0b10000000 >> (x - self.col))) > 0 {
                     *ptr = self.foreground;
                 } else {
@@ -156,13 +159,13 @@ impl FramebufferGuard {
 #[macro_export]
 macro_rules! kprintln {
     () => {
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n"); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n").unwrap(); };
     };
     ($($arg:tt)*) => ({
         use crate::log::FRAMEBUFFER_GUARD;
         use core::fmt::Write;
 
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args_nl!($($arg)*)); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args_nl!($($arg)*)).unwrap(); }
     })
 }
 
@@ -172,7 +175,7 @@ macro_rules! kprint {
         use crate::log::FRAMEBUFFER_GUARD;
         use core::fmt::Write;
 
-        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args!($($arg)*)); };
+        unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_fmt(format_args!($($arg)*)).unwrap(); };
     })
 }
 
@@ -187,6 +190,22 @@ macro_rules! kcolorchange {
                 .set_color($bg, $fg);
         }
     }};
+}
+
+pub fn clear_screen<T>(color: T)
+where
+    T: Into<u32>,
+{
+    unsafe {
+        FRAMEBUFFER_GUARD
+            .lock()
+            .assume_init_mut()
+            .clear_color(color);
+    }
+}
+
+pub fn _screen_width() -> u32 {
+    20 // TODO
 }
 
 impl Write for FramebufferGuard {
