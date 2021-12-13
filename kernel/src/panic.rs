@@ -10,7 +10,7 @@ fn panic_handler(info: &PanicInfo) -> ! {
     // This is the last thing that this OS does - It does not have to be performant
     use core::fmt::Write;
 
-    kcolorchange!(bg: 0x0827F5_u32, fg: 0xfac102_u32);
+    kcolorchange!(bg: 0x020936_u32, fg: 0xfac102_u32);
 
     let (file, line, col) = match info.location() {
         Some(loc) => (loc.file(), loc.line(), loc.column()),
@@ -19,7 +19,7 @@ fn panic_handler(info: &PanicInfo) -> ! {
     unsafe {
         let width = FRAMEBUFFER_GUARD.lock().assume_init_mut().resolution().0;
         let height = FRAMEBUFFER_GUARD.lock().assume_init_mut().resolution().1;
-        clear_screen(0x0827F5_u32);
+        clear_screen(0x020936_u32);
 
         let by_how_much = if width / 2 > 200 && height / 2 > 200 {
             200_usize
