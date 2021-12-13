@@ -26,6 +26,18 @@ To clean, use
 make clean
 ```
 
+## About Unsafe
+While it is true that an operating system without unsafe code is impossible,
+I tried to limit it in here. At any point, 
+```
+make unsafe-counter
+```
+may be invoked which will display information about the unsafe-ness of the code.
+At the time of writing, the following output is produced:
+```
+A total of 52 occurences have been found (1641 LOC, 0 Percent)
+```
+
 ## What is an Exokernel
 
 ## Features

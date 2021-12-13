@@ -63,3 +63,9 @@ mkimg:
 
 run:
 	$(QEMU) $(QEMUFLAGS)
+
+cloc: clean
+	@echo $(shell (( find ./ -name "*.rs" -print0 | xargs -0 cat ) | wc -l ))
+
+unsafe-counter:
+	@printf "A total of %d occurences have been found (%d LOC, %d Percent)\n" $(shell grep -Rnw --include=\*.rs -e "unsafe" | wc -l) $(shell (( find ./ -name "*.rs" -print0 | xargs -0 cat ) | wc -l )) $(shell expr  $(shell grep -Rnw --include=\*.rs -e "unsafe" | wc -l) / $(shell find ./ -name "*.rs" -print0 | xargs -0 cat  | wc -l))
