@@ -71,6 +71,10 @@ impl FramebufferGuard {
         )
     }
 
+    pub fn framebuffer(&mut self) -> &Framebuffer {
+        &self.framebuffer
+    }
+
     pub unsafe fn test(&mut self) {
         self.draw_char('A');
         let w = self.framebuffer.width;

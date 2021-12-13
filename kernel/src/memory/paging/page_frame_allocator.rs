@@ -4,7 +4,7 @@ use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::kprintln;
 
-use super::bitmap::Bitmap;
+use crate::memory::bitmap::Bitmap;
 use spin::Mutex;
 
 pub static PAGE_FRAME_ALLOCATOR: Mutex<MaybeUninit<PageFrameAllocator>> =
@@ -164,9 +164,12 @@ impl<'a> PageFrameAllocator<'a> {
             }
             // Lock Page
             // Get Page Address
+            //kprintln!("Found page at {}", i);
             self.lock_page(i as u64 * PAGE_SIZE);
             return i as u64 * PAGE_SIZE;
         }
+        kprintln!("Out of memory!");
+        panic!("Out of memory!");
         return 0; // TODO: Swap to file
     }
 
