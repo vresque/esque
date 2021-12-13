@@ -5,6 +5,7 @@ KERNEL_OFFSET = 2M;
 SECTIONS
 {
 	. = KERNEL_OFFSET;
+	_KERNEL_START = .;
 	__start = .;
 	. = ALIGN(4K);
     .text :
@@ -53,6 +54,7 @@ SECTIONS
 	}
 
 	__end = .;
+	_KERNEL_END = .;
 
 	/DISCARD/ : {
         *(.comment*)

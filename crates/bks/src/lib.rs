@@ -201,7 +201,7 @@ impl Psf1Font {
 #[repr(C)]
 pub struct Framebuffer {
     base: u64,
-    size: usize,
+    pub size: usize,
     pub width: usize,
     pub height: usize,
     pub stride: usize,

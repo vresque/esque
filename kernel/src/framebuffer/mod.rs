@@ -71,6 +71,14 @@ impl FramebufferGuard {
         )
     }
 
+    pub unsafe fn test(&mut self) {
+        self.draw_char('A');
+        let w = self.framebuffer.width;
+        let h = self.framebuffer.height;
+        let row = self.row;
+        let col = self.col;
+        self.write_fmt(format_args_nl!("W {}, H {} :: R {}, C {}", w, h, row, col));
+    }
     pub unsafe fn clear_color<T>(&mut self, color: T)
     where
         T: Into<u32>,
@@ -120,6 +128,7 @@ impl FramebufferGuard {
                 '\n' => {
                     self.col = self.column_starting_point;
                     self.row += 16;
+                    self.test();
                 }
                 '\t' => {
                     for _ in 0..4 {
@@ -130,11 +139,30 @@ impl FramebufferGuard {
                     self.draw_char(c);
                 }
             }
-
             self.col += 8;
+
+            if self.row == self.framebuffer.height {
+                //self.clear_color(Color::Black);
+                //self.row = 0;
+                //let top_row_max = self.framebuffer.stride * 8;
+                //for offset in 0..top_row_max {
+                //    unsafe { *(self.framebuffer_buffer as *mut u32).add(offset) = 0 }
+                //}
+                //
+                //unsafe {
+                //    core::ptr::copy(
+                //        (self.framebuffer_buffer + top_row_max as u32) as *mut u32,
+                //        self.framebuffer_buffer as *mut u32,
+                //        self.framebuffer.size - top_row_max,
+                //    );
+                //}
+                //self.row -= 1;
+            }
+
             if self.col + 8 > self.framebuffer.width {
                 self.col = self.column_starting_point;
                 self.row += 16;
+                self.test();
             }
         }
     }
