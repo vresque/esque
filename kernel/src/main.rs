@@ -4,6 +4,7 @@
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
 #![feature(asm)]
+#![feature(rustc_private)]
 
 mod framebuffer;
 mod init;

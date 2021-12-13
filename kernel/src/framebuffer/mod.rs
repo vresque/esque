@@ -3,6 +3,7 @@ use core::{fmt::Write, mem::MaybeUninit};
 use spin::Mutex;
 
 use bks::{Framebuffer, Psf1Font};
+extern crate compiler_builtins;
 
 // DISCUSS: Should Option be used here?
 pub static FRAMEBUFFER_GUARD: Mutex<MaybeUninit<FramebufferGuard>> =
@@ -55,11 +56,11 @@ impl FramebufferGuard {
             framebuffer_buffer: framebuffer.raw_buffer() as *mut u32 as u32,
             framebuffer: framebuffer,
             font: font,
-            row: 20,
-            col: 20,
+            row: 0,
+            col: 0,
             background: background as u32,
             foreground: foreground as u32,
-            column_starting_point: 20,
+            column_starting_point: 0,
         }
     }
 
@@ -75,14 +76,7 @@ impl FramebufferGuard {
         &self.framebuffer
     }
 
-    pub unsafe fn test(&mut self) {
-        self.draw_char('A');
-        let w = self.framebuffer.width;
-        let h = self.framebuffer.height;
-        let row = self.row;
-        let col = self.col;
-        self.write_fmt(format_args_nl!("W {}, H {} :: R {}, C {}", w, h, row, col));
-    }
+    pub unsafe fn test(&mut self) {}
     pub unsafe fn clear_color<T>(&mut self, color: T)
     where
         T: Into<u32>,
@@ -129,22 +123,16 @@ impl FramebufferGuard {
         self.row += 16;
         self.new_line_checks();
     }
+
     fn new_line_checks(&mut self) {
-        if self.row == self.framebuffer.height {
-            unsafe {
-                self.clear_color(Color::Cyan);
-            }
-            let top_row_max = self.framebuffer.stride * 8;
-            for offset in 0..top_row_max {
-                unsafe { *(self.framebuffer_buffer as *mut u32).add(offset) = 0 }
-            }
+        if self.row >= self.framebuffer.height {
+            let top_row_max = self.framebuffer.stride * 4 * 16;
 
             unsafe {
-                rlibc::memmove(
-                    self.framebuffer_buffer as *mut u8,
-                    (self.framebuffer_buffer + top_row_max as u32) as *mut u8,
-                    self.framebuffer.size - top_row_max,
-                );
+                let base = self.framebuffer_buffer as u64 + top_row_max as u64;
+                let size = self.framebuffer().size - top_row_max;
+
+                core::ptr::copy(base as *const u8, self.framebuffer_buffer as *mut u8, size);
             }
             self.row -= 1;
         }
@@ -155,27 +143,32 @@ impl FramebufferGuard {
     pub unsafe fn print(&mut self, str: &str) {
         for c in str.chars() {
             match c {
-                '\n' => {
-                    self.new_line();
-                }
-                '\t' => {
-                    for _ in 0..4 {
-                        self.draw_char(' ');
-                    }
-                }
-                _ => {
-                    self.draw_char(c);
-                }
+                c if c.is_ascii() => self.draw_char(c),
+                _ => {}
             }
-            self.col += 8;
-            if self.col + 8 > self.framebuffer.width {
-                self.new_line();
-            }
-            self.new_line_checks();
         }
     }
-
-    unsafe fn draw_char(&mut self, chr: char) {
+    unsafe fn draw_char(&mut self, c: char) {
+        match c {
+            '\n' | '\r' => {
+                self.new_line();
+            }
+            '\t' => {
+                for _ in 0..12 {
+                    self.put_char(' ');
+                }
+            }
+            _ => {
+                self.put_char(c);
+                if self.framebuffer().width == self.col {
+                    self.new_line();
+                } else {
+                    self.col += 8;
+                }
+            }
+        }
+    }
+    unsafe fn put_char(&mut self, chr: char) {
         let charsize = self.font.header().charsize as usize;
         let stride = self.framebuffer.stride;
         let font_offset = (chr as u8 as usize * charsize) as usize;

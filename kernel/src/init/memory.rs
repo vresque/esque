@@ -84,6 +84,7 @@ pub fn init_memory(handover: &mut Handover) {
         let total = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
         for _ in 0..(total) {
             // Virtual = Physical memory
+            kprintln!("{:#x?}", i);
             page_table_manager.map_memory(i, i);
             // Each Page
             i += 0x1000;
