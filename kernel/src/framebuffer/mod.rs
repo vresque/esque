@@ -124,14 +124,39 @@ impl FramebufferGuard {
         self.col = col;
     }
 
+    fn new_line(&mut self) {
+        self.col = self.column_starting_point;
+        self.row += 16;
+        self.new_line_checks();
+    }
+    fn new_line_checks(&mut self) {
+        if self.row == self.framebuffer.height {
+            unsafe {
+                self.clear_color(Color::Cyan);
+            }
+            let top_row_max = self.framebuffer.stride * 8;
+            for offset in 0..top_row_max {
+                unsafe { *(self.framebuffer_buffer as *mut u32).add(offset) = 0 }
+            }
+
+            unsafe {
+                rlibc::memmove(
+                    self.framebuffer_buffer as *mut u8,
+                    (self.framebuffer_buffer + top_row_max as u32) as *mut u8,
+                    self.framebuffer.size - top_row_max,
+                );
+            }
+            self.row -= 1;
+        }
+    }
+
     // DISCUSS: Should printing be considered unsafe?
     // In theory, we can ensure that nothing goes wrong, in practice that cannot be asserted
     pub unsafe fn print(&mut self, str: &str) {
         for c in str.chars() {
             match c {
                 '\n' => {
-                    self.col = self.column_starting_point;
-                    self.row += 16;
+                    self.new_line();
                 }
                 '\t' => {
                     for _ in 0..4 {
@@ -143,29 +168,10 @@ impl FramebufferGuard {
                 }
             }
             self.col += 8;
-
-            if self.row == self.framebuffer.height {
-                //self.clear_color(Color::Black);
-                //self.row = 0;
-                //let top_row_max = self.framebuffer.stride * 8;
-                //for offset in 0..top_row_max {
-                //    unsafe { *(self.framebuffer_buffer as *mut u32).add(offset) = 0 }
-                //}
-                //
-                //unsafe {
-                //    core::ptr::copy(
-                //        (self.framebuffer_buffer + top_row_max as u32) as *mut u32,
-                //        self.framebuffer_buffer as *mut u32,
-                //        self.framebuffer.size - top_row_max,
-                //    );
-                //}
-                //self.row -= 1;
-            }
-
             if self.col + 8 > self.framebuffer.width {
-                self.col = self.column_starting_point;
-                self.row += 16;
+                self.new_line();
             }
+            self.new_line_checks();
         }
     }
 
