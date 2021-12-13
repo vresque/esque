@@ -128,7 +128,6 @@ impl FramebufferGuard {
                 '\n' => {
                     self.col = self.column_starting_point;
                     self.row += 16;
-                    self.test();
                 }
                 '\t' => {
                     for _ in 0..4 {
@@ -162,7 +161,6 @@ impl FramebufferGuard {
             if self.col + 8 > self.framebuffer.width {
                 self.col = self.column_starting_point;
                 self.row += 16;
-                self.test();
             }
         }
     }

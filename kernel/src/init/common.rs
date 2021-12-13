@@ -22,8 +22,4 @@ pub fn init_common(handover: &mut Handover) {
 
         FRAMEBUFFER_GUARD.lock().assume_init_mut().test();
     };
-
-    for i in 0..1000 {
-        kprintln!("{}", i);
-    }
 }
