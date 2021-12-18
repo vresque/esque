@@ -1,11 +1,10 @@
-use core::mem::MaybeUninit;
+use core::{fmt, mem::MaybeUninit};
 
 use bks::EfiMemoryDescriptor;
 use spin::Mutex;
 
 use crate::kprintln;
 
-#[derive(Debug)]
 pub struct Bitmap {
     pub base: u64,
     pub size: usize,
@@ -19,27 +18,50 @@ impl Bitmap {
         }
     }
 
-    pub fn set(&mut self, idx: usize, value: bool) {
-        let byte_index = idx / 8;
-        let bit_index = idx % 8;
-        let indexer = 0b10000000 >> bit_index;
-        unsafe {
-            (*(self.base as *mut u8).add(byte_index)) &= !indexer;
-            if value {
-                (*(self.base as *mut u8).add(byte_index)) |= indexer
-            }
+    pub fn set(&mut self, idx: usize, value: bool) -> bool {
+        if idx > self.size * 8 {
+            return false;
         };
+        let byte_index = (idx / 8) as usize;
+        let bit_index = (idx % 8) as u8;
+        let bit_indexer = (0b10000000 >> bit_index) as u8;
+        unsafe {
+            let ptr = self.base as *mut u8;
+            *ptr.add(byte_index) &= !bit_indexer;
+            if value == true {
+                *ptr.add(byte_index) |= bit_indexer;
+            }
+        }
+        true
+    }
+}
+
+impl core::fmt::Debug for Bitmap {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        writeln!(f, "Bitmap ");
+        writeln!(f, "  size: {:#x?}", self.size);
+        writeln!(f, "  values: [");
+        for i in 0..(self.size * 8) {
+            write!(f, "{}, ", self[i]);
+        }
+
+        Ok(())
     }
 }
 
 impl core::ops::Index<usize> for Bitmap {
     type Output = bool;
     fn index(&self, idx: usize) -> &Self::Output {
-        let byte_index = idx / 8;
-        let bit_index = idx % 8;
-        let indexer = 0b10000000 >> bit_index;
+        if idx > self.size * 8 {
+            return &false;
+        }
+        let byte_index = (idx / 8) as usize;
+        let bit_index = (idx % 8) as u8;
+        let bit_indexer = 0b10000000 >> bit_index;
         unsafe {
-            if ((*(self.base as *mut u8).add(byte_index)) & indexer) > 0 {
+            let ptr = self.base as *mut u8;
+            let val = *ptr.add(byte_index) & bit_indexer;
+            if val > 0 {
                 return &true;
             } else {
                 return &false;

@@ -20,8 +20,5 @@ pub fn init_common(handover: &mut Handover) {
             .clear_color(Color::Black);
 
         kprintln!("Initialized Logging!");
-        for i in 0..1000 {
-            kprintln!("{i}");
-        }
     };
 }

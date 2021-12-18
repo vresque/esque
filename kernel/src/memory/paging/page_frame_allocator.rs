@@ -1,4 +1,5 @@
 use core::mem::MaybeUninit;
+use core::ops::Index;
 
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
@@ -10,6 +11,7 @@ use spin::Mutex;
 pub static PAGE_FRAME_ALLOCATOR: Mutex<MaybeUninit<PageFrameAllocator>> =
     Mutex::new(MaybeUninit::uninit());
 static mut IS_PAGE_FRAME_ALLOCATOR_INITIALIZED: bool = false;
+pub static mut rejects: u64 = 0;
 
 pub struct PageFrameAllocator<'a> {
     base: u64,
@@ -17,9 +19,10 @@ pub struct PageFrameAllocator<'a> {
     entries: usize,
     size: usize,
     bitmap: Bitmap,
-    free: u64,
-    reserved: u64,
-    used: u64,
+    free: i64, // FIXME: During Initialization, the value may drop below zero
+    reserved: i64,
+    used: i64,
+    last_bmap_index: u64,
 }
 
 impl<'a> PageFrameAllocator<'a> {
@@ -44,6 +47,7 @@ impl<'a> PageFrameAllocator<'a> {
             free: 0,
             reserved: 0,
             used: 0,
+            last_bmap_index: 0,
         }
     }
 
@@ -64,16 +68,17 @@ impl<'a> PageFrameAllocator<'a> {
 
         let mem_sz = self.total_memory();
         kprintln!("{}mb", mem_sz / 1024 / 1024 / 1024);
-        self.free = mem_sz;
+        self.free = mem_sz as i64;
         // One for each page
         let bitmap_size = mem_sz / PAGE_SIZE / 8 + 1;
         kprintln!("{}", bitmap_size);
 
         // Initialize Bitmap
         self.initialize_bitmap(bitmap_size as usize, current_largest_free_segment);
-
-        // Lock ourself
-        self.lock_pages(self.bitmap.base, self.bitmap.size / 4096 + 1);
+        self.lock_pages(
+            &self.bitmap as *const Bitmap as *const u64 as u64,
+            self.bitmap.size / PAGE_SIZE as usize + 1,
+        );
 
         for i in 0..self.entries {
             let ent = self.map[i];
@@ -81,6 +86,7 @@ impl<'a> PageFrameAllocator<'a> {
                 self.reserve_pages(ent.phys_base, ent.page_count as usize);
             }
         }
+        kprintln!("{}", self.free);
     }
 
     fn initialize_bitmap(&mut self, bmp_size: usize, addr: u64) {
@@ -99,9 +105,13 @@ impl<'a> PageFrameAllocator<'a> {
         if self.bitmap[idx as usize] == false {
             return;
         }
-        self.bitmap.set(idx as usize, false);
-        self.free += PAGE_SIZE;
-        self.used -= PAGE_SIZE;
+        if self.bitmap.set(idx as usize, false) {
+            self.free += PAGE_SIZE as i64;
+            self.used -= PAGE_SIZE as i64;
+            if self.last_bmap_index > idx {
+                self.last_bmap_index = idx
+            }
+        }
     }
 
     pub fn free_pages(&mut self, addr: u64, count: usize) {
@@ -112,18 +122,21 @@ impl<'a> PageFrameAllocator<'a> {
 
     pub fn lock_page(&mut self, addr: u64) {
         let idx = addr / PAGE_SIZE;
-        // Already free
+
+        // Already locked
         if self.bitmap[idx as usize] == true {
             return;
         }
-        self.bitmap.set(idx as usize, true);
-        self.free -= PAGE_SIZE;
-        self.used += PAGE_SIZE;
+
+        if self.bitmap.set(idx as usize, true) {
+            self.free -= PAGE_SIZE as i64;
+            self.used += PAGE_SIZE as i64;
+        }
     }
 
     pub fn lock_pages(&mut self, addr: u64, count: usize) {
         for i in 0..count {
-            self.lock_page((addr + (i as u64 * PAGE_SIZE)) as u64)
+            self.lock_page((addr + (i as u64 * PAGE_SIZE)) as u64);
         }
     }
 
@@ -133,9 +146,10 @@ impl<'a> PageFrameAllocator<'a> {
         if self.bitmap[idx as usize] == true {
             return;
         }
-        self.bitmap.set(idx as usize, true);
-        self.free -= PAGE_SIZE;
-        self.reserved += PAGE_SIZE;
+        if self.bitmap.set(idx as usize, true) {
+            self.free -= PAGE_SIZE as i64;
+            self.reserved += PAGE_SIZE as i64;
+        }
     }
 
     pub fn reserve_pages(&mut self, addr: u64, count: usize) {
@@ -146,31 +160,17 @@ impl<'a> PageFrameAllocator<'a> {
 
     fn release_page(&mut self, addr: u64) {
         let idx = addr / PAGE_SIZE;
-        // Already free
-        if self.bitmap[idx as usize] == true {
+        // Already allocated
+        if self.bitmap[idx as usize] == false {
             return;
         }
-        self.bitmap.set(idx as usize, true);
-        self.free += PAGE_SIZE;
-        self.reserved -= PAGE_SIZE;
-    }
-
-    // TODO: Optimize
-    pub fn request_page(&mut self) -> u64 {
-        for i in 0..(self.bitmap.size * 8) {
-            // If not free (reserved)
-            if self.bitmap[i] == true {
-                continue;
+        if self.bitmap.set(idx as usize, true) {
+            self.free += PAGE_SIZE as i64;
+            self.reserved -= PAGE_SIZE as i64;
+            if self.last_bmap_index > idx {
+                self.last_bmap_index = idx;
             }
-            // Lock Page
-            // Get Page Address
-            //kprintln!("Found page at {}", i);
-            self.lock_page(i as u64 * PAGE_SIZE);
-            return i as u64 * PAGE_SIZE;
         }
-        kprintln!("Out of memory!");
-        panic!("Out of memory!");
-        return 0; // TODO: Swap to file
     }
 
     pub fn release_pages(&mut self, addr: u64, count: usize) {
@@ -179,38 +179,46 @@ impl<'a> PageFrameAllocator<'a> {
         }
     }
 
+    // TODO: Optimize
+    pub fn request_page(&mut self) -> u64 {
+        while self.last_bmap_index < (self.bitmap.size as u64 * 8 as u64) {
+            if self.bitmap[self.last_bmap_index as usize] == false {
+                self.lock_page(self.last_bmap_index * 4096);
+                return self.last_bmap_index * PAGE_SIZE;
+            }
+            self.last_bmap_index += 1;
+        }
+        unsafe {
+            rejects += 1;
+        }
+        return 0;
+    }
+
     pub fn total_memory(&self) -> u64 {
-        static mut mem_sz_bytes: u64 = 0;
-        // If calculated before, just return it
-        if unsafe { mem_sz_bytes } > 0 {
-            unsafe {
+        unsafe {
+            static mut mem_sz_bytes: u64 = 0;
+            // If calculated before, just return it
+            if mem_sz_bytes > 0 {
                 return mem_sz_bytes;
             }
-        }
-        let mut sum_of_mem_sizes = 0;
-        for i in self.map.iter() {
-            sum_of_mem_sizes += i.page_count * PAGE_SIZE;
-        }
-        kprintln!(
-            "{} - {}",
-            sum_of_mem_sizes,
-            sum_of_mem_sizes / 1024 / 1024 / 1024
-        );
-        unsafe {
-            mem_sz_bytes = sum_of_mem_sizes;
+
+            for i in self.map.iter() {
+                mem_sz_bytes += i.page_count * PAGE_SIZE;
+            }
+
             mem_sz_bytes
         }
     }
 
-    pub fn get_free_memory(&self) -> u64 {
+    pub fn get_free_memory(&self) -> i64 {
         self.free
     }
 
-    pub fn get_used_memory(&self) -> u64 {
+    pub fn get_used_memory(&self) -> i64 {
         self.used
     }
 
-    pub fn get_reserved_memory(&self) -> u64 {
+    pub fn get_reserved_memory(&self) -> i64 {
         self.reserved
     }
 }

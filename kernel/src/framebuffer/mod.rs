@@ -36,7 +36,7 @@ impl Into<u32> for Color {
 
 pub struct FramebufferGuard {
     framebuffer: Framebuffer,
-    framebuffer_buffer: u32,
+    pub framebuffer_buffer: u32,
     font: Psf1Font,
     col: usize,
     row: usize,
@@ -94,6 +94,7 @@ impl FramebufferGuard {
                 pix_ptr = pix_ptr.add(1);
             }
         }
+        self.set_location(0, 0);
     }
 
     pub fn set_column_starting_point(&mut self, new: usize) {
@@ -125,14 +126,32 @@ impl FramebufferGuard {
     }
 
     fn new_line_checks(&mut self) {
-        if self.row >= self.framebuffer.height {
+        if self.row + 16 >= self.framebuffer.height - (16 * 2) {
             let top_row_max = self.framebuffer.stride * 4 * 16;
 
-            unsafe {
-                let base = self.framebuffer_buffer as u64 + top_row_max as u64;
-                let size = self.framebuffer().size - top_row_max;
+            for i in 0..top_row_max {
+                unsafe {
+                    *(self.framebuffer_buffer as *mut u8).add(i) = 0x00;
+                }
+            }
 
-                core::ptr::copy(base as *const u8, self.framebuffer_buffer as *mut u8, size);
+            unsafe {
+                //let base = self.framebuffer_buffer as u64 + top_row_max as u64;
+                //let size = self.framebuffer().size;
+                //let slice_a: &mut [u8] = core::slice::from_raw_parts_mut(base as *mut u8, size);
+                //let slice_b: &mut [u8] = core::slice::from_raw_parts_mut(
+                //    self.framebuffer_buffer as *mut u8,
+                //    self.framebuffer().size,
+                //);
+                ////for (old, new) in slice_a.iter().zip(slice_b) {
+                //    *new = *old;
+                //}
+                // TEMP: Remove FIXME
+                self.clear_color(self.background);
+                self.row = 1;
+                self.col = 0;
+
+                // TODO: core::ptr::copy(base as *mut u8, self.framebuffer_buffer as *mut u8, size);
             }
             self.row -= 1;
         }

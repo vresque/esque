@@ -2,8 +2,8 @@ use core::ops::{Index, IndexMut};
 
 use crate::kprintln;
 
+use super::super::memset;
 use super::page_frame_allocator::PAGE_FRAME_ALLOCATOR;
-
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct PageDescriptorEntry {
@@ -18,15 +18,32 @@ impl PageDescriptorEntry {
     pub const fn is_unused(&self) -> bool {
         self.entry == 0
     }
-    pub const fn flags(&self) -> PageTableFlags {
-        PageTableFlags::from_bits_truncate(self.entry)
+    pub const fn flags(&self) -> PageTableFlag {
+        PageTableFlag::from_bits_truncate(self.entry)
     }
     pub fn addr(&self) -> u64 {
         self.entry & 0x000f_ffff_ffff_f000
     }
 
-    pub fn set_addr(&mut self, addr: u64, flags: PageTableFlags) {
-        self.entry = addr | flags.bits();
+    pub fn set_addr(&mut self, addr: u64) {
+        let actual_addr = addr & 0x000000ffffffffff;
+        self.entry &= 0xfff0000000000fff;
+        self.entry |= actual_addr << 12;
+    }
+
+    pub fn get_flag(&mut self, flag: PageTableFlag) -> bool {
+        return if self.entry & flag.bits() > 0 {
+            true
+        } else {
+            false
+        };
+    }
+
+    pub fn set_flag(&mut self, flag: PageTableFlag, enabled: bool) {
+        self.entry &= !flag.bits();
+        if enabled {
+            self.entry |= flag.bits()
+        }
     }
 }
 
@@ -40,9 +57,9 @@ impl core::fmt::Debug for PageDescriptorEntry {
 }
 
 bitflags::bitflags! {
-    pub struct PageTableFlags: u64 {
+    pub struct PageTableFlag: u64 {
         const PRESENT = 1;
-        const WRITABLE = 1 << 1;
+        const READ_WRITE = 1 << 1;
         const USER_ACCESSIBLE = 1 << 2;
         const WRITE_THROUGH = 1 << 3;
         const NO_CACHE = 1 << 4;
@@ -70,7 +87,6 @@ bitflags::bitflags! {
 
 const ENTRIES: usize = 512;
 #[repr(align(4096))]
-#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct PageTable {
     entries: [PageDescriptorEntry; ENTRIES],
@@ -138,17 +154,15 @@ impl PageTableManager {
         unsafe {
             // First Page
             let mut pde = self.pml4[indexer.pdp_idx as usize];
-            let mut page = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page();
+            let page = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page();
 
-            let pdp: &mut PageTable = if !pde.flags().contains(PageTableFlags::PRESENT) {
-                let pdp = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
-                    as *mut u64 as *mut PageTable);
-
-                rlibc::memset(pdp as *mut PageTable as *mut u8, 0, 0x1000);
-                pde.set_addr(
-                    (pdp as *mut PageTable as *mut u64 as u64) >> 12,
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                );
+            // ------ 1 ------------------
+            let pdp: &mut PageTable = if !pde.get_flag(PageTableFlag::PRESENT) {
+                let pdp = &mut *(page as *mut u64 as *mut PageTable);
+                memset(pdp as *mut PageTable as *mut u64 as u64, 0, 0x1000);
+                pde.set_addr((pdp as *mut PageTable as *mut u64 as u64) >> 12);
+                pde.set_flag(PageTableFlag::PRESENT, true);
+                pde.set_flag(PageTableFlag::READ_WRITE, true);
                 self.pml4[indexer.pdp_idx as usize] = pde;
                 pdp
             } else {
@@ -156,47 +170,43 @@ impl PageTableManager {
                 pdp
             };
 
-            // Page Descriptor
-            pde = pdp[indexer.pdp_idx as usize];
-            let pd: &mut PageTable = if !pde.flags().contains(PageTableFlags::PRESENT) {
+            // ------------- PAGE DESCRIPTOR ---------
+            pde = pdp[indexer.pd_idx as usize];
+            let pd: &mut PageTable = if !pde.get_flag(PageTableFlag::PRESENT) {
                 let pd = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
                     as *mut u64 as *mut PageTable);
-                rlibc::memset(pd as *mut PageTable as *mut u8, 0, 0x1000);
-                pde.set_addr(
-                    (pd as *mut PageTable as *mut u64 as u64) >> 12,
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                );
-                pd[indexer.pd_idx as usize] = pde;
+                memset(pd as *mut PageTable as *mut u64 as u64, 0, 0x1000);
+                pde.set_addr((pd as *mut PageTable as *mut u64 as u64) >> 12);
+                pde.set_flag(PageTableFlag::PRESENT, true);
+                pde.set_flag(PageTableFlag::READ_WRITE, true);
+                pdp[indexer.pd_idx as usize] = pde;
                 pd
             } else {
                 let pd = &mut *((pde.addr() << 12) as *mut PageTable);
                 pd
             };
 
-            // Page Table (PT)
+            // -------------- Page Table (PT)
             pde = pd[indexer.pt_idx as usize];
-            let pt: &mut PageTable = if !pde.flags().contains(PageTableFlags::PRESENT) {
+            let pt: &mut PageTable = if !pde.get_flag(PageTableFlag::PRESENT) {
                 let pt = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
                     as *mut u64 as *mut PageTable);
-                rlibc::memset(pt as *mut PageTable as *mut u8, 0, 0x1000);
-                pde.set_addr(
-                    (pt as *mut PageTable as *mut u64 as u64) >> 12,
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-                );
+                memset(pt as *mut PageTable as *mut u64 as u64, 0, 0x1000);
+                pde.set_addr((pt as *mut PageTable as *mut u64 as u64) >> 12);
+                pde.set_flag(PageTableFlag::PRESENT, false);
+                pde.set_flag(PageTableFlag::READ_WRITE, true);
                 pd[indexer.pt_idx as usize] = pde;
                 pt
             } else {
                 let pt = &mut *((pde.addr() << 12) as *mut PageTable);
                 pt
             };
-
             // Page at the end
-            pde = pt[indexer.pt_idx as usize];
-            pde.set_addr(
-                physical_mem >> 12,
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-            );
+            pde = pt[indexer.p_idx as usize];
+            pde.set_addr(physical_mem >> 12);
+            pde.set_flag(PageTableFlag::PRESENT, true);
+            pde.set_flag(PageTableFlag::READ_WRITE, true);
             pt[indexer.pt_idx as usize] = pde;
-        };
+        }; //
     }
 }
