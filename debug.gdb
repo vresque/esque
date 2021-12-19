@@ -1,0 +1,1 @@
+add-symbol-file kernel.elf 2M

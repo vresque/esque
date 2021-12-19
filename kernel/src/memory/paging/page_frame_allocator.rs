@@ -222,3 +222,9 @@ impl<'a> PageFrameAllocator<'a> {
         self.reserved
     }
 }
+
+pub fn request_page<'retval, T>() -> &'retval mut T {
+    unsafe {
+        &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page() as *mut u64 as *mut T)
+    }
+}

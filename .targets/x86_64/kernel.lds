@@ -6,7 +6,6 @@ SECTIONS
 {
 	. = KERNEL_OFFSET;
 	_KERNEL_START = .;
-	__start = .;
 	. = ALIGN(4K);
     .text :
 	{

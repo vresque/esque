@@ -5,6 +5,7 @@
 #![feature(format_args_nl)]
 #![feature(asm)]
 #![feature(rustc_private)]
+#![feature(llvm_asm)] // TODO: REMOVE
 
 mod framebuffer;
 mod init;
