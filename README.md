@@ -1,5 +1,5 @@
 # Esque
-A modern exokernel (In the future)
+A modern kernel featuring executables in WebAssembly as well as ELF - Uniting Past and Present
 
 ## Screenshots
 ![A Blue Screen of Death (Kernel Panic) in Esque](binaries/screenshots/bsod.png)
