@@ -2,11 +2,10 @@
 
 use core::slice;
 
-mod util;
-
+use enum_with_options::enum_with_options;
 pub const PAGE_SIZE: u64 = 4096;
 
-c_like_enum! {
+enum_with_options! {
     pub enum MemoryType: u32 => {
         ReservedMemory          = 0,
         LoaderCode              = 1,

@@ -13,6 +13,7 @@ mod init;
 mod memory;
 mod panic;
 use bks::Handover;
+mod interrupts;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
