@@ -187,6 +187,7 @@ impl PageTableManager {
             let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
                 let tmp = request_page();
                 set_pt_to_null(tmp);
+                pd_pde.set_addr(pt_raw_mem_addr(tmp) >> 12);
                 pd_pde.set_flag(PageTableFlag::PRESENT, true);
                 pd_pde.set_flag(PageTableFlag::READ_WRITE, true);
                 pdp.entries[indexer.pd_idx] = pd_pde;
@@ -200,6 +201,7 @@ impl PageTableManager {
             let pt = if !pt_pde.get_flag(PageTableFlag::PRESENT) {
                 let tmp = request_page();
                 set_pt_to_null(tmp);
+                pt_pde.set_addr(pt_raw_mem_addr(tmp) >> 12);
                 pt_pde.set_flag(PageTableFlag::PRESENT, true);
                 pt_pde.set_flag(PageTableFlag::READ_WRITE, true);
                 pd.entries[indexer.pt_idx] = pt_pde;
@@ -207,6 +209,12 @@ impl PageTableManager {
             } else {
                 addr_to_page_table(pt_pde.addr() << 12)
             };
+
+            let mut page_pde = pt.entries[indexer.p_idx];
+            page_pde.set_addr(physical_mem >> 12);
+            page_pde.set_flag(PageTableFlag::PRESENT, true);
+            page_pde.set_flag(PageTableFlag::READ_WRITE, true);
+            pt.entries[indexer.p_idx] = page_pde;
         }
     }
 }
