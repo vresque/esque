@@ -77,7 +77,7 @@ impl GlobalDescriptorTable {
 pub static GLOBAL_GDT: GlobalDescriptorTable = GlobalDescriptorTable::new();
 
 // Load gdt.s assembly file
-global_asm!(include_str!("gdt.s"));
+core::arch::global_asm!(include_str!("gdt.s"));
 extern "C" {
     pub fn upload_gdt(gdt_desc: *mut GDTDescriptor);
 }

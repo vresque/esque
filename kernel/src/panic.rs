@@ -2,6 +2,7 @@ use crate::framebuffer::clear_screen;
 use crate::framebuffer::FRAMEBUFFER_GUARD;
 use crate::kcolorchange;
 use crate::{kprint, kprintln};
+use core::arch::asm;
 use core::panic::PanicInfo;
 
 #[panic_handler]

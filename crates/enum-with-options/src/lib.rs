@@ -1,6 +1,39 @@
 #![no_std]
 
 #[macro_export]
+macro_rules! const_enum {
+    (
+        $(#[$attributes_of_enum:meta])*
+        pub enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
+            $(
+                $(#[$attributes_of_variant:meta])*
+                $name_of_variant:ident = $value_of_variant:expr,
+            )*
+        }
+
+        impl $(
+            $visi:vis fn $nam:ident ($($arg:ident : $typ:ty)*) $blck:block
+        )*
+    ) => {
+        #[allow(non_snake_case)]
+        pub mod $name_of_enum {
+            $(
+                // Allow it to be "Enum-Like" instead of "Const-Like"
+                #[allow(non_upper_case_globals)]
+                $(#[$attributes_of_variant])*
+                pub const $name_of_variant: $integer_type = $value_of_variant;
+            )*
+
+            type Me = $integer_type;
+
+            $(
+                $visi fn $name_of_fn ($($arg : $typ)*) $blck
+            )*
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! enum_with_options {
     (
         $(#[$attributes_of_enum:meta])*

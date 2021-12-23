@@ -2,6 +2,8 @@ use core::mem::MaybeUninit;
 
 use spin::Mutex;
 
+use super::interrupt_frame::InterruptFrame;
+
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
 #[repr(u8)]
 pub enum IDTTypesAndAttrs {
@@ -16,7 +18,6 @@ impl Into<u8> for IDTTypesAndAttrs {
     }
 }
 
-
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
 #[repr(C)]
 pub struct IDTDescriptorEntry {
@@ -30,6 +31,31 @@ pub struct IDTDescriptorEntry {
 }
 
 impl IDTDescriptorEntry {
+    pub fn new(offset: u64, type_and_attrs: u8, segment_selector: u16) -> Self {
+        let mut default = Self {
+            offset_0: 0,
+            segment_selector: 0,
+            interrupt_stack_table_offset: 0,
+            type_and_attrs: 0,
+            offset_1: 0,
+            offset_2: 0,
+            _padding: 0,
+        };
+        default.set_offset(offset);
+        default.type_and_attrs = type_and_attrs;
+        default.segment_selector = segment_selector;
+        default
+    }
+
+    pub fn with_function(
+        func: extern "x86-interrupt" fn(InterruptFrame),
+        type_and_attrs: u8,
+        segment_selector: u16,
+    ) -> Self {
+        let as_u64 = func as u64;
+        Self::new(as_u64, type_and_attrs, segment_selector)
+    }
+
     /// Sets the entire offset using a single u64
     pub fn set_offset(&mut self, offset: u64) {
         self.offset_0 = (  offset & 0x000000000000ffff) as u16 /* Get Lo */;
@@ -38,7 +64,7 @@ impl IDTDescriptorEntry {
     }
 
     pub fn get_offset(&self) -> u64 {
-        let offset = 0;
+        let mut offset = 0;
         offset |= (self.offset_0) as u64;
         offset |= (self.offset_1 << 16) as u64;
         offset |= (self.offset_2 << 32) as u64;
@@ -60,11 +86,12 @@ impl IDTRegister {
 
 pub fn upload_idt_entry_at(offset: u64, value: IDTDescriptorEntry) {
     let idt_entry = unsafe {
-        &mut *((IDT_REGISTER.lock().assume_init_mut().offset + offset) as *mut u64
-            as *mut IDTDescriptorEntry)
+        &mut *((IDT_REGISTER.lock().assume_init_mut().offset
+            + (offset * core::mem::size_of::<IDTDescriptorEntry>() as u64))
+            as *mut u64 as *mut IDTDescriptorEntry)
     };
 
     *idt_entry = value;
 }
 
-static mut IDT_REGISTER: Mutex<MaybeUninit<IDTRegister>> = Mutex::new(MaybeUninit::uninit());
+pub static IDT_REGISTER: Mutex<MaybeUninit<IDTRegister>> = Mutex::new(MaybeUninit::uninit());

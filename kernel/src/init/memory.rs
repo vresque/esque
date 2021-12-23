@@ -1,18 +1,13 @@
 use bks::{Handover, PAGE_SIZE};
-use x86_64::registers::control::{Cr3, Cr3Flags};
-use x86_64::structures::paging::PhysFrame;
-use x86_64::PhysAddr;
 
-use crate::framebuffer::{Color, FRAMEBUFFER_GUARD};
-use crate::memory::bitmap::Bitmap;
 use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::rejects;
-use crate::memory::paging::page_table_manager::{PageMapIndexer, PageTable, PageTableManager};
-use crate::{kinfo, kprint};
+use crate::memory::paging::page_table_manager::{PageTable, PageTableManager};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
 };
+use core::arch::asm;
 
 // Defined in Linker Script
 #[no_mangle]
