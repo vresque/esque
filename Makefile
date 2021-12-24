@@ -20,6 +20,8 @@ QEMUFLAGS = \
 
 all: kernel boot strip mkimg run
 
+check: kernel-check
+
 build: format kernel boot strip mkimg
 
 format:
@@ -41,6 +43,10 @@ kernel:
 boot:
 	@$(MAKE) -C boot build ARCH=$(ARCH) MODE=$(MODE)
 	@cp target/boot/$(MODE)/boot.efi $(OUTDIR)/BOOTX64.EFI 
+
+.PHONY: kernel-check
+kernel-check:
+	@$(MAKE) -C kernel check ARCH=$(ARCH) MODE=$(MODE)
 
 
 .PHONY: strip

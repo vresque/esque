@@ -3,12 +3,10 @@
 #![feature(arbitrary_enum_discriminant)]
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
-#![feature(asm)]
 #![feature(rustc_private)]
-#![feature(global_asm)]
 #![feature(abi_x86_interrupt)]
+#![allow(unstable_features)]
 #![feature(adt_const_params)]
-
 mod framebuffer;
 mod gdt;
 mod init;

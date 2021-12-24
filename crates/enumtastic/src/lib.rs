@@ -11,11 +11,13 @@ macro_rules! const_enum {
             )*
         }
 
-        impl $(
-            $visi:vis fn $nam:ident ($($arg:ident : $typ:ty)*) $blck:block
-        )*
+        impl { $(
+            $visi:vis fn $name_of_fn:ident ($($arg:ident : $typ:ty)*) -> $ret:ty $blck:block
+        )*}
     ) => {
         #[allow(non_snake_case)]
+        #[allow(unused)]
+        #[allow(non_upper_case_globals)]
         pub mod $name_of_enum {
             $(
                 // Allow it to be "Enum-Like" instead of "Const-Like"
@@ -27,7 +29,7 @@ macro_rules! const_enum {
             type Me = $integer_type;
 
             $(
-                $visi fn $name_of_fn ($($arg : $typ)*) $blck
+                $visi fn $name_of_fn ($($arg : $typ)*) -> $ret $blck
             )*
         }
     }

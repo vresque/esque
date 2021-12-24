@@ -4,7 +4,7 @@ use crate::interrupts::exceptions::{ExceptionHandler, IDTException};
 use crate::interrupts::set_interrupt_handler;
 use crate::kprintln;
 use crate::{
-    interrupts::idt::IDTDescriptorEntry, memory::paging::page_frame_allocator::request_page,
+    memory::paging::page_frame_allocator::request_page,
 };
 use core::arch::asm;
 
@@ -18,7 +18,7 @@ pub fn init_interrupts(handover: &mut Handover) {
     IDT_REGISTER.lock().write(idtr);
 
     set_interrupt_handler(
-        IDTException::PageFault,
+        IDTException::PageFault as u64,
         ExceptionHandler::<{ IDTException::PageFault }>::handle,
     );
 

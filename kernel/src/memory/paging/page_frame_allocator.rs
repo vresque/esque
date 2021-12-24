@@ -1,5 +1,4 @@
 use core::mem::MaybeUninit;
-use core::ops::Index;
 
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
@@ -11,7 +10,7 @@ use spin::Mutex;
 pub static PAGE_FRAME_ALLOCATOR: Mutex<MaybeUninit<PageFrameAllocator>> =
     Mutex::new(MaybeUninit::uninit());
 static mut IS_PAGE_FRAME_ALLOCATOR_INITIALIZED: bool = false;
-pub static mut rejects: u64 = 0;
+pub static mut REJECTS: u64 = 0;
 
 pub struct PageFrameAllocator<'a> {
     base: u64,
@@ -189,24 +188,24 @@ impl<'a> PageFrameAllocator<'a> {
             self.last_bmap_index += 1;
         }
         unsafe {
-            rejects += 1;
+            REJECTS += 1;
         }
         return 0;
     }
 
     pub fn total_memory(&self) -> u64 {
         unsafe {
-            static mut mem_sz_bytes: u64 = 0;
+            static mut MEM_SZ_BYTES: u64 = 0;
             // If calculated before, just return it
-            if mem_sz_bytes > 0 {
-                return mem_sz_bytes;
+            if MEM_SZ_BYTES > 0 {
+                return MEM_SZ_BYTES;
             }
 
             for i in self.map.iter() {
-                mem_sz_bytes += i.page_count * PAGE_SIZE;
+                MEM_SZ_BYTES += i.page_count * PAGE_SIZE;
             }
 
-            mem_sz_bytes
+            MEM_SZ_BYTES
         }
     }
 

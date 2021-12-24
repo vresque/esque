@@ -1,7 +1,6 @@
 use crate::{
     framebuffer::{Color, FramebufferGuard, FRAMEBUFFER_GUARD},
-    kprint, kprintln,
-    memory::paging::page_table_manager::PageTable,
+    kprintln,
 };
 use bks::Handover;
 

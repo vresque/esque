@@ -2,7 +2,7 @@
 
 use core::slice;
 
-use enum_with_options::enum_with_options;
+use enumtastic::enum_with_options;
 pub const PAGE_SIZE: u64 = 4096;
 
 enum_with_options! {

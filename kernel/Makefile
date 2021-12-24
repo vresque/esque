@@ -8,3 +8,6 @@ endif
 
 build:
 	@cargo build --target ../.targets/$(ARCH)/kernel.json $(CARGO_ADDITIONAL)
+
+check:
+	@cargo check --target ../.targets/$(ARCH)/kernel.json

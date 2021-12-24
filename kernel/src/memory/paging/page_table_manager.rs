@@ -1,10 +1,8 @@
 use core::ops::{Index, IndexMut};
 
-use crate::kprintln;
 use crate::memory::paging::page_frame_allocator::request_page;
 
 use super::super::memset;
-use super::page_frame_allocator::PAGE_FRAME_ALLOCATOR;
 #[repr(transparent)]
 #[derive(Copy, Clone)]
 pub struct PageDescriptorEntry {
@@ -162,18 +160,18 @@ impl PageTableManager {
         let indexer = PageMapIndexer::new(virtual_mem);
         // First Page
         unsafe {
-            const pt_raw_mem_addr: fn(&mut PageTable) -> u64 =
+            const PT_RAW_MEM_ADDR: fn(&mut PageTable) -> u64 =
                 |pt| (pt as *mut PageTable as *mut u64 as u64);
-            const set_pt_to_null: fn(&mut PageTable) = |pt| unsafe {
-                memset(pt_raw_mem_addr(pt), 0, 0x1000);
+            const SET_PT_TO_NULL: fn(&mut PageTable) = |pt| unsafe {
+                memset(PT_RAW_MEM_ADDR(pt), 0, 0x1000);
             };
 
             // Map PDP
             let mut pdp_pde = self.pml4[indexer.pdp_idx];
             let pdp = if !pdp_pde.get_flag(PageTableFlag::PRESENT) {
                 let tmp = request_page::<PageTable>();
-                set_pt_to_null(tmp);
-                pdp_pde.set_addr(pt_raw_mem_addr(tmp) >> 12);
+                SET_PT_TO_NULL(tmp);
+                pdp_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
                 pdp_pde.set_flag(PageTableFlag::PRESENT, true);
                 pdp_pde.set_flag(PageTableFlag::READ_WRITE, true);
                 self.pml4[indexer.pdp_idx] = pdp_pde;
@@ -186,8 +184,8 @@ impl PageTableManager {
             let mut pd_pde = pdp.entries[indexer.pd_idx];
             let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
                 let tmp = request_page();
-                set_pt_to_null(tmp);
-                pd_pde.set_addr(pt_raw_mem_addr(tmp) >> 12);
+                SET_PT_TO_NULL(tmp);
+                pd_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
                 pd_pde.set_flag(PageTableFlag::PRESENT, true);
                 pd_pde.set_flag(PageTableFlag::READ_WRITE, true);
                 pdp.entries[indexer.pd_idx] = pd_pde;
@@ -200,8 +198,8 @@ impl PageTableManager {
             let mut pt_pde = pd.entries[indexer.pt_idx];
             let pt = if !pt_pde.get_flag(PageTableFlag::PRESENT) {
                 let tmp = request_page();
-                set_pt_to_null(tmp);
-                pt_pde.set_addr(pt_raw_mem_addr(tmp) >> 12);
+                SET_PT_TO_NULL(tmp);
+                pt_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
                 pt_pde.set_flag(PageTableFlag::PRESENT, true);
                 pt_pde.set_flag(PageTableFlag::READ_WRITE, true);
                 pd.entries[indexer.pt_idx] = pt_pde;

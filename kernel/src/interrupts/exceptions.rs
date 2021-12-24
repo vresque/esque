@@ -1,5 +1,7 @@
 use super::interrupt_frame::InterruptFrame;
 
+
+#[allow(unused)]
 pub enum ExceptionType {
     Fault,
     Abort,
@@ -7,7 +9,7 @@ pub enum ExceptionType {
     Trap,
 }
 
-enum_with_options::const_enum! {
+enumtastic::const_enum! {
     pub enum IDTException: u8 => {
         DivideByZero = 0x0,
         Debug = 0x1,
@@ -39,62 +41,62 @@ enum_with_options::const_enum! {
     }
 
     impl {
-        pub fn error_code(self: &Me) {
-            match *self {
-                IDTException::DivideByZero => "#DE",
-                IDTException::Debug => "#DB",
-                IDTException::NonMaskable => "-",
-                IDTException::Breakpoint => "#BP",
-                IDTException::Overflow => "#OF",
-                IDTException::BoundRangeExceeded => "#BR",
-                IDTException::InvalidOpcode => "#UD",
-                IDTException::DeviceNotAvailable => "#NM",
-                IDTException::DoubleFault => "#DF",
-                IDTException::InvalidTSS => "#TS",
-                IDTException::SegmentNotPresent => "#NP",
-                IDTException::StackSegmentFault => "#SS",
-                IDTException::GeneralProtectionFault => "#GP",
-                IDTException::PageFault => "#PF",
-                IDTException::X87FloatingPointException => "MF",
-                IDTException::AlignmentCheck => "#AC",
-                IDTException::MachineCheck => "#MC",
-                IDTException::SIMDFloatingPointException => "#XM",
-                IDTException::VirtualizationException => "#VE",
-                IDTException::ControlProtection => "#CP",
-                IDTException::HypervisorInjection => "#HV",
-                IDTException::VMMCommunicationException => "#VC",
-                IDTException::SecurityException => "#SX",
-                _ => "Unknown",
-            }
+        pub fn error_code(me: &Me) -> &str {
+             match *me {
+                 DivideByZero => "#DE",
+                 Debug => "#DB",
+                 NonMaskable => "-",
+                 Breakpoint => "#BP",
+                 Overflow => "#OF",
+                 BoundRangeExceeded => "#BR",
+                 InvalidOpcode => "#UD",
+                 DeviceNotAvailable => "#NM",
+                 DoubleFault => "#DF",
+                 InvalidTSS => "#TS",
+                 SegmentNotPresent => "#NP",
+                 StackSegmentFault => "#SS",
+                 GeneralProtectionFault => "#GP",
+                 PageFault => "#PF",
+                 X87FloatingPointException => "MF",
+                 AlignmentCheck => "#AC",
+                 MachineCheck => "#MC",
+                 SIMDFloatingPointException => "#XM",
+                 VirtualizationException => "#VE",
+                 ControlProtection => "#CP",
+                 HypervisorInjection => "#HV",
+                 VMMCommunicationException => "#VC",
+                 SecurityException => "#SX",
+                 _ => "Unknown",
+             }
         }
 
-        pub fn type_(self: &Me) -> ExceptionType {
-            match *self {
-                IDTException::DivideByZero => todo!(),
-                IDTException::Debug => todo!(),
-                IDTException::NonMaskable => todo!(),
-                IDTException::Breakpoint => todo!(),
-                IDTException::Overflow => todo!(),
-                IDTException::BoundRangeExceeded => todo!(),
-                IDTException::InvalidOpcode => todo!(),
-                IDTException::DeviceNotAvailable => todo!(),
-                IDTException::DoubleFault => todo!(),
-                IDTException::InvalidTSS => todo!(),
-                IDTException::SegmentNotPresent => todo!(),
-                IDTException::StackSegmentFault => todo!(),
-                IDTException::GeneralProtectionFault => todo!(),
-                IDTException::PageFault => todo!(),
-                IDTException::X87FloatingPointException => todo!(),
-                IDTException::AlignmentCheck => todo!(),
-                IDTException::MachineCheck => todo!(),
-                IDTException::SIMDFloatingPointException => todo!(),
-                IDTException::VirtualizationException => todo!(),
-                IDTException::ControlProtection => todo!(),
-                IDTException::HypervisorInjection => todo!(),
-                IDTException::VMMCommunicationException => todo!(),
-                IDTException::SecurityException => todo!(),
-                _ => todo!(),
-            }
+        pub fn type_(me: &Me) -> super::ExceptionType {
+             match *me {
+                 DivideByZero => todo!(),
+                 Debug => todo!(),
+                 NonMaskable => todo!(),
+                 Breakpoint => todo!(),
+                 Overflow => todo!(),
+                 BoundRangeExceeded => todo!(),
+                 InvalidOpcode => todo!(),
+                 DeviceNotAvailable => todo!(),
+                 DoubleFault => todo!(),
+                 InvalidTSS => todo!(),
+                 SegmentNotPresent => todo!(),
+                 StackSegmentFault => todo!(),
+                 GeneralProtectionFault => todo!(),
+                 PageFault => todo!(),
+                 X87FloatingPointException => todo!(),
+                 AlignmentCheck => todo!(),
+                 MachineCheck => todo!(),
+                 SIMDFloatingPointException => todo!(),
+                 VirtualizationException => todo!(),
+                 ControlProtection => todo!(),
+                 HypervisorInjection => todo!(),
+                 VMMCommunicationException => todo!(),
+                 SecurityException => todo!(),
+                 _ => todo!(),
+             }
         }
     }
 }
@@ -102,12 +104,13 @@ enum_with_options::const_enum! {
 pub struct ExceptionHandler<const T: u8>;
 
 pub fn exception_panic(n: u8) -> ! {
+    let ty = IDTException::PageFault;
     panic!("Lol!");
-    loop {}
+    //loop {}
 }
 
 impl ExceptionHandler<{ IDTException::PageFault }> {
-    pub fn handle() {
+    pub extern "x86-interrupt" fn handle(frame: InterruptFrame) {
         exception_panic(IDTException::PageFault)
     }
 }

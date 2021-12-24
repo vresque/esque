@@ -6,6 +6,7 @@ use super::interrupt_frame::InterruptFrame;
 
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
 #[repr(u8)]
+#[allow(unused)]
 pub enum IDTTypesAndAttrs {
     InterruptGate = 0b10001110,
     CallGate = 0b10001100,

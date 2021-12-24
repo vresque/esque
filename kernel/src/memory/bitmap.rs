@@ -1,10 +1,3 @@
-use core::{fmt, mem::MaybeUninit};
-
-use bks::EfiMemoryDescriptor;
-use spin::Mutex;
-
-use crate::kprintln;
-
 pub struct Bitmap {
     pub base: u64,
     pub size: usize,
@@ -38,11 +31,11 @@ impl Bitmap {
 
 impl core::fmt::Debug for Bitmap {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        writeln!(f, "Bitmap ");
-        writeln!(f, "  size: {:#x?}", self.size);
-        writeln!(f, "  values: [");
+        writeln!(f, "Bitmap ")?;
+        writeln!(f, "  size: {:#x?}", self.size)?;
+        writeln!(f, "  values: [")?;
         for i in 0..(self.size * 8) {
-            write!(f, "{}, ", self[i]);
+            write!(f, "{}, ", self[i])?;
         }
 
         Ok(())

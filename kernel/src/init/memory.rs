@@ -1,7 +1,7 @@
 use bks::{Handover, PAGE_SIZE};
 
 use crate::memory::memset;
-use crate::memory::paging::page_frame_allocator::rejects;
+use crate::memory::paging::page_frame_allocator::REJECTS;
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager};
 use crate::{
     kprintln,
@@ -62,7 +62,7 @@ pub fn init_memory(handover: &mut Handover) {
                 page_table_manager.map_memory(i as u64, i as u64 + _KERNEL_START);
             }
             kprintln!("Mapped Memory");
-            kprintln!("{}", rejects);
+            kprintln!("{}", REJECTS);
             kprintln!("Mapping Framebuffer...");
             let fb_base = handover.framebuffer().base;
             let fb_size = handover.framebuffer().size + PAGE_SIZE as usize;
@@ -74,8 +74,8 @@ pub fn init_memory(handover: &mut Handover) {
             let fb_end = fb_base + fb_size as u64;
             for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
                 page_table_manager.map_memory(i, i);
-                if rejects > 0 {
-                    kprintln!("{}", rejects);
+                if REJECTS > 0 {
+                    kprintln!("{}", REJECTS);
                 }
             }
             kprintln!("Setting default PML4");
