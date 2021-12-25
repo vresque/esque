@@ -89,3 +89,7 @@ pub fn map_memory(handover: &mut Handover) {
         }
     }
 }
+
+pub fn init_heap(handover: &mut Handover) {
+    kprintln!("Initializing Heap!");
+}

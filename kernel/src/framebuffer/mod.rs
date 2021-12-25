@@ -188,7 +188,40 @@ impl FramebufferGuard {
         }
     }
 
-    pub fn clear_last_char(&mut self) {}
+    pub fn clear_last_char(&mut self) {
+        // Check that we do not clear nonexistant screen space
+        if self.col == 0 {
+            self.col = self.framebuffer().width;
+            if self.row - 16 < 0 {
+                self.row = 0;
+            } else {
+                self.row -= 16;
+            }
+        }
+
+        let charsize = self.font.header().charsize as usize;
+        let stride = self.framebuffer.stride;
+
+        for y in self.row..(self.row + 16) {
+            for x in (self.col - 8)..(self.col) {
+                let offset = x + (y * stride);
+                unsafe {
+                    let ptr = (self.framebuffer_buffer as *mut u32).add(offset);
+                    *ptr = self.background;
+                }
+            }
+        }
+        if self.col - 8 < 0 {
+            self.col = self.framebuffer().width;
+            if self.row - 16 < 0 {
+                self.row = 0;
+            } else {
+                self.row -= 16;
+            }
+        } else {
+            self.col -= 8;
+        }
+    }
 
     unsafe fn put_char(&mut self, chr: char) {
         let charsize = self.font.header().charsize as usize;

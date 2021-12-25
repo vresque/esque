@@ -28,6 +28,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
     init::interrupts::init_interrupts(&mut handover);
+    init::memory::init_heap(&mut handover);
     init::pic::init_pic(&mut handover);
     //init::memory::map_memory(&mut handover); FIXME: This does not work
     drivers::init_fallback_drivers(&mut handover);
