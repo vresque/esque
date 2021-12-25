@@ -5,7 +5,7 @@ OUTDIR = build
 BINDIR = binaries
 FINAL = Esque.img
 FPATH = $(OUTDIR)/$(FINAL)
-MODE ?= debug
+MODE ?= release
 
 QEMU = qemu-system-$(ARCH)
 QEMUFLAGS = \
