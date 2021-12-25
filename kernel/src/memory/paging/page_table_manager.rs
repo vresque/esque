@@ -159,60 +159,58 @@ impl PageTableManager {
     pub fn map_memory(&mut self, virtual_mem: u64, physical_mem: u64) {
         let indexer = PageMapIndexer::new(virtual_mem);
         // First Page
-        unsafe {
-            const PT_RAW_MEM_ADDR: fn(&mut PageTable) -> u64 =
-                |pt| (pt as *mut PageTable as *mut u64 as u64);
-            const SET_PT_TO_NULL: fn(&mut PageTable) = |pt| unsafe {
-                memset(PT_RAW_MEM_ADDR(pt), 0, 0x1000);
-            };
+        const PT_RAW_MEM_ADDR: fn(&mut PageTable) -> u64 =
+            |pt| (pt as *mut PageTable as *mut u64 as u64);
+        const SET_PT_TO_NULL: fn(&mut PageTable) = |pt| unsafe {
+            memset(PT_RAW_MEM_ADDR(pt), 0, 0x1000);
+        };
 
-            // Map PDP
-            let mut pdp_pde = self.pml4[indexer.pdp_idx];
-            let pdp = if !pdp_pde.get_flag(PageTableFlag::PRESENT) {
-                let tmp = request_page::<PageTable>();
-                SET_PT_TO_NULL(tmp);
-                pdp_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
-                pdp_pde.set_flag(PageTableFlag::PRESENT, true);
-                pdp_pde.set_flag(PageTableFlag::READ_WRITE, true);
-                self.pml4[indexer.pdp_idx] = pdp_pde;
-                tmp
-            } else {
-                addr_to_page_table(pdp_pde.addr() << 12)
-            };
+        // Map PDP
+        let mut pdp_pde = self.pml4[indexer.pdp_idx];
+        let pdp = if !pdp_pde.get_flag(PageTableFlag::PRESENT) {
+            let tmp = request_page::<PageTable>();
+            SET_PT_TO_NULL(tmp);
+            pdp_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pdp_pde.set_flag(PageTableFlag::PRESENT, true);
+            pdp_pde.set_flag(PageTableFlag::READ_WRITE, true);
+            self.pml4[indexer.pdp_idx] = pdp_pde;
+            tmp
+        } else {
+            addr_to_page_table(pdp_pde.addr() << 12)
+        };
 
-            // Map PageDirectoryEntry
-            let mut pd_pde = pdp.entries[indexer.pd_idx];
-            let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
-                let tmp = request_page();
-                SET_PT_TO_NULL(tmp);
-                pd_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
-                pd_pde.set_flag(PageTableFlag::PRESENT, true);
-                pd_pde.set_flag(PageTableFlag::READ_WRITE, true);
-                pdp.entries[indexer.pd_idx] = pd_pde;
-                tmp
-            } else {
-                addr_to_page_table(pd_pde.addr() << 12)
-            };
+        // Map PageDirectoryEntry
+        let mut pd_pde = pdp.entries[indexer.pd_idx];
+        let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
+            let tmp = request_page();
+            SET_PT_TO_NULL(tmp);
+            pd_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pd_pde.set_flag(PageTableFlag::PRESENT, true);
+            pd_pde.set_flag(PageTableFlag::READ_WRITE, true);
+            pdp.entries[indexer.pd_idx] = pd_pde;
+            tmp
+        } else {
+            addr_to_page_table(pd_pde.addr() << 12)
+        };
 
-            // Map PageTable
-            let mut pt_pde = pd.entries[indexer.pt_idx];
-            let pt = if !pt_pde.get_flag(PageTableFlag::PRESENT) {
-                let tmp = request_page();
-                SET_PT_TO_NULL(tmp);
-                pt_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
-                pt_pde.set_flag(PageTableFlag::PRESENT, true);
-                pt_pde.set_flag(PageTableFlag::READ_WRITE, true);
-                pd.entries[indexer.pt_idx] = pt_pde;
-                tmp
-            } else {
-                addr_to_page_table(pt_pde.addr() << 12)
-            };
+        // Map PageTable
+        let mut pt_pde = pd.entries[indexer.pt_idx];
+        let pt = if !pt_pde.get_flag(PageTableFlag::PRESENT) {
+            let tmp = request_page();
+            SET_PT_TO_NULL(tmp);
+            pt_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pt_pde.set_flag(PageTableFlag::PRESENT, true);
+            pt_pde.set_flag(PageTableFlag::READ_WRITE, true);
+            pd.entries[indexer.pt_idx] = pt_pde;
+            tmp
+        } else {
+            addr_to_page_table(pt_pde.addr() << 12)
+        };
 
-            let mut page_pde = pt.entries[indexer.p_idx];
-            page_pde.set_addr(physical_mem >> 12);
-            page_pde.set_flag(PageTableFlag::PRESENT, true);
-            page_pde.set_flag(PageTableFlag::READ_WRITE, true);
-            pt.entries[indexer.p_idx] = page_pde;
-        }
+        let mut page_pde = pt.entries[indexer.p_idx];
+        page_pde.set_addr(physical_mem >> 12);
+        page_pde.set_flag(PageTableFlag::PRESENT, true);
+        page_pde.set_flag(PageTableFlag::READ_WRITE, true);
+        pt.entries[indexer.p_idx] = page_pde;
     }
 }

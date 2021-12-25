@@ -9,11 +9,13 @@ extern crate uefi_services;
 
 mod handover;
 use core::mem::size_of;
+use uefi::table::{Boot, SystemTable};
 
 use crate::alloc::vec::Vec;
 use alloc::vec;
 use bks::{EfiMemoryDescriptor, Handover};
 use log::{error, info};
+use uefi::ResultExt;
 use uefi::{
     prelude::*,
     proto::{
@@ -140,7 +142,12 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
 
 #[entry]
 fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
-    uefi_services::init(&mut table).expect_success("Failed to setup Logging");
+    unsafe {
+        //let tr = core::mem::transmute_copy(&table);
+        uefi_services::init(&mut *(&mut table as *mut SystemTable<Boot> as *mut _))
+            .expect("Failed to setup Logging")
+            .expect("Completio failed");
+    };
 
     table
         .stdout()
@@ -169,26 +176,8 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         }
     };
     let kmain: extern "sysv64" fn(info: Handover) -> u32 = unsafe { core::mem::transmute(entry) };
-    // Exiting the boot services is required to get the memory map (At least in this library)
+    // Exiting the boot services is required to get the memory map
     //let (rt_table, mut handover) = create_handover_and_exit_boot_services(handle, table);
-
-    let mmap_size: usize = table.boot_services().memory_map_size();
-    let buf_size: usize = mmap_size + 8 * size_of::<MemoryDescriptor>();
-    let buffer = vec![0_u8; buf_size];
-    info!("{}", buffer.len());
-
-    let descriptors: &mut [EfiMemoryDescriptor; 255] = &mut [EfiMemoryDescriptor::empty(); 255];
-
-    let mmap_sz = table.boot_services().memory_map_size();
-    let mmap_storage = {
-        let buf_sz = mmap_sz + 8 * size_of::<MemoryDescriptor>();
-
-        let ptr = table
-            .boot_services()
-            .allocate_pool(MemoryType::LOADER_DATA, buf_sz)
-            .expect_success("Failed to allocate memory for Memory Map");
-        unsafe { core::slice::from_raw_parts_mut(ptr, buf_sz) }
-    };
 
     let framebuffer = handover::init_gop(handle, &mut table);
     info!("{}", framebuffer);
@@ -197,30 +186,22 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         None => panic!("Failed to find font"),
     };
 
-    let (_rt_table, memory_map) = table
-        .exit_boot_services(handle, mmap_storage)
+    let sizes = table.boot_services().memory_map_size();
+    let max_mmap_size = sizes.map_size + 2 * sizes.entry_size;
+    let mut storage = vec![0_u8; max_mmap_size].into_boxed_slice();
+    let entries = sizes.map_size / sizes.entry_size;
+    let slice = &mut vec![EfiMemoryDescriptor::empty(); entries][..];
+    info!("Exiting boot services...");
+    let (rt, map_iter) = table
+        .exit_boot_services(handle, &mut storage[..])
         .expect_success("Failed to exit boot services");
 
-    descriptors
-        .iter_mut()
-        .zip(
-            memory_map.map(|m| unsafe {
-                core::mem::transmute::<MemoryDescriptor, EfiMemoryDescriptor>(*m)
-            }),
-        )
-        .fold(0, |count, (dest, item)| {
-            *dest = item;
-            count + 1
+    unsafe {
+        let _ = map_iter.copied().zip(slice.iter_mut()).map(|(a, b)| {
+            *b = core::mem::transmute(a);
+            0
         });
-
-    let mut entries = 0;
-    descriptors.iter_mut().fold(0, |count, e| {
-        if e != &mut EfiMemoryDescriptor::empty() {
-            entries += 1;
-        }
-        count + 1
-    });
-
+    }
     // I am not sure about this
     // But, as the kernel uses it as mut, I do not wish
     // that this is ever placed into readonly-memory
@@ -228,8 +209,9 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     let mut handover = Handover::new(
         framebuffer,
         font,
-        descriptors.as_mut_ptr(),
-        mmap_size,
+        slice.as_mut_ptr(),
+        max_mmap_size,
+        sizes.entry_size,
         entries,
     );
 

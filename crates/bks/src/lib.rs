@@ -98,6 +98,7 @@ pub struct Handover {
     pub mmap_size: usize,
     memory_map: *mut EfiMemoryDescriptor,
     pub mmap_entries: usize,
+    pub mmap_entry_size: usize,
 }
 
 impl Handover {
@@ -106,6 +107,7 @@ impl Handover {
         font: Psf1Font,
         mmap: *mut EfiMemoryDescriptor,
         mmap_size: usize,
+        mmap_entry_size: usize,
         mmap_entries: usize,
     ) -> Self {
         Self {
@@ -115,6 +117,7 @@ impl Handover {
             memory_map: mmap,
             mmap_size: mmap_size,
             mmap_entries: mmap_entries,
+            mmap_entry_size: mmap_entry_size,
         }
     }
 

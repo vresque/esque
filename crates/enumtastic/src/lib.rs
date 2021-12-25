@@ -66,6 +66,12 @@ macro_rules! enum_with_options {
             )*
         }
 
+        impl ::core::convert::Into<$integer_type> for $name_of_enum {
+            fn into(self) -> $integer_type {
+                self.0
+            }
+        }
+
         // Implementing Display
         impl ::core::fmt::Debug for $name_of_enum {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {

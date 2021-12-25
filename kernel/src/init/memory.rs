@@ -18,7 +18,7 @@ static _KERNEL_START: u64 = 0;
 static _KERNEL_END: u64 = 0;
 
 /// Initializes the memory (Paging, Heap, etc)
-pub fn init_memory(handover: &mut Handover) {
+pub fn init_paging(handover: &mut Handover) {
     kprintln!("Preparing Memory");
     unsafe {
         // Set the Global PageFrameAllocator
@@ -32,7 +32,12 @@ pub fn init_memory(handover: &mut Handover) {
             .lock()
             .assume_init_mut()
             .read_memory_map();
+        return;
+    }
+}
 
+pub fn map_memory(handover: &mut Handover) {
+    unsafe {
         {
             let kernel_size = _KERNEL_END - _KERNEL_START;
             let kernel_pages = kernel_size / PAGE_SIZE + 1;
@@ -45,7 +50,7 @@ pub fn init_memory(handover: &mut Handover) {
 
         {
             // The PageMapLevel4
-            let mut pml4 = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
+            let pml4 = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
                 as *mut u64 as *mut PageTable);
             memset(
                 pml4 as *mut PageTable as *mut u64 as u64,

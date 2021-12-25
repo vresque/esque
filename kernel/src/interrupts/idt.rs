@@ -20,7 +20,7 @@ impl Into<u8> for IDTTypesAndAttrs {
 }
 
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
-#[repr(C)]
+#[repr(C, packed)]
 pub struct IDTDescriptorEntry {
     offset_0: u16,
     segment_selector: u16,
@@ -75,11 +75,13 @@ impl IDTDescriptorEntry {
 
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
 #[repr(packed, C)]
+#[derive(Copy, Clone, Debug)]
 pub struct IDTRegister {
     limit: u16,
     offset: u64,
 }
 impl IDTRegister {
+    #[inline]
     pub fn new(limit: u16, offset: u64) -> Self {
         Self { limit, offset }
     }
@@ -96,3 +98,8 @@ pub fn upload_idt_entry_at(offset: u64, value: IDTDescriptorEntry) {
 }
 
 pub static IDT_REGISTER: Mutex<MaybeUninit<IDTRegister>> = Mutex::new(MaybeUninit::uninit());
+
+#[inline(always)]
+pub unsafe fn upload_idt(register: &IDTRegister) {
+    core::arch::asm!("lidt [{}]", in(reg) register, options(nostack));
+}

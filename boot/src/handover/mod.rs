@@ -74,5 +74,6 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
     file.read(glyph_buffer)
         .expect_success("Failed to read data into buffer");
     let font = Psf1Font::new(header, glyph_buffer.as_mut_ptr(), buffer_size as usize);
+    info!("Finished creating font");
     Some(font)
 }

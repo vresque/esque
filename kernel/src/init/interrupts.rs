@@ -1,29 +1,36 @@
 use bks::Handover;
 
-use crate::interrupts::exceptions::{ExceptionHandler, IDTException};
+use crate::interrupts::exceptions::ExceptionHandler;
+use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
-use crate::kprintln;
-use crate::{
-    memory::paging::page_frame_allocator::request_page,
-};
+use crate::memory::paging::page_frame_allocator::request_page;
+use crate::{interrupts::exceptions::IDTException, kprintln};
 use core::arch::asm;
 
-use crate::interrupts::idt::{IDTRegister, IDT_REGISTER};
+use crate::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 
-pub fn init_interrupts(handover: &mut Handover) {
+extern "x86-interrupt" fn page_fault_handler(a: InterruptFrame) {
+    panic!("LMAO!!");
+}
+
+pub fn init_interrupts(_: &mut Handover) {
     kprintln!("Initializing Interrupts");
     let idtr_limit = 0x0FFF;
     let idtr_offset = request_page::<u64>();
     let idtr = IDTRegister::new(idtr_limit, *idtr_offset);
+    unsafe {
+        IDT_REGISTER.force_unlock();
+    }
     IDT_REGISTER.lock().write(idtr);
+    kprintln!("{:#?}", IDT_REGISTER.lock().assume_init_mut());
 
-    set_interrupt_handler(
-        IDTException::PageFault as u64,
-        ExceptionHandler::<{ IDTException::PageFault }>::handle,
-    );
+    set_interrupt_handler(IDTException::PageFault as u64, page_fault_handler);
 
     // Loading the IDT
+    kprintln!("Loading IDTR");
     unsafe {
-        asm!("lidt {}", in(reg) (IDT_REGISTER.lock().assume_init_mut() as *mut IDTRegister));
+        // Load the IDT
+        upload_idt(IDT_REGISTER.lock().assume_init_mut());
     }
+    kprintln!("Finished preparing interrupts");
 }

@@ -1,6 +1,5 @@
 use super::interrupt_frame::InterruptFrame;
 
-
 #[allow(unused)]
 pub enum ExceptionType {
     Fault,
@@ -103,14 +102,14 @@ enumtastic::const_enum! {
 
 pub struct ExceptionHandler<const T: u8>;
 
-pub fn exception_panic(n: u8) -> ! {
-    let ty = IDTException::PageFault;
+pub fn exception_panic(_n: u8) -> ! {
+    let _ty = IDTException::PageFault;
     panic!("Lol!");
     //loop {}
 }
-
-impl ExceptionHandler<{ IDTException::PageFault }> {
-    pub extern "x86-interrupt" fn handle(frame: InterruptFrame) {
-        exception_panic(IDTException::PageFault)
-    }
-}
+//
+//impl ExceptionHandler<{ IDTException::PageFault }> {
+//    pub extern "x86-interrupt" fn handle(_frame: InterruptFrame) {
+//        exception_panic(IDTException::PageFault)
+//    }
+//}
