@@ -187,6 +187,9 @@ impl FramebufferGuard {
             }
         }
     }
+
+    pub fn clear_last_char(&mut self) {}
+
     unsafe fn put_char(&mut self, chr: char) {
         let charsize = self.font.header().charsize as usize;
         let stride = self.framebuffer.stride;

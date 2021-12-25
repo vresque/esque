@@ -1,6 +1,12 @@
 #![no_std]
 
 #[macro_export]
+macro_rules! count {
+    () => (0usize);
+    ( $x:tt $($xs:tt)* ) => (1usize + enumtastic::count!($($xs)*));
+}
+
+#[macro_export]
 macro_rules! const_enum {
     (
         $(#[$attributes_of_enum:meta])*
@@ -20,6 +26,7 @@ macro_rules! const_enum {
         #[allow(non_upper_case_globals)]
         $enum_visi mod $name_of_enum {
             use super::*;
+            pub const len: usize = enumtastic::count!($($name_of_variant)*);
             $(
                 // Allow it to be "Enum-Like" instead of "Const-Like"
                 #[allow(non_upper_case_globals)]
