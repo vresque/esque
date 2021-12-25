@@ -12,16 +12,28 @@ mod gdt;
 mod init;
 mod memory;
 mod panic;
-use bks::Handover;
+use bks::{Config, Handover};
+mod config;
+mod drivers;
 mod interrupts;
+mod iobus;
+mod pic;
 mod syscall;
+use config::config;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
+    init::config::init_config(&mut handover);
     init::gdt::init_gdt(&mut handover);
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
     init::interrupts::init_interrupts(&mut handover);
-    init::memory::map_memory(&mut handover);
+    init::pic::init_pic(&mut handover);
+    //init::memory::map_memory(&mut handover); FIXME: This does not work
+    drivers::init_fallback_drivers(&mut handover);
+
+    // Consumes Handover
+    init::userspace::init_userspace(handover);
+    //Launchpad::new(INITRAMFS, "init").launch();
     loop {}
 }

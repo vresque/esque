@@ -4,7 +4,7 @@
 macro_rules! const_enum {
     (
         $(#[$attributes_of_enum:meta])*
-        pub enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
+        $enum_visi:vis enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
             $(
                 $(#[$attributes_of_variant:meta])*
                 $name_of_variant:ident = $value_of_variant:expr,
@@ -18,7 +18,8 @@ macro_rules! const_enum {
         #[allow(non_snake_case)]
         #[allow(unused)]
         #[allow(non_upper_case_globals)]
-        pub mod $name_of_enum {
+        $enum_visi mod $name_of_enum {
+            use super::*;
             $(
                 // Allow it to be "Enum-Like" instead of "Const-Like"
                 #[allow(non_upper_case_globals)]
@@ -39,7 +40,7 @@ macro_rules! const_enum {
 macro_rules! enum_with_options {
     (
         $(#[$attributes_of_enum:meta])*
-        pub enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
+        $enum_visi:vis enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
             $(
                 $(#[$attributes_of_variant:meta])*
                 $name_of_variant:ident = $value_of_variant:expr,
@@ -52,7 +53,7 @@ macro_rules! enum_with_options {
         $(#[$attributes_of_enum])*
         #[derive(Eq, PartialEq, Copy, Clone)]
         #[repr(transparent)]
-        pub struct $name_of_enum(pub $integer_type);
+        $enum_visi struct $name_of_enum(pub $integer_type);
 
         #[allow(unused)]
         $(#[$impl_attributes_of_enum])*

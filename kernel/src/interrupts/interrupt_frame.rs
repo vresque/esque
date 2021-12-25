@@ -9,7 +9,7 @@ pub struct InterruptRegisters {
     pub rdi: u64,
     pub rdx: u64,
     pub rcx: u64,
-    pub rax: u64
+    pub rax: u64,
 }
 
 #[repr(C, packed)]

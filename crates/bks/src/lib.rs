@@ -99,6 +99,7 @@ pub struct Handover {
     memory_map: *mut EfiMemoryDescriptor,
     pub mmap_entries: usize,
     pub mmap_entry_size: usize,
+    pub config: Config,
 }
 
 impl Handover {
@@ -109,6 +110,7 @@ impl Handover {
         mmap_size: usize,
         mmap_entry_size: usize,
         mmap_entries: usize,
+        config: Config,
     ) -> Self {
         Self {
             checknum: 42,
@@ -118,6 +120,7 @@ impl Handover {
             mmap_size: mmap_size,
             mmap_entries: mmap_entries,
             mmap_entry_size: mmap_entry_size,
+            config: config,
         }
     }
 
@@ -256,4 +259,41 @@ impl core::fmt::Display for Framebuffer {
         writeln!(f, "   Stride: {}", self.stride)?;
         Ok(())
     }
+}
+
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct Config {
+    pub lang: u16,
+    pub layout: u16,
+}
+
+impl Config {
+    pub fn new(lang: u16, layout: u16) -> Self {
+        Self { lang, layout }
+    }
+
+    pub const fn default() -> Self {
+        Self { lang: 0, layout: 0 }
+    }
+}
+
+pub const LANGUAGES_SUPPORTED_NUM: usize = 2;
+enumtastic::const_enum! {
+    pub enum Language: u16 => {
+        English = 0,
+        German  = 1,
+    }
+
+    impl {}
+}
+
+pub const KEYBOARD_LAYOUTS_SUPPORTED_NUM: usize = 2;
+enumtastic::const_enum! {
+    pub enum KeyboardLayout: u16 => {
+        QWERTY = 0,
+        German = 1,
+    }
+
+    impl {}
 }

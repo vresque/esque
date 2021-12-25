@@ -1,0 +1,35 @@
+//! This entire file is largely based on the examples in https://wiki.osdev.org/PIC#Programming_the_PIC_chips
+
+use core::arch::asm;
+
+/// # In Bus
+/// Reads a byte from the given port
+#[inline(always)]
+pub fn inb(port: u16) -> u8 {
+    let mut retval: u8;
+    unsafe {
+        asm!("in al, dx", in("dx") port, out("al") retval, options(preserves_flags, nomem, nostack));
+    }
+    retval
+}
+/// # Out Bus
+/// Writes the value to the port
+#[inline(always)]
+pub fn outb(port: u16, value: u8) {
+    unsafe {
+        asm!("out dx, al", in("dx") port, in("al") value, options(preserves_flags, nomem, nostack));
+    }
+}
+/// # IO Wait
+/// Waits to let devices catch up
+#[inline(always)]
+pub fn io_wait() {
+    inb(0x80);
+}
+
+#[inline]
+pub fn io_wait_for(cycles: usize) {
+    for _ in 0..cycles {
+        io_wait();
+    }
+}

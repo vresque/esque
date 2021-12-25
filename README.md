@@ -1,5 +1,5 @@
 # Esque
-A modern kernel featuring executables in WebAssembly as well as ELF - Uniting Past and Present
+A modern microkernel kernel featuring executables in WebAssembly as well as ELF - Uniting Past and Present
 
 ## Screenshots
 ![A Blue Screen of Death (Kernel Panic) in Esque](binaries/screenshots/bsod.png)
@@ -38,16 +38,20 @@ At the time of writing, the following output is produced:
 A total of 52 occurences have been found (1641 LOC, 0 Percent)
 ```
 
-## What is an Exokernel
 
-## Features
-
-### Guards
-Each aspect of the operating system is guarded by a fierce guard. For example, the framebuffer is guarded
-by the FramebufferGuard.
-
-### Capability-Based Applications
-While Exokernels are based on the idea of trusting applications, this is not 100% neccessary. This is why all Applications have a set
-of capabilities. Those permissions must be in the ELF file of the application.
-If no capabilities are found in the ELF, a default set of capabilities is given
-to the application. Those should suffice to run any *nix application.
+## Roadmap
+- [x] Own Bootloader
+- [x] Font Loading
+- [x] GDT
+- [x] IDT
+- [ ] All Faults Handled
+- [x] Port-IO
+- [x] Fallback Drivers for Fallback-Shell (For debugging purposes)
+- [x] Level 4 Paging
+- [ ] PS2 Keyboard
+- [ ] Keyboard Layout Crate
+- [ ] Remapping the Page Table
+- [ ] Fallback Kernel Shell
+- [ ] Syscalls
+- [ ] WebAssembly-Executables
+- [ ] Release Milestone 1  

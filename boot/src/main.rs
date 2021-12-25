@@ -13,7 +13,7 @@ use uefi::table::{Boot, SystemTable};
 
 use crate::alloc::vec::Vec;
 use alloc::vec;
-use bks::{EfiMemoryDescriptor, Handover};
+use bks::{Config, EfiMemoryDescriptor, Handover, KeyboardLayout, Language};
 use log::{error, info};
 use uefi::ResultExt;
 use uefi::{
@@ -175,6 +175,9 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
             return e;
         }
     };
+
+    let config = Config::new(Language::English, KeyboardLayout::German);
+
     let kmain: extern "sysv64" fn(info: Handover) -> u32 = unsafe { core::mem::transmute(entry) };
     // Exiting the boot services is required to get the memory map
     //let (rt_table, mut handover) = create_handover_and_exit_boot_services(handle, table);
@@ -213,6 +216,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         max_mmap_size,
         sizes.entry_size,
         entries,
+        config,
     );
 
     kmain(handover);

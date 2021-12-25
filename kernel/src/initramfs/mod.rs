@@ -1,0 +1,1 @@
+pub static INITRAMFS: Mutex<MaybeUninit<u64>> = Mutex::new(MaybeUninit::uninit());
