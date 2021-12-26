@@ -1,6 +1,14 @@
-use core::ops::{Index, IndexMut};
+use core::{
+    mem::MaybeUninit,
+    ops::{Index, IndexMut},
+};
+
+use spin::Mutex;
 
 use crate::memory::paging::page_frame_allocator::request_page;
+
+pub static GLOBAL_PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
+    Mutex::new(MaybeUninit::uninit());
 
 use super::super::memset;
 #[repr(transparent)]

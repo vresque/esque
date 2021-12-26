@@ -15,11 +15,14 @@ mod panic;
 use bks::{Config, Handover};
 mod config;
 mod drivers;
+mod heap;
 mod interrupts;
 mod iobus;
 mod pic;
-mod syscall;
 use config::config;
+
+const HEAP_ADDRESS: u64 = 0x0000100000;
+const HEAP_LENGTH: usize = 0x100;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
@@ -28,13 +31,13 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
     init::interrupts::init_interrupts(&mut handover);
+    init::memory::map_memory(&mut handover);
     init::memory::init_heap(&mut handover);
     init::pic::init_pic(&mut handover);
-    //init::memory::map_memory(&mut handover); FIXME: This does not work
     drivers::init_fallback_drivers(&mut handover);
 
+    //Launchpad::new(INITRAMFS, "initfs").launch();
     // Consumes Handover
     init::userspace::init_userspace(handover);
-    //Launchpad::new(INITRAMFS, "init").launch();
     loop {}
 }

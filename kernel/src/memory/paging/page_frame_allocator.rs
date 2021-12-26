@@ -16,6 +16,7 @@ pub struct PageFrameAllocator<'a> {
     base: u64,
     map: &'a mut [EfiMemoryDescriptor],
     entries: usize,
+    entry_size: usize,
     size: usize,
     bitmap: Bitmap,
     free: i64, // FIXME: During Initialization, the value may drop below zero
@@ -25,7 +26,7 @@ pub struct PageFrameAllocator<'a> {
 }
 
 impl<'a> PageFrameAllocator<'a> {
-    pub fn new(base: *mut u8, entries: usize, size: usize) -> Self {
+    pub fn new(base: *mut u8, entries: usize, size: usize, entry_size: usize) -> Self {
         if unsafe { IS_PAGE_FRAME_ALLOCATOR_INITIALIZED } {
             panic!("Tried to create a PageFrameAllocator twice in the same session.")
         }
@@ -42,6 +43,7 @@ impl<'a> PageFrameAllocator<'a> {
             map,
             entries,
             size,
+            entry_size,
             bitmap,
             free: 0,
             reserved: 0,
@@ -194,6 +196,7 @@ impl<'a> PageFrameAllocator<'a> {
     }
 
     pub fn total_memory(&self) -> u64 {
+        kprintln!("LENEN: {}", self.map.len());
         unsafe {
             static mut MEM_SZ_BYTES: u64 = 0;
             // If calculated before, just return it
@@ -203,6 +206,9 @@ impl<'a> PageFrameAllocator<'a> {
 
             for i in self.map.iter() {
                 MEM_SZ_BYTES += i.page_count * PAGE_SIZE;
+                if i.ty != MemoryType::EmptyTemporaryMemory {
+                    kprintln!("{:#?}", i);
+                }
             }
 
             MEM_SZ_BYTES

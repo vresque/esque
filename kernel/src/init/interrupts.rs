@@ -12,7 +12,7 @@ use core::arch::asm;
 use crate::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 
 extern "x86-interrupt" fn page_fault_handler(a: InterruptFrame) {
-    //panic!("Page Fault detected");
+    panic!("Page Fault detected");
 }
 
 extern "x86-interrupt" fn double_fault_handler(a: InterruptFrame) {
@@ -20,7 +20,7 @@ extern "x86-interrupt" fn double_fault_handler(a: InterruptFrame) {
 }
 
 extern "x86-interrupt" fn general_protection_fault_handler(a: InterruptFrame) {
-    panic!("General Protection detected");
+    panic!("General Protection Fault detected");
 }
 
 pub fn init_interrupts(_: &mut Handover) {

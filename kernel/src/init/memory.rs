@@ -1,5 +1,6 @@
 use bks::{Handover, PAGE_SIZE};
 
+use crate::heap::Heap;
 use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::REJECTS;
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager};
@@ -7,6 +8,7 @@ use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
 };
+use crate::{HEAP_ADDRESS, HEAP_LENGTH};
 use core::arch::asm;
 
 // Defined in Linker Script
@@ -21,11 +23,18 @@ static _KERNEL_END: u64 = 0;
 pub fn init_paging(handover: &mut Handover) {
     kprintln!("Preparing Memory");
     unsafe {
+        kprintln!(
+            "ENT: {}, SZ: {}, ENTSZ: {}",
+            handover.mmap_entries,
+            handover.mmap_size,
+            handover.mmap_entry_size
+        );
         // Set the Global PageFrameAllocator
         PAGE_FRAME_ALLOCATOR.lock().write(PageFrameAllocator::new(
             handover.raw_memory_map() as *mut u8,
             handover.mmap_entries,
             handover.mmap_size,
+            handover.mmap_entry_size,
         ));
         // "Initialize" the PageFrameAllocator
         PAGE_FRAME_ALLOCATOR
@@ -60,9 +69,14 @@ pub fn map_memory(handover: &mut Handover) {
 
             let page_table_manager = &mut PageTableManager::new(*pml4);
 
-            kprintln!("Mapping Memory...");
             // Step through the memory mapping phys x -> virt x
             let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
+            kprintln!(
+                "Mapping Memory ({} bytes, {}kb, {}mb)...",
+                total_mem,
+                total_mem / 1024,
+                total_mem / 1024
+            );
             for i in (0..(total_mem)).step_by(0x1000) {
                 page_table_manager.map_memory(i as u64, i as u64 + _KERNEL_START);
             }
@@ -84,7 +98,7 @@ pub fn map_memory(handover: &mut Handover) {
                 }
             }
             kprintln!("Setting default PML4");
-            asm!("mov cr3, {}", in(reg) (pml4 as *mut PageTable));
+            //asm!("mov cr3, {}", in(reg) (pml4 as *mut PageTable));
             kprintln!("Finished preparing memory!");
         }
     }
@@ -92,4 +106,9 @@ pub fn map_memory(handover: &mut Handover) {
 
 pub fn init_heap(handover: &mut Handover) {
     kprintln!("Initializing Heap!");
+    unsafe {
+        crate::heap::GLOBAL_HEAP
+            .lock()
+            .write(Heap::new(HEAP_ADDRESS, HEAP_LENGTH));
+    }
 }
