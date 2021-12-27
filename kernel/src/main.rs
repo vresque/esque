@@ -22,7 +22,7 @@ mod pic;
 use config::config;
 
 const HEAP_ADDRESS: u64 = 0x0000100000;
-const HEAP_LENGTH: usize = 0x100;
+const HEAP_LENGTH: usize = 0x1000;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
@@ -30,8 +30,8 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::gdt::init_gdt(&mut handover);
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
-    init::interrupts::init_interrupts(&mut handover);
     init::memory::map_memory(&mut handover);
+    init::interrupts::init_interrupts(&mut handover);
     init::memory::init_heap(&mut handover);
     init::pic::init_pic(&mut handover);
     drivers::init_fallback_drivers(&mut handover);

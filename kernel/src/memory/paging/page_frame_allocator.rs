@@ -2,6 +2,7 @@ use core::mem::MaybeUninit;
 
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
+use crate::init::memory::_KERNEL_OFFSET;
 use crate::kprintln;
 
 use crate::memory::bitmap::Bitmap;
@@ -11,6 +12,7 @@ pub static PAGE_FRAME_ALLOCATOR: Mutex<MaybeUninit<PageFrameAllocator>> =
     Mutex::new(MaybeUninit::uninit());
 static mut IS_PAGE_FRAME_ALLOCATOR_INITIALIZED: bool = false;
 pub static mut REJECTS: u64 = 0;
+pub static mut ACCEPTS: u64 = 0;
 
 pub struct PageFrameAllocator<'a> {
     base: u64,
@@ -84,6 +86,8 @@ impl<'a> PageFrameAllocator<'a> {
         for i in 0..self.entries {
             let ent = self.map[i];
             if ent.ty != MemoryType::ConventialMemory {
+                self.reserve_pages(ent.phys_base, ent.page_count as usize);
+            } else if ent.phys_base <= _KERNEL_OFFSET {
                 self.reserve_pages(ent.phys_base, ent.page_count as usize);
             }
         }
@@ -185,6 +189,9 @@ impl<'a> PageFrameAllocator<'a> {
         while self.last_bmap_index < (self.bitmap.size as u64 * 8 as u64) {
             if self.bitmap[self.last_bmap_index as usize] == false {
                 self.lock_page(self.last_bmap_index * 4096);
+                unsafe {
+                    ACCEPTS += 1;
+                }
                 return self.last_bmap_index * PAGE_SIZE;
             }
             self.last_bmap_index += 1;
@@ -192,6 +199,11 @@ impl<'a> PageFrameAllocator<'a> {
         unsafe {
             REJECTS += 1;
         }
+        panic!(
+            "Out of Memory: {} out of {} pages were allocated.",
+            unsafe { ACCEPTS },
+            self.total_memory() * PAGE_SIZE
+        );
         return 0;
     }
 
@@ -203,14 +215,16 @@ impl<'a> PageFrameAllocator<'a> {
             if MEM_SZ_BYTES > 0 {
                 return MEM_SZ_BYTES;
             }
-
+            kprintln!("ENTries: {} : LENII {}", self.entries, self.map.len());
             for i in self.map.iter() {
                 MEM_SZ_BYTES += i.page_count * PAGE_SIZE;
-                if i.ty != MemoryType::EmptyTemporaryMemory {
-                    kprintln!("{:#?}", i);
-                }
             }
-
+            kprintln!(
+                "MEM_SZ_BYTES: {} :: MEM_SZ_KILOBYTES: {} :: MEM_SZ_MEGABYTES: {}",
+                MEM_SZ_BYTES,
+                MEM_SZ_BYTES / 1024,
+                MEM_SZ_BYTES / 1024 / 1024
+            );
             MEM_SZ_BYTES
         }
     }

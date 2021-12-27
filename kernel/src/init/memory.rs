@@ -1,9 +1,9 @@
 use bks::{Handover, PAGE_SIZE};
 
-use crate::heap::Heap;
+use crate::heap::{malloc_ptr, Heap, GLOBAL_HEAP};
 use crate::memory::memset;
-use crate::memory::paging::page_frame_allocator::REJECTS;
-use crate::memory::paging::page_table_manager::{PageTable, PageTableManager};
+use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
+use crate::memory::paging::page_table_manager::{upload_pml4, PageTable, PageTableManager};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
@@ -18,6 +18,10 @@ static _KERNEL_START: u64 = 0;
 // Defined in Linker Script
 #[no_mangle]
 static _KERNEL_END: u64 = 0;
+
+// Defined in Linker Script
+#[no_mangle]
+pub static _KERNEL_OFFSET: u64 = 0;
 
 /// Initializes the memory (Paging, Heap, etc)
 pub fn init_paging(handover: &mut Handover) {
@@ -75,31 +79,33 @@ pub fn map_memory(handover: &mut Handover) {
                 "Mapping Memory ({} bytes, {}kb, {}mb)...",
                 total_mem,
                 total_mem / 1024,
-                total_mem / 1024
+                total_mem / 1024 / 1024,
             );
-            for i in (0..(total_mem)).step_by(0x1000) {
-                page_table_manager.map_memory(i as u64, i as u64 + _KERNEL_START);
-            }
+            //for i in (_KERNEL_OFFSET..(total_mem)).step_by(0x1000) {
+            //    page_table_manager.map_memory(i as u64, i as u64);
+            //} FIXME: Very Slow
+
             kprintln!("Mapped Memory");
             kprintln!("{}", REJECTS);
             kprintln!("Mapping Framebuffer...");
+            kprintln!("ACC: {}, FULL: {}", ACCEPTS, total_mem / 0x1000);
             let fb_base = handover.framebuffer().base;
             let fb_size = handover.framebuffer().size + PAGE_SIZE as usize;
             PAGE_FRAME_ALLOCATOR
                 .lock()
                 .assume_init_mut()
                 .lock_pages(fb_base, fb_size / PAGE_SIZE as usize + 1);
-
             let fb_end = fb_base + fb_size as u64;
-            for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
-                page_table_manager.map_memory(i, i);
-                if REJECTS > 0 {
-                    kprintln!("{}", REJECTS);
-                }
-            }
+            //for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
+            //    page_table_manager.map_memory(i, i);
+            //    if REJECTS > 0 {
+            //        kprintln!("{}", REJECTS);
+            //    }
+            //} FIXME: Mapping the FrameBuffer causes a general protection fault
             kprintln!("Setting default PML4");
-            //asm!("mov cr3, {}", in(reg) (pml4 as *mut PageTable));
-            kprintln!("Finished preparing memory!");
+            let addr = pml4 as *mut PageTable as *mut u64 as u64;
+            // FIXME: upload_pml4(addr);
+            //kprintln!("Finished preparing memory!");
         }
     }
 }
@@ -110,5 +116,34 @@ pub fn init_heap(handover: &mut Handover) {
         crate::heap::GLOBAL_HEAP
             .lock()
             .write(Heap::new(HEAP_ADDRESS, HEAP_LENGTH));
+        let alloc = malloc_ptr::<u64>(0x8000);
+        *alloc = 26;
+        kprintln!("{}", *alloc);
+
+        let alloc_b = malloc_ptr::<u64>(0x8000);
+        *alloc_b = 42;
+        kprintln!("{}", *alloc_b);
+
+        let alloc_c = malloc_ptr::<u64>(0x8000);
+        *alloc_c = 28;
+        //kprintln!("{}", *alloc_c);
+
+        {
+            let ptr = malloc_ptr::<u64>(0x1000);
+            kprintln!("{:p}", ptr);
+        }
+
+        {
+            let ptr = malloc_ptr::<u64>(0x1000);
+            kprintln!("{:p}", ptr);
+        }
+
+        {
+            let ptr = malloc_ptr::<u64>(0x1000);
+            kprintln!("{:p}", ptr);
+        }
+
+        kprintln!("{}", *alloc);
+        kprintln!("L");
     }
 }

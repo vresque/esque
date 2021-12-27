@@ -282,9 +282,12 @@ impl Write for FramebufferGuard {
 ////////////////////////////////////////////////////////////////////////////////////////
 #[macro_export]
 macro_rules! kprintln {
-    () => {
+    () => ({
+        use crate::framebuffer::FRAMEBUFFER_GUARD;
+        use core::fmt::Write;
+
         unsafe { FRAMEBUFFER_GUARD.lock().assume_init_mut().write_str("\n").unwrap(); };
-    };
+    });
     ($($arg:tt)*) => ({
         use crate::framebuffer::FRAMEBUFFER_GUARD;
         use core::fmt::Write;

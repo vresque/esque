@@ -222,3 +222,9 @@ impl PageTableManager {
         pt.entries[indexer.p_idx] = page_pde;
     }
 }
+
+core::arch::global_asm!(include_str!("paging.s"));
+
+extern "C" {
+    pub fn upload_pml4(addr: u64);
+}

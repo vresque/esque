@@ -194,17 +194,34 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     let mut storage = vec![0_u8; max_mmap_size].into_boxed_slice();
     let entries = sizes.map_size / sizes.entry_size;
     let slice = &mut vec![EfiMemoryDescriptor::empty(); entries][..];
+
     info!("Exiting boot services...");
     let (rt, map_iter) = table
         .exit_boot_services(handle, &mut storage[..])
         .expect_success("Failed to exit boot services");
-
+    let mut ents = 0;
     unsafe {
-        let _ = map_iter.copied().zip(slice.iter_mut()).map(|(a, b)| {
-            *b = core::mem::transmute(a);
-            0
-        });
+        let _ = map_iter
+            .copied()
+            .zip(slice.iter_mut())
+            .fold(0, |count, (a, b)| {
+                // Reserved Memory should not be included
+                if a.ty == MemoryType::RESERVED {
+                    *b = EfiMemoryDescriptor::new(
+                        0,
+                        bks::MemoryType::ReservedMemory,
+                        bks::MemoryAttribute::UNREACHABLE,
+                        0,
+                        0,
+                    );
+                    return count + 1;
+                }
+                ents += 1;
+                *b = core::mem::transmute(a);
+                count + 1
+            });
     }
+
     // I am not sure about this
     // But, as the kernel uses it as mut, I do not wish
     // that this is ever placed into readonly-memory
@@ -215,7 +232,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         slice.as_mut_ptr(),
         max_mmap_size,
         sizes.entry_size,
-        entries,
+        ents,
         config,
     );
 

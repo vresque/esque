@@ -2,10 +2,12 @@ use bks::Handover;
 
 use crate::{
     iobus::outb,
+    kprintln,
     pic::{self, PicPort, PicUtilValue},
 };
 
 pub fn init_pic(_: &mut Handover) {
+    kprintln!("Initializing the PIC");
     pic::remap_pic(0x20, 0x08);
 
     // Unmask the PS2-Keyboard Interrupts

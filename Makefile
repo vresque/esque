@@ -17,6 +17,7 @@ QEMUFLAGS = \
 	-drive if=pflash,format=raw,unit=0,file=$(BINDIR)/OVMF/OVMF_CODE.fd,readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(BINDIR)/OVMF/OVMF_VARS.fd \
 	-net none -d int,cpu_reset,guest_errors,page,strace -D log.log \
+	-no-shutdown -no-reboot
 
 all: kernel boot strip mkimg run
 

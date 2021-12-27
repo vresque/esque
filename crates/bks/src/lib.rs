@@ -74,6 +74,23 @@ impl EfiMemoryDescriptor {
             attributes: MemoryAttribute::UNREACHABLE,
         }
     }
+
+    pub fn new(
+        pages: u64,
+        ty: MemoryType,
+        attr: MemoryAttribute,
+        phys_base: u64,
+        virt_base: u64,
+    ) -> Self {
+        Self {
+            ty,
+            padding: 0,
+            phys_base,
+            virt_base,
+            page_count: pages,
+            attributes: attr,
+        }
+    }
 }
 
 impl core::fmt::Debug for EfiMemoryDescriptor {
