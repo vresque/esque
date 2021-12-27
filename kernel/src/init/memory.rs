@@ -1,6 +1,6 @@
 use bks::{Handover, PAGE_SIZE};
 
-use crate::heap::{malloc_ptr, Heap, GLOBAL_HEAP};
+use crate::heap::{free, malloc_ptr, Heap, GLOBAL_HEAP};
 use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{upload_pml4, PageTable, PageTableManager};
@@ -131,16 +131,19 @@ pub fn init_heap(handover: &mut Handover) {
         {
             let ptr = malloc_ptr::<u64>(0x1000);
             kprintln!("{:p}", ptr);
+            free(ptr as u64);
         }
 
         {
             let ptr = malloc_ptr::<u64>(0x1000);
             kprintln!("{:p}", ptr);
+            free(ptr as u64);
         }
 
         {
             let ptr = malloc_ptr::<u64>(0x1000);
             kprintln!("{:p}", ptr);
+            free(ptr as u64);
         }
 
         kprintln!("{}", *alloc);

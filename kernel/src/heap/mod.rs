@@ -84,14 +84,11 @@ impl HeapSegmentHeader {
 
     /// # Combine With Last
     /// Combines the current header with the last segment header, extending it
-    pub fn combine_with_last<'heap_last_hdr_lt>(
-        &mut self,
-        heap_last_hdr: &'heap_last_hdr_lt mut HeapSegmentHeader,
-    ) {
+    pub fn combine_with_last(&mut self, mut heap_last_hdr: HeapSegmentHeader) {
         if let Some(mut last) = self.last {
             unsafe {
                 if last.as_mut().free == true {
-                    last.as_mut().combine_with_next(*heap_last_hdr);
+                    last.as_mut().combine_with_next(heap_last_hdr);
                 }
             }
         }
@@ -271,7 +268,13 @@ impl<'header> Heap<'header> {
         }
     }
 
-    pub fn free(&mut self, address: u64) {}
+    pub fn free(&mut self, address: u64) {
+        let header = unsafe { HeapSegmentHeader::from_addr(address - 1) }; // The Header is always stored 1 before the actual value
+        header.free = true;
+        header.combine_with_last(*self.last_header);
+        header.combine_with_next(*self.last_header);
+    }
+
     fn expand(&mut self, length: usize) {
         let rounded_length = if length % PAGE_SIZE as usize == 0 {
             (length as u64 - (length as u64 % PAGE_SIZE)) + PAGE_SIZE
@@ -301,7 +304,7 @@ impl<'header> Heap<'header> {
         self.last_header.next = Some(NonNull::new(header).unwrap());
         header.next = None;
         header.len = length - size_of::<HeapSegmentHeader>();
-        header.combine_with_last(self.last_header);
+        header.combine_with_last(*self.last_header);
         self.last_header = header;
     }
 }
