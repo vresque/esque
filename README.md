@@ -69,8 +69,8 @@ A total of 52 occurences have been found (1641 LOC, 0 Percent)
 - [x] Level 4 Paging
 - [x] PS2 Keyboard
 - [x] Keyboard Layout Crate
-- [ ] Memory Allocation
-- [ ] Support the `alloc` crate
+- [x] Memory Allocation
+- [x] Support the `alloc` crate
 - [ ] Remapping the Page Table
 - [ ] Fallback Kernel Shell
 - [ ] Syscalls
