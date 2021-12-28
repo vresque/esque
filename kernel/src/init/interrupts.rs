@@ -6,6 +6,7 @@ use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::pic::PicInterrupt;
+use crate::scheduler::pit::{pit_interrupt_handler, PIT_INTERRUPT};
 use crate::{info, success};
 use crate::{interrupts::exceptions::IDTException, kprintln};
 use core::arch::asm;
@@ -127,6 +128,9 @@ pub fn init_interrupts(_: &mut Handover) {
         PicInterrupt::KeyboardInterrupt as u64,
         ps2_keyboard_int_handler,
     );
+
+    // Set PIT Interrupt Handler
+    set_interrupt_handler(PIT_INTERRUPT as u64, pit_interrupt_handler);
 
     // Loading the IDT
     info!("Loading IDTR");

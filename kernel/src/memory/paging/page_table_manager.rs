@@ -239,7 +239,7 @@ impl<'table> PageTableManager<'table> {
         page_pde.set_addr(physical_mem >> 12);
         page_pde.set_flag(PageTableFlag::PRESENT, true);
         page_pde.set_flag(PageTableFlag::READ_WRITE, true);
-        pt.entries[indexer.p_idx] = page_pde;
+        // pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
     }
 }
 

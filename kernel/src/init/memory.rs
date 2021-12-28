@@ -94,16 +94,17 @@ pub fn map_memory(handover: &mut Handover) {
                 .assume_init_mut()
                 .lock_pages(fb_base, fb_size / PAGE_SIZE as usize + 1);
             let fb_end = fb_base + fb_size as u64;
-            //for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
-            //    page_table_manager.map_memory(i, i);
-            //    if REJECTS > 0 {
-            //        kprintln!("{}", REJECTS);
-            //    }
-            //} FIXME: Mapping the FrameBuffer causes a general protection fault
+            for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
+                page_table_manager.map_memory(i, i);
+                if REJECTS > 0 {
+                    kprintln!("{}", REJECTS);
+                }
+            }
             info!("Setting default PML4");
 
             let value = pml4_addr | (1 << 3) as u64;
             asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
+
             success!("Finished preparing memory!");
         }
     }

@@ -19,7 +19,11 @@ QEMUFLAGS = \
 	-net none -d int,cpu_reset,guest_errors,page,strace -D log.log \
 	-no-shutdown -no-reboot
 
-all: kernel boot strip mkimg run
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+INITRDFILES = $(call rwildcard,initramfs,*.*)
+INITRAMFS = $(OUTDIR)/initramfs.tar
+
+all: $(INITRAMFS) kernel boot strip mkimg run
 
 check: kernel-check
 
@@ -65,6 +69,9 @@ mkimg:
 	@mcopy -i $(FPATH) $(OUTDIR)/esque ::
 	@mcopy -i $(FPATH) $(BINDIR)/font/font.psf ::
 	@mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
+
+$(INITRAMFS): $(INITRDFILES)
+	tar -cvf $(INITRAMFS) initramfs
 
 run:
 	$(QEMU) $(QEMUFLAGS)

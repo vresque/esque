@@ -15,6 +15,7 @@ enumtastic::const_enum! {
         Pic2Data = 0xA1,
         // Utility
         Ps2KeyboardScancodePort = 0x60,
+        PitPort = 0x40,
     }
 
     impl {}
@@ -22,8 +23,8 @@ enumtastic::const_enum! {
 
 enumtastic::const_enum! {
     pub enum PicUtilValue: u8 => {
-        Pic1UnmaskPs2Keyboard = 0b11111101,
-        Pic2MaskFully = 0b11111111,
+        Pic1Mask = 0b11111000,
+        Pic2Mask = 0b11101111,
     }
 
     impl {}

@@ -11,8 +11,8 @@ pub fn init_pic(_: &mut Handover) {
     pic::remap_pic(0x20, 0x08);
 
     // Unmask the PS2-Keyboard Interrupts
-    outb(PicPort::Pic1Data, PicUtilValue::Pic1UnmaskPs2Keyboard);
-    outb(PicPort::Pic2Data, PicUtilValue::Pic2MaskFully);
+    outb(PicPort::Pic1Data, PicUtilValue::Pic1Mask);
+    outb(PicPort::Pic2Data, PicUtilValue::Pic2Mask);
 
     // Reload Interrupt Flags
     unsafe {

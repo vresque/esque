@@ -8,8 +8,9 @@
 #![allow(unstable_features)]
 #![feature(adt_const_params)]
 #![feature(alloc_error_handler)]
-
+#![allow(unused_unsafe)]
 extern crate alloc;
+pub use alloc::*;
 
 mod framebuffer;
 mod gdt;
@@ -22,8 +23,10 @@ mod config;
 mod drivers;
 mod heap;
 mod interrupts;
+mod initramfs;
 mod iobus;
 mod pic;
+mod scheduler;
 use config::config;
 
 const HEAP_ADDRESS: u64 = 0x0000100000;
@@ -36,18 +39,12 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
     init::interrupts::init_interrupts(&mut handover);
+    init::pic::init_pic(&mut handover);
+    init::pit::init_pit(&mut handover);
     init::memory::map_memory(&mut handover);
     init::memory::init_heap(&mut handover);
-    init::pic::init_pic(&mut handover);
     drivers::init_fallback_drivers(&mut handover);
-
-    let vec = alloc::vec![1, 2, 3, 4, 5, 6];
-    debug!("{:#?}", vec);
-    let mut str = String::new();
-    str.push_str("Hell");
-    str.push('o');
-    str.push_str(", World!");
-    debug!("{}", str);
+    initramfs::load_initramfs();
 
     //Launchpad::new(INITRAMFS, "initfs").launch();
     // Consumes Handover

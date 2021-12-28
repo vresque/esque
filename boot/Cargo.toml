@@ -12,3 +12,4 @@ uefi-services = { git = "https://github.com/rust-osdev/uefi-rs" }
 xmas-elf = "0.8.0"
 bks = { path = "../crates/bks" }
 collect_slice = { git = "https://github.com/visionizer/collect_slice" }
+tar-no-std = "0.1.6"

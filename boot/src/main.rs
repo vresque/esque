@@ -189,6 +189,11 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         None => panic!("Failed to find font"),
     };
 
+    let (initramfs_base, initramfs_size) = match handover::read_initramfs(handle, &mut table) {
+        Some((x, y)) => (x, y),
+        None => panic!("Failed to load InitRamFs"),
+    };
+
     let sizes = table.boot_services().memory_map_size();
     let max_mmap_size = sizes.map_size + 2 * sizes.entry_size;
     let mut storage = vec![0_u8; max_mmap_size].into_boxed_slice();

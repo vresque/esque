@@ -117,7 +117,10 @@ pub struct Handover {
     pub mmap_entries: usize,
     pub mmap_entry_size: usize,
     pub config: Config,
+    initramfs_base: u64,
+    initramfs_size: usize,
 }
+
 
 impl Handover {
     pub fn new(
@@ -128,6 +131,8 @@ impl Handover {
         mmap_entry_size: usize,
         mmap_entries: usize,
         config: Config,
+        initramfs_base: u64,
+        initramfs_size: usize
     ) -> Self {
         Self {
             checknum: 42,
@@ -138,6 +143,8 @@ impl Handover {
             mmap_entries: mmap_entries,
             mmap_entry_size: mmap_entry_size,
             config: config,
+            initramfs_base,
+            initramfs_size
         }
     }
 
@@ -167,6 +174,10 @@ impl Handover {
 
     unsafe fn retrieve_memory_map(&mut self) -> &mut [EfiMemoryDescriptor] {
         core::slice::from_raw_parts_mut(self.memory_map, self.mmap_entries)
+    }
+
+    pub fn initramfs(&mut self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts_mut(self.initramfs_base as *mut u8, self.initramfs_size) }
     }
 }
 

@@ -1,3 +1,5 @@
+use alloc::vec;
+use alloc::vec::Vec;
 use bks::Framebuffer;
 use bks::Psf1Font;
 use bks::Psf1Header;
@@ -5,6 +7,8 @@ use log::error;
 use log::info;
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
+use uefi::proto::media::file::File;
+use uefi::proto::media::file::FileInfo;
 use uefi::table::boot::MemoryType;
 use uefi::Handle;
 
@@ -76,4 +80,28 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
     let font = Psf1Font::new(header, glyph_buffer.as_mut_ptr(), buffer_size as usize);
     info!("Finished creating font");
     Some(font)
+}
+
+pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64, usize)> {
+    let initramfs_file = &mut load_file(None, "initramfs.tar", handle, table).unwrap();
+
+
+    let mut info_buf: [u8; 512] = [0; 512];
+    let info = initramfs_file
+        .get_info::<FileInfo>(&mut info_buf)
+        .expect_success("Failed to load InitRamFs File Info");
+    info!("InitRamFs File Size: {}", info.file_size());
+    let size = info.file_size() as usize;
+    let mut file: Vec<u8> = vec![0; size];
+
+    // Reads all contents of KFILE into buffer
+    let read = initramfs_file
+        .read(file.as_mut_slice())
+        .expect_success("Failed to load file into buffer");
+    // read == the bytes that were read (aka size). If not true, nothing was read
+    assert_eq!(read, size);
+
+
+    let ptr = file.as_mut_ptr() as u64;
+    Some((ptr, size))
 }
