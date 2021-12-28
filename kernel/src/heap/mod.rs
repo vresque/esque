@@ -7,7 +7,7 @@ use bks::PAGE_SIZE;
 use spin::Mutex;
 
 use crate::{
-    kprintln,
+    debug, kprintln,
     memory::paging::{
         page_frame_allocator::{request_page, PAGE_FRAME_ALLOCATOR},
         page_table_manager::GLOBAL_PAGE_TABLE_MANAGER,
@@ -263,7 +263,7 @@ impl<'header> Heap<'header> {
 
         // If the header was the last header, the new one is now the last header
         if self.last_header == header {
-            kprintln!("Setting...");
+            debug!("Setting...");
             self.last_header = new;
         }
     }

@@ -4,7 +4,7 @@ use crate::heap::{free, malloc_ptr, Heap, GLOBAL_HEAP};
 use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{upload_pml4, PageTable, PageTableManager};
-use crate::{kprint, HEAP_ADDRESS, HEAP_LENGTH};
+use crate::{debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
@@ -25,13 +25,11 @@ pub static _KERNEL_OFFSET: u64 = 0;
 
 /// Initializes the memory (Paging, Heap, etc)
 pub fn init_paging(handover: &mut Handover) {
-    kprintln!("Preparing Memory");
+    info!("Preparing Memory");
     unsafe {
-        kprintln!(
+        debug!(
             "ENT: {}, SZ: {}, ENTSZ: {}",
-            handover.mmap_entries,
-            handover.mmap_size,
-            handover.mmap_entry_size
+            handover.mmap_entries, handover.mmap_size, handover.mmap_entry_size
         );
         // Set the Global PageFrameAllocator
         PAGE_FRAME_ALLOCATOR.lock().write(PageFrameAllocator::new(
@@ -70,17 +68,12 @@ pub fn map_memory(handover: &mut Handover) {
                 let addr = value & 0x_000f_ffff_ffff_f000;
                 pml4 = &mut *(addr as *mut u64 as *mut PageTable);
             }
-            for (i, entry) in pml4.entries.iter().enumerate() {
-                if !entry.is_unused() {
-                    kprintln!("Ent {}: {:?}", i, entry);
-                }
-            }
             let pml4_addr = pml4 as *mut PageTable as u64;
             let page_table_manager = &mut PageTableManager::new(pml4);
 
             // Step through the memory mapping phys x -> virt x
             let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
-            kprintln!(
+            debug!(
                 "Mapping Memory ({} bytes, {}kb, {}mb)...",
                 total_mem,
                 total_mem / 1024,
@@ -90,10 +83,10 @@ pub fn map_memory(handover: &mut Handover) {
                 page_table_manager.map_memory(i as u64, i as u64);
             }
 
-            kprintln!("Mapped Memory");
-            kprintln!("{}", REJECTS);
-            kprintln!("Mapping Framebuffer...");
-            kprintln!("ACC: {}, FULL: {}", ACCEPTS, total_mem / 0x1000);
+            debug!("Mapped Memory");
+            debug!("{}", REJECTS);
+            info!("Mapping Framebuffer...");
+            debug!("ACC: {}, FULL: {}", ACCEPTS, total_mem / 0x1000);
             let fb_base = handover.framebuffer().base;
             let fb_size = handover.framebuffer().size + PAGE_SIZE as usize;
             PAGE_FRAME_ALLOCATOR
@@ -107,28 +100,28 @@ pub fn map_memory(handover: &mut Handover) {
             //        kprintln!("{}", REJECTS);
             //    }
             //} FIXME: Mapping the FrameBuffer causes a general protection fault
-            kprintln!("Setting default PML4");
+            info!("Setting default PML4");
 
             let value = pml4_addr | (1 << 3) as u64;
             asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
-            kprintln!("Finished preparing memory!");
+            success!("Finished preparing memory!");
         }
     }
 }
 
 pub fn init_heap(handover: &mut Handover) {
-    kprintln!("Initializing Heap!");
+    info!("Initializing Heap!");
     unsafe {
         crate::heap::GLOBAL_HEAP
             .lock()
             .write(Heap::new(HEAP_ADDRESS, HEAP_LENGTH));
         let alloc = malloc_ptr::<u64>(0x8000);
         *alloc = 26;
-        kprintln!("{}", *alloc);
+        debug!("{}", *alloc);
 
         let alloc_b = malloc_ptr::<u64>(0x8000);
         *alloc_b = 42;
-        kprintln!("{}", *alloc_b);
+        debug!("{}", *alloc_b);
 
         let alloc_c = malloc_ptr::<u64>(0x8000);
         *alloc_c = 28;
@@ -136,23 +129,23 @@ pub fn init_heap(handover: &mut Handover) {
 
         {
             let ptr = malloc_ptr::<u64>(0x1000);
-            kprintln!("{:p}", ptr);
+            debug!("{:p}", ptr);
             free(ptr as u64);
         }
 
         {
             let ptr = malloc_ptr::<u64>(0x1000);
-            kprintln!("{:p}", ptr);
+            debug!("{:p}", ptr);
             free(ptr as u64);
         }
 
         {
             let ptr = malloc_ptr::<u64>(0x1000);
-            kprintln!("{:p}", ptr);
+            debug!("{:p}", ptr);
             free(ptr as u64);
         }
 
-        kprintln!("{}", *alloc);
-        kprintln!("L");
+        debug!("{}", *alloc);
+        debug!("L");
     }
 }

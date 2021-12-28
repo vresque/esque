@@ -42,12 +42,12 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     drivers::init_fallback_drivers(&mut handover);
 
     let vec = alloc::vec![1, 2, 3, 4, 5, 6];
-    kprintln!("{:#?}", vec);
+    debug!("{:#?}", vec);
     let mut str = String::new();
     str.push_str("Hell");
     str.push('o');
     str.push_str(", World!");
-    kprintln!("{}", str);
+    debug!("{}", str);
 
     //Launchpad::new(INITRAMFS, "initfs").launch();
     // Consumes Handover

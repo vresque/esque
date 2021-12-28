@@ -3,7 +3,7 @@ use core::mem::MaybeUninit;
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::init::memory::_KERNEL_OFFSET;
-use crate::kprintln;
+use crate::{debug, kprintln};
 
 use crate::memory::bitmap::Bitmap;
 use spin::Mutex;
@@ -70,11 +70,11 @@ impl<'a> PageFrameAllocator<'a> {
         }
 
         let mem_sz = self.total_memory();
-        kprintln!("{}mb", mem_sz / 1024 / 1024 / 1024);
+        debug!("{}mb", mem_sz / 1024 / 1024 / 1024);
         self.free = mem_sz as i64;
         // One for each page
         let bitmap_size = mem_sz / PAGE_SIZE / 8 + 1;
-        kprintln!("{}", bitmap_size);
+        debug!("{}", bitmap_size);
 
         // Initialize Bitmap
         self.initialize_bitmap(bitmap_size as usize, current_largest_free_segment);
@@ -91,7 +91,7 @@ impl<'a> PageFrameAllocator<'a> {
                 self.reserve_pages(ent.phys_base, ent.page_count as usize);
             }
         }
-        kprintln!("{}", self.free);
+        debug!("{}", self.free);
     }
 
     fn initialize_bitmap(&mut self, bmp_size: usize, addr: u64) {
@@ -208,14 +208,14 @@ impl<'a> PageFrameAllocator<'a> {
     }
 
     pub fn total_memory(&self) -> u64 {
-        kprintln!("LENEN: {}", self.map.len());
+        debug!("LENEN: {}", self.map.len());
         unsafe {
             static mut MEM_SZ_BYTES: u64 = 0;
             // If calculated before, just return it
             if MEM_SZ_BYTES > 0 {
                 return MEM_SZ_BYTES;
             }
-            kprintln!("ENTries: {} : LENII {}", self.entries, self.map.len());
+            debug!("ENTries: {} : LENII {}", self.entries, self.map.len());
             for i in self.map.iter() {
                 MEM_SZ_BYTES += i.page_count * PAGE_SIZE;
             }

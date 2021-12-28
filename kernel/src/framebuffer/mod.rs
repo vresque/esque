@@ -308,20 +308,90 @@ macro_rules! kprint {
 }
 
 #[macro_export]
-macro_rules! kinfo {
+macro_rules! emergency {
     ($($arg:tt)*) => ({
-        kprint!("[ INFO ][{}:{}:{}] -> ", file!(), line!(), column!());
+        use crate::{kprint, kprintln};
+        use crate::kscopedcolorchange;
+        use crate::framebuffer::Color;
+        kscopedcolorchange!(bg: Color::White, fg: Color::Red => {
+            kprint!("[ EMERGENCY ][{}:{}:{}] -> ", file!(), line!(), column!());
+        });
+        kscopedcolorchange!(bg: Color::White, fg: Color::Black => {
+            kprintln!($($arg)*);
+        });
+    })
+}
+
+#[macro_export]
+macro_rules! warn {
+    ($($arg:tt)*) => ({
+        use crate::{kprint, kprintln};
+        use crate::kscopedcolorchange;
+        use crate::framebuffer::Color;
+        kscopedcolorchange!(bg: Color::Black, fg: Color::Orange => {
+            kprint!("[ WARNING ][{}:{}:{}] -> ", file!(), line!(), column!());
+        });
         kprintln!($($arg)*);
     })
 }
 
 #[macro_export]
-macro_rules! kemerg {
+macro_rules! error {
     ($($arg:tt)*) => ({
-        kcolorchange!()
+        use crate::{kprint, kprintln};
+        use crate::kscopedcolorchange;
+        use crate::framebuffer::Color;
+        kscopedcolorchange!(bg: Color::Black, fg: Color::Red => {
+            kprint!("[ ERROR ][{}:{}:{}] -> ", file!(), line!(), column!());
+        });
+        kprintln!($($arg)*);
+    })
+}
+
+#[macro_export]
+macro_rules! success {
+    ($($arg:tt)*) => ({
+        use crate::{kprint, kprintln};
+        use crate::kscopedcolorchange;
+        use crate::framebuffer::Color;
+        kscopedcolorchange!(bg: Color::White, fg: Color::DarkGreen => {
+            kprint!("[ SUCCESS ][{}:{}:{}] -> ", file!(), line!(), column!());
+        });
+        kscopedcolorchange!(bg: Color::White, fg: Color::Black => {
+            kprintln!($($arg)*);
+        });
+    })
+}
+
+#[macro_export]
+macro_rules! info {
+    ($($arg:tt)*) => ({
+        use crate::{kprint, kprintln};
         kprint!("[ INFO ][{}:{}:{}] -> ", file!(), line!(), column!());
         kprintln!($($arg)*);
     })
+}
+
+#[cfg(debug_assertions)]
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {{
+        use crate::{kprint, kprintln};
+        use crate::kscopedcolorchange;
+        use crate::framebuffer::Color;
+        kscopedcolorchange!(bg: Color::Cyan, fg: Color::Yellow => {
+            kprint!("[ DEBUG ][{}:{}:{}] -> ", file!(), line!(), column!());
+        });
+        kscopedcolorchange!(bg: Color::Cyan, fg: Color::White => {
+            kprintln!($($arg)*);
+        })
+    }};
+}
+
+#[cfg(not(debug_assertions))]
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {{}};
 }
 
 #[macro_export]
@@ -341,6 +411,7 @@ macro_rules! kcolorchange {
 macro_rules! kscopedcolorchange {
     (bg: $bg:expr, fg: $fg:expr => $blck:block) => {{
         use crate::framebuffer::FRAMEBUFFER_GUARD;
+        use crate::kcolorchange;
         let old = unsafe {
             FRAMEBUFFER_GUARD.lock().assume_init_mut().get_color()
         };

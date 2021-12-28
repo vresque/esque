@@ -6,8 +6,10 @@ use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::pic::PicInterrupt;
+use crate::{info, success};
 use crate::{interrupts::exceptions::IDTException, kprintln};
 use core::arch::asm;
+use core::fmt::Debug;
 
 use crate::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 
@@ -49,7 +51,7 @@ extern "x86-interrupt" fn general_protection_fault_handler(a: InterruptFrame) {
 }
 
 pub fn init_interrupts(_: &mut Handover) {
-    kprintln!("Initializing Interrupts");
+    info!("Initializing Interrupts");
     let idtr_limit = 0x0FFF;
     let idtr_offset = request_page::<u64>();
     let idtr = IDTRegister::new(idtr_limit, *idtr_offset);
@@ -57,7 +59,7 @@ pub fn init_interrupts(_: &mut Handover) {
         IDT_REGISTER.force_unlock();
     }
     IDT_REGISTER.lock().write(idtr);
-    kprintln!("{:#?}", IDT_REGISTER.lock().assume_init_mut());
+    crate::debug!("{:#?}", IDT_REGISTER.lock().assume_init_mut());
 
     set_interrupt_handler(IDTException::PageFault as u64, page_fault_handler);
     set_interrupt_handler(IDTException::DoubleFault as u64, double_fault_handler);
@@ -71,24 +73,54 @@ pub fn init_interrupts(_: &mut Handover) {
     set_interrupt_handler(IDTException::NonMaskable as u64, generic_fault_handler);
     set_interrupt_handler(IDTException::Breakpoint as u64, generic_fault_handler);
     set_interrupt_handler(IDTException::Overflow as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::BoundRangeExceeded as u64, generic_fault_handler);
+    set_interrupt_handler(
+        IDTException::BoundRangeExceeded as u64,
+        generic_fault_handler,
+    );
     set_interrupt_handler(IDTException::InvalidOpcode as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::DeviceNotAvailable as u64, generic_fault_handler);
+    set_interrupt_handler(
+        IDTException::DeviceNotAvailable as u64,
+        generic_fault_handler,
+    );
     set_interrupt_handler(IDTException::InvalidTSS as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::SegmentNotPresent as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::StackSegmentFault as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::X87FloatingPointException as u64, generic_fault_handler);
+    set_interrupt_handler(
+        IDTException::SegmentNotPresent as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::StackSegmentFault as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::X87FloatingPointException as u64,
+        generic_fault_handler,
+    );
     set_interrupt_handler(IDTException::AlignmentCheck as u64, generic_fault_handler);
     set_interrupt_handler(IDTException::MachineCheck as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::SIMDFloatingPointException as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::VirtualizationException as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::ControlProtection as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::HypervisorInjection as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::VMMCommunicationException as u64, generic_fault_handler);
-    set_interrupt_handler(IDTException::SecurityException as u64, generic_fault_handler);
-    
-
-
+    set_interrupt_handler(
+        IDTException::SIMDFloatingPointException as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::VirtualizationException as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::ControlProtection as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::HypervisorInjection as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::VMMCommunicationException as u64,
+        generic_fault_handler,
+    );
+    set_interrupt_handler(
+        IDTException::SecurityException as u64,
+        generic_fault_handler,
+    );
 
     // Add PS2 Interrupt Handler
     set_interrupt_handler(
@@ -97,11 +129,11 @@ pub fn init_interrupts(_: &mut Handover) {
     );
 
     // Loading the IDT
-    kprintln!("Loading IDTR");
+    info!("Loading IDTR");
     unsafe {
         // Load the IDT
         upload_idt(IDT_REGISTER.lock().assume_init_mut());
     }
 
-    kprintln!("Finished preparing interrupts");
+    success!("Finished preparing interrupts");
 }

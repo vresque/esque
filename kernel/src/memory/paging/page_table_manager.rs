@@ -131,7 +131,7 @@ impl PageTable {
 
     pub fn print_non_empty(&mut self) {
         for item in self.get_non_empty() {
-            kprintln!("{:?}", item);
+            crate::debug!("{:?}", item);
         }
     }
 }

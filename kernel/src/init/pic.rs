@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn init_pic(_: &mut Handover) {
-    kprintln!("Initializing the PIC");
+    crate::info!("Initializing the PIC");
     pic::remap_pic(0x20, 0x08);
 
     // Unmask the PS2-Keyboard Interrupts
