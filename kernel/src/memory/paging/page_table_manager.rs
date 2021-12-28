@@ -1,11 +1,15 @@
 use core::{
+    fmt::Write,
+    iter::Filter,
     mem::MaybeUninit,
     ops::{Index, IndexMut},
 };
 
 use spin::Mutex;
 
-use crate::memory::paging::page_frame_allocator::request_page;
+use crate::{
+    framebuffer::FRAMEBUFFER_GUARD, kprintln, memory::paging::page_frame_allocator::request_page,
+};
 
 pub static GLOBAL_PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
@@ -26,13 +30,14 @@ impl PageDescriptorEntry {
     pub const fn is_unused(&self) -> bool {
         self.entry == 0
     }
+
     #[inline]
     pub const fn flags(&self) -> PageTableFlag {
         PageTableFlag::from_bits_truncate(self.entry)
     }
     #[inline]
     pub fn addr(&self) -> u64 {
-        self.entry & 0x000f_ffff_ffff_f000
+        (self.entry & 0x000f_ffff_ffff_f000) >> 12
     }
     #[inline]
     pub fn set_addr(&mut self, addr: u64) {
@@ -41,7 +46,7 @@ impl PageDescriptorEntry {
         self.entry |= actual_addr << 12;
     }
     #[inline]
-    pub fn get_flag(&mut self, flag: PageTableFlag) -> bool {
+    pub fn get_flag(&self, flag: PageTableFlag) -> bool {
         return if self.entry & flag.bits() > 0 {
             true
         } else {
@@ -62,7 +67,7 @@ impl core::fmt::Debug for PageDescriptorEntry {
         let mut f = f.debug_struct("PageTableEntry");
         f.field("addr", &self.addr());
         f.field("flags", &self.flags());
-        f.finish()
+        return f.finish();
     }
 }
 
@@ -100,7 +105,7 @@ const ENTRIES: usize = 512;
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct PageTable {
-    entries: [PageDescriptorEntry; ENTRIES],
+    pub entries: [PageDescriptorEntry; ENTRIES],
 }
 
 impl Index<usize> for PageTable {
@@ -115,6 +120,19 @@ impl IndexMut<usize> for PageTable {
     #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.entries[index]
+    }
+}
+
+impl PageTable {
+    pub fn get_non_empty<'arr>(&mut self) -> impl Iterator<Item = &PageDescriptorEntry> {
+        let slice = self.entries.iter().filter(|f| !(*f).flags().is_empty());
+        slice
+    }
+
+    pub fn print_non_empty(&mut self) {
+        for item in self.get_non_empty() {
+            kprintln!("{:?}", item);
+        }
     }
 }
 
@@ -151,16 +169,16 @@ impl PageMapIndexer {
 }
 
 #[repr(C)]
-pub struct PageTableManager {
-    pml4: PageTable,
+pub struct PageTableManager<'table> {
+    pml4: &'table mut PageTable,
 }
 
 fn addr_to_page_table<'retval>(addr: u64) -> &'retval mut PageTable {
     unsafe { &mut *(((addr as u64) as *mut u64) as *mut PageTable) }
 }
 
-impl PageTableManager {
-    pub fn new(pml4: PageTable) -> Self {
+impl<'table> PageTableManager<'table> {
+    pub fn new(pml4: &'table mut PageTable) -> Self {
         Self { pml4: pml4 }
     }
 
@@ -189,6 +207,8 @@ impl PageTableManager {
 
         // Map PageDirectoryEntry
         let mut pd_pde = pdp.entries[indexer.pd_idx];
+        let has_flag = pd_pde.get_flag(PageTableFlag::PRESENT);
+        let flags = pd_pde.flags();
         let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
             let tmp = request_page();
             SET_PT_TO_NULL(tmp);

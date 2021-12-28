@@ -4,11 +4,11 @@ use crate::heap::{free, malloc_ptr, Heap, GLOBAL_HEAP};
 use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{upload_pml4, PageTable, PageTableManager};
+use crate::{kprint, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
 };
-use crate::{HEAP_ADDRESS, HEAP_LENGTH};
 use core::arch::asm;
 
 // Defined in Linker Script
@@ -63,15 +63,20 @@ pub fn map_memory(handover: &mut Handover) {
 
         {
             // The PageMapLevel4
-            let pml4 = &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page()
-                as *mut u64 as *mut PageTable);
-            memset(
-                pml4 as *mut PageTable as *mut u64 as u64,
-                0,
-                PAGE_SIZE as usize,
-            );
-
-            let page_table_manager = &mut PageTableManager::new(*pml4);
+            let pml4: &mut PageTable;
+            {
+                let value: u64;
+                asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
+                let addr = value & 0x_000f_ffff_ffff_f000;
+                pml4 = &mut *(addr as *mut u64 as *mut PageTable);
+            }
+            for (i, entry) in pml4.entries.iter().enumerate() {
+                if !entry.is_unused() {
+                    kprintln!("Ent {}: {:?}", i, entry);
+                }
+            }
+            let pml4_addr = pml4 as *mut PageTable as u64;
+            let page_table_manager = &mut PageTableManager::new(pml4);
 
             // Step through the memory mapping phys x -> virt x
             let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
@@ -81,9 +86,9 @@ pub fn map_memory(handover: &mut Handover) {
                 total_mem / 1024,
                 total_mem / 1024 / 1024,
             );
-            //for i in (_KERNEL_OFFSET..(total_mem)).step_by(0x1000) {
-            //    page_table_manager.map_memory(i as u64, i as u64);
-            //} FIXME: Very Slow
+            for i in (_KERNEL_OFFSET..(total_mem)).step_by(0x1000) {
+                page_table_manager.map_memory(i as u64, i as u64);
+            }
 
             kprintln!("Mapped Memory");
             kprintln!("{}", REJECTS);
@@ -103,9 +108,10 @@ pub fn map_memory(handover: &mut Handover) {
             //    }
             //} FIXME: Mapping the FrameBuffer causes a general protection fault
             kprintln!("Setting default PML4");
-            let addr = pml4 as *mut PageTable as *mut u64 as u64;
-            // FIXME: upload_pml4(addr);
-            //kprintln!("Finished preparing memory!");
+
+            let value = pml4_addr | (1 << 3) as u64;
+            asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
+            kprintln!("Finished preparing memory!");
         }
     }
 }

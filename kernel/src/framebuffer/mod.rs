@@ -34,6 +34,7 @@ impl Into<u32> for Color {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct FramebufferGuard {
     framebuffer: Framebuffer,
     pub framebuffer_buffer: u32,
