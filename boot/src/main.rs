@@ -239,6 +239,8 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         sizes.entry_size,
         ents,
         config,
+        initramfs_base,
+        initramfs_size,
     );
 
     kmain(handover);

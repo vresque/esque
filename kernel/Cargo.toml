@@ -15,6 +15,7 @@ rlibc = "1.0.0"
 enumtastic = { path = "../crates/enumtastic" }
 volatile = { path = "../crates/volatile" }
 keyboard-layout = { path = "../crates/keyboard-layout" }
+tar = { path = "../crates/tar" }
 
 [dependencies.lazy_static]
 features = ["spin_no_std"]

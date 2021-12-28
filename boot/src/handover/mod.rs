@@ -85,7 +85,6 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
 pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64, usize)> {
     let initramfs_file = &mut load_file(None, "initramfs.tar", handle, table).unwrap();
 
-
     let mut info_buf: [u8; 512] = [0; 512];
     let info = initramfs_file
         .get_info::<FileInfo>(&mut info_buf)
@@ -100,7 +99,6 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
         .expect_success("Failed to load file into buffer");
     // read == the bytes that were read (aka size). If not true, nothing was read
     assert_eq!(read, size);
-
 
     let ptr = file.as_mut_ptr() as u64;
     Some((ptr, size))

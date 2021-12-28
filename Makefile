@@ -23,11 +23,11 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 INITRDFILES = $(call rwildcard,initramfs,*.*)
 INITRAMFS = $(OUTDIR)/initramfs.tar
 
-all: $(INITRAMFS) kernel boot strip mkimg run
+all: $(INITRAMFS) kernel boot strip image run
 
 check: kernel-check
 
-build: format kernel boot strip mkimg
+build: format kernel boot strip image
 
 format:
 	cargo fmt
@@ -60,7 +60,7 @@ strip:
 	@strip $(OUTDIR)/BOOTX64.EFI
 
 
-mkimg:
+image:
 	@dd if=/dev/zero of=$(FPATH) bs=512 count=93750
 	@mkfs.vfat -F 32 $(FPATH)
 	@mmd -i $(FPATH) ::/EFI
@@ -69,6 +69,7 @@ mkimg:
 	@mcopy -i $(FPATH) $(OUTDIR)/esque ::
 	@mcopy -i $(FPATH) $(BINDIR)/font/font.psf ::
 	@mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
+	@mcopy -i $(FPATH) $(OUTDIR)/initramfs.tar ::
 
 $(INITRAMFS): $(INITRDFILES)
 	tar -cvf $(INITRAMFS) initramfs

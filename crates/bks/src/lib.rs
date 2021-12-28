@@ -121,7 +121,6 @@ pub struct Handover {
     initramfs_size: usize,
 }
 
-
 impl Handover {
     pub fn new(
         fb: Framebuffer,
@@ -132,7 +131,7 @@ impl Handover {
         mmap_entries: usize,
         config: Config,
         initramfs_base: u64,
-        initramfs_size: usize
+        initramfs_size: usize,
     ) -> Self {
         Self {
             checknum: 42,
@@ -144,7 +143,7 @@ impl Handover {
             mmap_entry_size: mmap_entry_size,
             config: config,
             initramfs_base,
-            initramfs_size
+            initramfs_size,
         }
     }
 
@@ -176,8 +175,20 @@ impl Handover {
         core::slice::from_raw_parts_mut(self.memory_map, self.mmap_entries)
     }
 
+    pub fn move_initramfs_to(&mut self, addr: u64) {
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                self.initramfs_base as *const u64,
+                addr as *mut u64,
+                self.initramfs_size,
+            );
+        }
+    }
+
     pub fn initramfs(&mut self) -> &[u8] {
-        unsafe { core::slice::from_raw_parts_mut(self.initramfs_base as *mut u8, self.initramfs_size) }
+        unsafe {
+            core::slice::from_raw_parts_mut(self.initramfs_base as *mut u8, self.initramfs_size)
+        }
     }
 }
 
