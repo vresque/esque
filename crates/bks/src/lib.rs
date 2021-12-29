@@ -117,8 +117,8 @@ pub struct Handover {
     pub mmap_entries: usize,
     pub mmap_entry_size: usize,
     pub config: Config,
-    initramfs_base: u64,
-    initramfs_size: usize,
+    pub initramfs_base: u64,
+    pub initramfs_size: usize,
 }
 
 impl Handover {
@@ -186,9 +186,7 @@ impl Handover {
     }
 
     pub fn initramfs(&mut self) -> &[u8] {
-        unsafe {
-            core::slice::from_raw_parts_mut(self.initramfs_base as *mut u8, self.initramfs_size)
-        }
+        unsafe { core::slice::from_raw_parts(self.initramfs_base as *mut u8, self.initramfs_size) }
     }
 }
 

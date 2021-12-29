@@ -1,26 +1,39 @@
 use core::str::Utf8Error;
 
 use alloc::string::String;
+use arrayvec::ArrayString;
 
 use crate::{
     header::{as_string, octal_ascii_size_as_usize, PosixHeader, BLOCK_SIZE},
     types::TarEntryType,
 };
 
+use alloc::string::ToString;
+#[derive(Debug, Clone)]
+
 pub struct TarEntry<'data> {
-    pub filename: String,
+    pub filename: ArrayString<100>,
     pub data: &'data [u8],
     pub size: usize,
     pub ty: u8,
 }
 
 impl<'data> TarEntry<'data> {
-    pub const fn new(fname: String, data: &'data [u8], ty: u8) -> Self {
+    pub fn new(fname: ArrayString<100>, data: &'data [u8], ty: u8) -> Self {
         Self {
             filename: fname,
             data: data,
             size: data.len(),
             ty: ty,
+        }
+    }
+
+    pub fn empty() -> Self {
+        Self {
+            filename: ArrayString::from("").unwrap(),
+            data: &[],
+            size: 0,
+            ty: 0,
         }
     }
 
@@ -57,7 +70,6 @@ impl<'data> Iterator for TarIter<'data> {
         }
 
         let block_header = self.next_block_header();
-        block_header.check();
 
         if block_header.is_null() {
             // EOF?
@@ -70,13 +82,15 @@ impl<'data> Iterator for TarIter<'data> {
         let end = begin + block_count * BLOCK_SIZE;
 
         let bytes = (&self.data[begin..end][0..octal_ascii_size_as_usize(block_header.size)]);
-
         let entry = TarEntry::new(
             as_string(block_header.name),
             bytes,
             TarEntryType::RegularFile,
         );
-        Some(entry)
+
+        self.idx += block_count + 1;
+
+        return Some(entry);
     }
 }
 

@@ -1,4 +1,5 @@
 use alloc::string::String;
+use arrayvec::ArrayString;
 
 pub const BLOCK_SIZE: usize = 512;
 
@@ -26,8 +27,8 @@ pub struct PosixHeader {
 impl PosixHeader {
     pub fn block_count(&self) -> usize {
         let size = octal_ascii_size_as_usize(self.size);
-        let modu = size % BLOCK_SIZE as usize;
-        if modu > 0 {
+        let modulo = size % BLOCK_SIZE as usize;
+        if modulo > 0 {
             (size / BLOCK_SIZE as usize) + 1
         } else {
             size / BLOCK_SIZE
@@ -63,8 +64,13 @@ impl PosixHeader {
     }
 }
 
-pub fn as_string<const N: usize>(slice: [u8; N]) -> alloc::string::String {
-    let mut string = String::new();
+pub fn as_string<'retval, const N: usize>(slice: [u8; N]) -> ArrayString<N> {
+    //let mut string = String::new();
+    //slice
+    //    .iter()
+    //    .filter(|x| **x != 0)
+    //    .for_each(|c| string.push(*c as char));
+    let mut string = arrayvec::ArrayString::<N>::new();
     slice
         .iter()
         .filter(|x| **x != 0)
