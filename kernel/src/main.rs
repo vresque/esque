@@ -9,6 +9,8 @@
 #![feature(adt_const_params)]
 #![feature(alloc_error_handler)]
 #![allow(unused_unsafe)]
+#![feature(int_log)]
+
 extern crate alloc;
 pub use alloc::*;
 
@@ -27,7 +29,13 @@ mod interrupts;
 mod iobus;
 mod pic;
 mod scheduler;
+mod userspace;
 use config::config;
+use initramfs::INITRAMFS;
+use scheduler::pit::sleep;
+use userspace::{launchpad::Launchpad, pid::Pid};
+
+use crate::scheduler::pit::TIME_SINCE_BOOT;
 
 const HEAP_ADDRESS: u64 = 0x0000100000;
 const HEAP_LENGTH: usize = 0x1000;
@@ -44,9 +52,16 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::memory::map_memory(&mut handover);
     init::memory::init_heap(&mut handover);
     drivers::init_fallback_drivers(&mut handover);
+    //init::security::setup_security(&mut handover);
+    //init::ipc::init_ipc(&mut handover);
     initramfs::load_initramfs(&mut handover);
 
-    //Launchpad::new(INITRAMFS, "initfs").launch();
+    //init::executive::launch_executive(&mut handover);
+    unsafe {
+        Launchpad::new(*INITRAMFS.lock().assume_init_mut(), "initramfs/.INITRAMFS")
+            .with_pid(Pid::force_new(1))
+            .launch();
+    }
     // Consumes Handover
     init::userspace::init_userspace(handover);
     loop {}

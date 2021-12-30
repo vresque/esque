@@ -1,7 +1,7 @@
 use core::str::Utf8Error;
 
 use alloc::string::String;
-use arrayvec::ArrayString;
+pub use arrayvec::ArrayString;
 
 use crate::{
     header::{as_string, octal_ascii_size_as_usize, PosixHeader, BLOCK_SIZE},
@@ -9,8 +9,7 @@ use crate::{
 };
 
 use alloc::string::ToString;
-#[derive(Debug, Clone)]
-
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TarEntry<'data> {
     pub filename: ArrayString<100>,
     pub data: &'data [u8],
@@ -42,8 +41,9 @@ impl<'data> TarEntry<'data> {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct Tar<'data> {
-    data: &'data [u8],
+    pub data: &'data [u8],
 }
 
 impl<'data> Tar<'data> {

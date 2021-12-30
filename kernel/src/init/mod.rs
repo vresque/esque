@@ -6,3 +6,11 @@ pub mod memory;
 pub mod pic;
 pub mod pit;
 pub mod userspace;
+
+esqdev::module_init! {
+    name: "initializer",
+    description: "Initializes the Kernel.",
+    maintainer: "<empty>",
+    license: "GPL-2",
+    safe: false,
+}

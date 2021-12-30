@@ -2,13 +2,14 @@ use spin::mutex::Mutex;
 use volatile::Volatile;
 
 use crate::{
+    debug,
     interrupts::interrupt_frame::InterruptFrame,
     iobus::{io_wait, outb},
     pic::{end_main_pic, PicPort},
 };
 
 /// Without the Volatile, the compiler *may* optimize sleep into an infinite loop
-static TIME_SINCE_BOOT: Mutex<Volatile<f64>> = Mutex::new(Volatile::new_rw(0.0));
+pub static TIME_SINCE_BOOT: Mutex<Volatile<f64>> = Mutex::new(Volatile::new_rw(0.0));
 
 pub const PIT_INTERRUPT: u64 = 0x20;
 

@@ -13,11 +13,11 @@ use core::arch::asm;
 
 // Defined in Linker Script
 #[no_mangle]
-static _KERNEL_START: u64 = 0;
+pub static _KERNEL_START: u64 = 0;
 
 // Defined in Linker Script
 #[no_mangle]
-static _KERNEL_END: u64 = 0;
+pub static _KERNEL_END: u64 = 0;
 
 // Defined in Linker Script
 #[no_mangle]
@@ -43,6 +43,11 @@ pub fn init_paging(handover: &mut Handover) {
             .lock()
             .assume_init_mut()
             .read_memory_map();
+
+        PAGE_FRAME_ALLOCATOR
+            .lock()
+            .assume_init_mut()
+            .lock_pages(handover.initramfs_base, handover.initramfs_size);
         return;
     }
 }

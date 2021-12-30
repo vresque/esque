@@ -9,6 +9,7 @@ use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileInfo;
+use uefi::table::boot::AllocateType;
 use uefi::table::boot::MemoryType;
 use uefi::Handle;
 
@@ -91,15 +92,27 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
         .expect_success("Failed to load InitRamFs File Info");
     info!("InitRamFs File Size: {}", info.file_size());
     let size = info.file_size() as usize;
-    let mut file: Vec<u8> = vec![0; size];
 
-    // Reads all contents of KFILE into buffer
+    let pages = (size + 0x1000 - 1) / 0x1000;
+    let ptr = table
+        .boot_services()
+        .allocate_pages(
+            AllocateType::MaxAddress(0x200000),
+            MemoryType::LOADER_DATA,
+            pages,
+        )
+        .expect_success("Failed to allocate for the InitRamFs");
+    let file = unsafe { core::slice::from_raw_parts_mut(ptr as *mut u8, size) };
+
+    // Reads all contents of the file into a buffer
     let read = initramfs_file
-        .read(file.as_mut_slice())
+        .read(file)
         .expect_success("Failed to load file into buffer");
     // read == the bytes that were read (aka size). If not true, nothing was read
     assert_eq!(read, size);
+    info!("{} -> {}", read, size);
 
-    let ptr = file.as_mut_ptr() as u64;
+    //info!("{:?}", file);
+    info!("{:#x?}", ptr);
     Some((ptr, size))
 }

@@ -2,7 +2,7 @@
 #![feature(const_mut_refs)]
 #![feature(const_fn_trait_bound)]
 
-use core::{marker::PhantomData, ops::Deref, ptr::NonNull};
+use core::marker::PhantomData;
 
 pub struct ReadWrite;
 pub struct ReadOnly;
@@ -20,11 +20,9 @@ unsafe impl<T: Copy, A> Sync for Volatile<T, A> {}
 
 impl<T: Copy> Volatile<T, ReadWrite> {
     pub const fn new_rw(val: T) -> Self {
-        unsafe {
-            Self {
-                value: val,
-                _accessor: PhantomData,
-            }
+        Self {
+            value: val,
+            _accessor: PhantomData,
         }
     }
 

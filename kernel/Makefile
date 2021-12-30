@@ -11,3 +11,6 @@ build:
 
 check:
 	@cargo check --target ../.targets/$(ARCH)/kernel.json
+
+clippy:
+	@cargo check --target ../.targets/$(ARCH)/kernel.json

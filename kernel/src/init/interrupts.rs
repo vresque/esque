@@ -1,13 +1,14 @@
 use bks::Handover;
 
 use crate::drivers::input::ps2::ps2_keyboard_int_handler;
+use crate::init::{pic, pit};
 use crate::interrupts::exceptions::ExceptionHandler;
 use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::pic::PicInterrupt;
 use crate::scheduler::pit::{pit_interrupt_handler, PIT_INTERRUPT};
-use crate::{info, success};
+use crate::{debug, info, success};
 use crate::{interrupts::exceptions::IDTException, kprintln};
 use core::arch::asm;
 use core::fmt::Debug;
@@ -61,6 +62,8 @@ pub fn init_interrupts(_: &mut Handover) {
     }
     IDT_REGISTER.lock().write(idtr);
     crate::debug!("{:#?}", IDT_REGISTER.lock().assume_init_mut());
+
+    crate::scheduler::pit::set_divisor(65535 / 3);
 
     set_interrupt_handler(IDTException::PageFault as u64, page_fault_handler);
     set_interrupt_handler(IDTException::DoubleFault as u64, double_fault_handler);

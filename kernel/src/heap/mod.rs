@@ -1,10 +1,8 @@
-use core::{
-    mem::{size_of, MaybeUninit},
-    ptr::NonNull,
-};
+use core::mem::{size_of, MaybeUninit};
 
 use bks::PAGE_SIZE;
 use spin::Mutex;
+use unique::Unique;
 
 use crate::{
     debug, kprintln,
@@ -19,8 +17,8 @@ pub static GLOBAL_HEAP: Mutex<MaybeUninit<Heap>> = Mutex::new(MaybeUninit::unini
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HeapSegmentHeader {
     len: usize,
-    next: Option<NonNull<HeapSegmentHeader>>,
-    last: Option<NonNull<HeapSegmentHeader>>,
+    next: Option<Unique<HeapSegmentHeader>>,
+    last: Option<Unique<HeapSegmentHeader>>,
     free: bool,
 }
 
@@ -29,8 +27,8 @@ unsafe impl Send for HeapSegmentHeader {}
 impl HeapSegmentHeader {
     pub fn new(
         len: usize,
-        next: Option<NonNull<HeapSegmentHeader>>,
-        last: Option<NonNull<HeapSegmentHeader>>,
+        next: Option<Unique<HeapSegmentHeader>>,
+        last: Option<Unique<HeapSegmentHeader>>,
         free: bool,
     ) -> Self {
         Self {
@@ -72,7 +70,7 @@ impl HeapSegmentHeader {
                 }
 
                 if let Some(mut next_next) = next.as_mut().next {
-                    next_next.as_mut().last = Some(NonNull::new(self).unwrap());
+                    next_next.as_mut().last = Some(Unique::new(self).unwrap());
                 }
 
                 self.len += next.as_mut().len + size_of::<HeapSegmentHeader>();
@@ -142,7 +140,7 @@ impl HeapSegmentHeader {
         // The Last Header of the Next header is the new header
         if let Some(mut hdr) = self.next {
             unsafe {
-                hdr.as_mut().last = Some(NonNull::new(new_split_header as *mut _).unwrap());
+                hdr.as_mut().last = Some(Unique::new(new_split_header as *mut _).unwrap());
             }
         }
 
@@ -150,11 +148,11 @@ impl HeapSegmentHeader {
         new_split_header.next = self.next;
 
         // Our own Next is the new header (Header A's next is Header New now)
-        self.next = Some(NonNull::new(new_split_header as *mut _).unwrap());
+        self.next = Some(Unique::new(new_split_header as *mut _).unwrap());
 
         // The new header's last are we (Header New's last is Header A)
         new_split_header.last =
-            Some(NonNull::new(self.address() as *mut u64 as *mut HeapSegmentHeader).unwrap());
+            Some(Unique::new(self.address() as *mut u64 as *mut HeapSegmentHeader).unwrap());
 
         // Header New's length is the length calculated before
         new_split_header.len = new_segment_length as usize; // If it was negative, we returned
@@ -242,7 +240,7 @@ impl<'header> Heap<'header> {
                 // Last Block in Memory (Heap must be extended)
                 break;
             }
-            current_segment = current_segment.next.unwrap().as_mut();
+            current_segment = current_segment.next.unwrap().inner().as_mut();
         }
         // Heap is ending
         // We must extend the heap
@@ -299,9 +297,9 @@ impl<'header> Heap<'header> {
 
         header.free = true;
         header.last = Some(
-            NonNull::new(self.last_header.address() as *mut u64 as *mut HeapSegmentHeader).unwrap(),
+            Unique::new(self.last_header.address() as *mut u64 as *mut HeapSegmentHeader).unwrap(),
         );
-        self.last_header.next = Some(NonNull::new(header).unwrap());
+        self.last_header.next = Some(Unique::new(header).unwrap());
         header.next = None;
         header.len = length - size_of::<HeapSegmentHeader>();
         header.combine_with_last(*self.last_header);

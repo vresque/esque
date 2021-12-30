@@ -16,6 +16,10 @@ enumtastic = { path = "../crates/enumtastic" }
 volatile = { path = "../crates/volatile" }
 keyboard-layout = { path = "../crates/keyboard-layout" }
 tar = { path = "../crates/tar" }
+esqdev = { path = "../crates/esqdev" }
+unique = { path = "../crates/unique" }
+esqdrv = { path = "../crates/esqdrv" }
+strutil = { path = "../crates/strutil" }
 
 [dependencies.lazy_static]
 features = ["spin_no_std"]

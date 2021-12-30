@@ -5,7 +5,11 @@ cargo-features = [ "strip" ]
 members = [
     "boot",
     "kernel",
-    "crates/*"
+    "crates/*",
+    "apps/*",
+    "hal",
+    "executive/*",
+    "security/*"
 ]
 
 [profile.release]

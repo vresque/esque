@@ -25,6 +25,8 @@ INITRAMFS = $(OUTDIR)/initramfs.tar
 
 all: $(INITRAMFS) kernel boot strip image run
 
+clippy: kernel-clippy
+
 check: kernel-check
 
 build: format kernel boot strip image
@@ -53,6 +55,10 @@ boot:
 kernel-check:
 	@$(MAKE) -C kernel check ARCH=$(ARCH) MODE=$(MODE)
 
+
+.PHONY: kernel-clippy
+kernel-clippy:
+	@$(MAKE) -C kernel clippy ARCH=$(ARCH) MODE=$(MODE)
 
 .PHONY: strip
 strip:

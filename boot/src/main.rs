@@ -159,6 +159,11 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         info!("Launching Gaia v{}.{}", rev.major(), rev.minor());
     }
 
+    let (initramfs_base, initramfs_size) = match handover::read_initramfs(handle, &mut table) {
+        Some((x, y)) => (x, y),
+        None => panic!("Failed to load InitRamFs"),
+    };
+
     info!("Loading Kernel... (/esque)");
     let kernel = match load_file(None, "esque", handle, &mut table) {
         Ok(k) => k,
@@ -187,11 +192,6 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     let font = match handover::create_font(handle, &mut table) {
         Some(t) => t,
         None => panic!("Failed to find font"),
-    };
-
-    let (initramfs_base, initramfs_size) = match handover::read_initramfs(handle, &mut table) {
-        Some((x, y)) => (x, y),
-        None => panic!("Failed to load InitRamFs"),
     };
 
     let sizes = table.boot_services().memory_map_size();

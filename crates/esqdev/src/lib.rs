@@ -14,5 +14,5 @@ macro_rules! module_init {
         pub const __MODULE_MAINTAINER: &'static str = $maintainer;
         pub const __MODULE_LICENSE: &'static str = $license;
         pub const __MODULE_IS_SAFE: bool = $safe;
-    }
+    };
 }
