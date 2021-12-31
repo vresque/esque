@@ -3,7 +3,7 @@
 use core::slice;
 
 use enumtastic::enum_with_options;
-pub const PAGE_SIZE: u64 = 4096;
+pub const PAGE_SIZE: u64 = 0x1000; // 4096
 
 enum_with_options! {
     pub enum MemoryType: u32 => {

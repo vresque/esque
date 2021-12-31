@@ -36,7 +36,6 @@ pub fn load_initramfs(handover: &mut Handover) {
     let entries = tar.iter();
     for ent in entries {
         debug!("{}", ent.filename);
-        debug!("{}", core::str::from_utf8(ent.data).unwrap());
     }
     let buf = malloc_mut();
     *buf = tar;

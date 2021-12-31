@@ -20,6 +20,7 @@ esqdev = { path = "../crates/esqdev" }
 unique = { path = "../crates/unique" }
 esqdrv = { path = "../crates/esqdrv" }
 strutil = { path = "../crates/strutil" }
+xmas-elf = "0.8.0"
 
 [dependencies.lazy_static]
 features = ["spin_no_std"]

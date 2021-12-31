@@ -37,7 +37,7 @@ use userspace::{launchpad::Launchpad, pid::Pid};
 
 use crate::scheduler::pit::TIME_SINCE_BOOT;
 
-const HEAP_ADDRESS: u64 = 0x0000100000;
+const HEAP_ADDRESS: u64 = 0x0000900000;
 const HEAP_LENGTH: usize = 0x1000;
 
 #[no_mangle]
@@ -58,10 +58,15 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
 
     //init::executive::launch_executive(&mut handover);
     unsafe {
-        Launchpad::new(*INITRAMFS.lock().assume_init_mut(), "initramfs/.INITRAMFS")
-            .with_pid(Pid::force_new(1))
-            .launch();
+        let process = Launchpad::new(
+            *INITRAMFS.lock().assume_init_mut(),
+            "initramfs/initfs",
+            true,
+        )
+        .with_pid(Pid::force_new(1))
+        .launch();
     }
+    debug!("Launchy Launchy!");
     // Consumes Handover
     init::userspace::init_userspace(handover);
     loop {}

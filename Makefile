@@ -5,7 +5,7 @@ OUTDIR = build
 BINDIR = binaries
 FINAL = Esque.img
 FPATH = $(OUTDIR)/$(FINAL)
-MODE ?= release
+MODE ?= debug
 
 QEMU = qemu-system-$(ARCH)
 QEMUFLAGS = \
@@ -23,17 +23,27 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 INITRDFILES = $(call rwildcard,initramfs,*.*)
 INITRAMFS = $(OUTDIR)/initramfs.tar
 
-all: $(INITRAMFS) kernel boot strip image run
+all: initramfs build run
 
 clippy: kernel-clippy
 
 check: kernel-check
 
-build: format kernel boot strip image
+build: apps executive security initramfs format kernel boot strip image
 
 format:
 	cargo fmt
 
+apps:
+	@echo
+
+
+.PHONY: executive
+executive:
+	$(MAKE) -C executive ARCH=$(ARCH) MODE=$(MODE)
+
+security:
+	@echo
 clean:
 #	rust-analyzer may place weird files into target/debug/deps that cannot be removed
 	rm -rf build || rm -rf target/{kernel,boot} || true
@@ -77,6 +87,12 @@ image:
 	@mcopy -i $(FPATH) $(BINDIR)/efi-shell/startup.nsh ::
 	@mcopy -i $(FPATH) $(OUTDIR)/initramfs.tar ::
 
+.PHONY: initramfs
+initramfs: initrdmove $(INITRAMFS)
+initrdmove:
+	cp build/initfs initramfs/initfs
+
+.PHONY: $(INITRAMFS)
 $(INITRAMFS): $(INITRDFILES)
 	tar -cvf $(INITRAMFS) initramfs
 

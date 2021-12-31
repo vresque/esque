@@ -3,7 +3,7 @@ use core::mem::MaybeUninit;
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::init::memory::_KERNEL_OFFSET;
-use crate::{debug, kprintln};
+use crate::{debug, info, kprintln, success};
 
 use crate::memory::bitmap::Bitmap;
 use spin::Mutex;
@@ -25,6 +25,8 @@ pub struct PageFrameAllocator<'a> {
     reserved: i64,
     used: i64,
     last_bmap_index: u64,
+    first_conventional_mem: u64,
+    last_conventional_mem: u64,
 }
 
 impl<'a> PageFrameAllocator<'a> {
@@ -51,6 +53,8 @@ impl<'a> PageFrameAllocator<'a> {
             reserved: 0,
             used: 0,
             last_bmap_index: 0,
+            first_conventional_mem: 0,
+            last_conventional_mem: 0,
         }
     }
 
@@ -83,14 +87,23 @@ impl<'a> PageFrameAllocator<'a> {
             self.bitmap.size / PAGE_SIZE as usize + 1,
         );
 
+        let mut first_conventional_mem = 0;
+        let mut last_conventional_mem = 0;
         for i in 0..self.entries {
             let ent = self.map[i];
             if ent.ty != MemoryType::ConventialMemory {
+                if ent.phys_base < first_conventional_mem {
+                    first_conventional_mem = ent.phys_base
+                } else if ent.phys_base > last_conventional_mem {
+                    last_conventional_mem = ent.phys_base
+                };
                 self.reserve_pages(ent.phys_base, ent.page_count as usize);
             } else if ent.phys_base <= _KERNEL_OFFSET {
                 self.reserve_pages(ent.phys_base, ent.page_count as usize);
             }
         }
+        self.last_conventional_mem = last_conventional_mem;
+        self.first_conventional_mem = first_conventional_mem;
         debug!("{}", self.free);
     }
 
@@ -125,24 +138,30 @@ impl<'a> PageFrameAllocator<'a> {
         }
     }
 
-    pub fn lock_page(&mut self, addr: u64) {
+    pub fn lock_page(&mut self, addr: u64) -> bool {
         let idx = addr / PAGE_SIZE;
 
         // Already locked
         if self.bitmap[idx as usize] == true {
-            return;
+            return false;
         }
 
         if self.bitmap.set(idx as usize, true) {
             self.free -= PAGE_SIZE as i64;
             self.used += PAGE_SIZE as i64;
+        } else {
+            return false;
         }
+        return true;
     }
 
-    pub fn lock_pages(&mut self, addr: u64, count: usize) {
+    pub fn lock_pages(&mut self, addr: u64, count: usize) -> bool {
         for i in 0..count {
-            self.lock_page((addr + (i as u64 * PAGE_SIZE)) as u64);
+            if self.lock_page((addr + (i as u64 * PAGE_SIZE)) as u64) == false {
+                return false;
+            }
         }
+        return true;
     }
 
     fn reserve_page(&mut self, addr: u64) {
@@ -207,8 +226,39 @@ impl<'a> PageFrameAllocator<'a> {
         return 0;
     }
 
+    pub fn allocate_from_addr_to_count_unchecked(&mut self, addr: u64, count: usize) -> bool {
+        return if self.lock_pages(addr, count) == true {
+            true
+        } else {
+            false
+        };
+    }
+
+    /// # Alloc First Fit
+    /// Locks the first consecutive `count` pages starting at  `addr`
+    pub fn find_first_consecutive_free_pages_of_count(&mut self, count: usize) -> u64 {
+        info!("Trying to find space for {} pages", count);
+        let mut current = self.last_bmap_index as usize + 1;
+        let is_current_index_good = |starting_at_idx: usize| -> bool {
+            for i in 0..count {
+                if self.bitmap[starting_at_idx + i] == true {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        'checker_loop: loop {
+            if is_current_index_good(current) == true {
+                // The Index 'current' and the next 'count' pages are free
+                return current as u64 * PAGE_SIZE;
+            } else {
+                current += 1;
+            }
+        }
+    }
+
     pub fn total_memory(&self) -> u64 {
-        debug!("LENEN: {}", self.map.len());
         unsafe {
             static mut MEM_SZ_BYTES: u64 = 0;
             // If calculated before, just return it
