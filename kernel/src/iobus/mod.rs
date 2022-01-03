@@ -1,6 +1,7 @@
 //! This entire file is largely based on the examples in https://wiki.osdev.org/PIC#Programming_the_PIC_chips
 
 use core::arch::asm;
+pub mod msr;
 
 /// # In Bus
 /// Reads a byte from the given port

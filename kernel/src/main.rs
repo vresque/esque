@@ -65,9 +65,18 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
         )
         .with_pid(Pid::force_new(1))
         .launch();
-    }
     debug!("Launchy Launchy!");
     // Consumes Handover
     init::userspace::init_userspace(handover);
+
+    let process = Launchpad::new(
+        *INITRAMFS.lock().assume_init_mut(),
+        "/init",
+        true,
+    )
+    .with_pid(Pid::force_new(1))
+    .launch();
+};
+
     loop {}
 }

@@ -1,9 +1,14 @@
 # Esque
 A modern microkernel kernel featuring executables in WebAssembly as well as ELF - Uniting Past and Present
 
+## Warning
+While working, some parts of the operating system are in dire need of
+renewal. For example, the Application Launcher simply malloc's a pointer
+that is big enough to load the ELF. Additionally, Mapping Memory has issues.
+
 ## Philosophy
 
-Esque is a Unix-esque operating system (Very funny). While the Everything Is A File-Philosophy is great,
+Esque is a Unix-esque operating system. While the Everything Is A File-Philosophy is great,
 I believe that it is time to extend this idea. In Esque, **Everything is an Object whose Pointer is stored as a File**. An example is illustrated below.
 
 On boot, Esque calls the `initfs` binary from the initramfs which needs to return a `*mut FileSystem` (`FileSystem*` for the C-People). Then, the kernel uses this FileSystem to call the function `write` and write
