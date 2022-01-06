@@ -7,22 +7,33 @@ renewal. For example, the Application Launcher simply malloc's a pointer
 that is big enough to load the ELF. Additionally, Mapping Memory has issues.
 
 ## Philosophy
+Esque is a Unix-esque operating system. This means that while everything is a file,
+not only Read-Write Operations are supported as this leads to an extremely
+obfuscated interface where the writing of weird magic numbers to a file
+is good practice. Esque replaces this system by a Command-Based system.
 
-Esque is a Unix-esque operating system. While the Everything Is A File-Philosophy is great,
-I believe that it is time to extend this idea. In Esque, **Everything is an Object whose Pointer is stored as a File**. An example is illustrated below.
+As an example, the command `0` is open, the command at `1` is close,
+at `2` is read and at `3` is write. But, this system can be extended. The interface
+is made easy through the `FileOperations` struct.
 
-On boot, Esque calls the `initfs` binary from the initramfs which needs to return a `*mut FileSystem` (`FileSystem*` for the C-People). Then, the kernel uses this FileSystem to call the function `write` and write
-the root filesystem onto itself. Any application may retrieve this FileSystem simply by using the `get_root_filesystem` syscall. This is the only syscall that deals with the FileSystem and should only be used during initialization. 
-
-The following is a part of the layout of a `FileSystem`. Note that `$name_of_fn: fn($name_of_param: $type_of_param, ..) -> $return_type`
-is equal to `$return_type(* $name_of_fn)($type_of_param $name_of_param, ..)` in C.
-Additionally, the type `CString` is the same as `char*` in C.
-
+The following is a valid FileOperations struct:
 ```rs
-#[repr(C)] // Has the same layout as a struct in C
-pub struct FileSystem {
-    open: fn(CString, CString, FileOpenAttribute)
-    ... // And so on, for all of the required functions
+#[repr(C)]
+pub struct FileOperations {
+    open: extern "C" fn(node: *mut FsNode, file: *mut File) -> i32,
+    close: extern "C" fn(node: *mut FsNode, file: *mut File) -> i32,
+    read: extern "C" fn(file: *mut File, buf: *mut u8, len: usize, offset: *mut isize) -> isize,
+    write: extern "C" fn(file: *mut File, buf: *const u8, len: usize, offset: *mut isize) -> isize,
+    commands: [*mut (); 251] // 251 (COMMAND_MAX - 4 (255 minus open, close, read and write)) of void*ers 
+}
+```
+
+The following represents a device
+```rs
+#[repr(C)]
+pub struct Device {
+    name: [u8; 255 /* DEVICE_NAME_MAX */], // C-Compatibility
+    operations: FileOperations,
 }
 
 ## Screenshots
