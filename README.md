@@ -24,8 +24,40 @@ pub struct FileOperations {
     close: extern "C" fn(node: *mut FsNode, file: *mut File) -> i32,
     read: extern "C" fn(file: *mut File, buf: *mut u8, len: usize, offset: *mut isize) -> isize,
     write: extern "C" fn(file: *mut File, buf: *const u8, len: usize, offset: *mut isize) -> isize,
-    commands: [*mut (); 251] // 251 (COMMAND_MAX - 4 (255 minus open, close, read and write)) of void*ers 
+    commands: [*mut (); 251] // 251 (COMMAND_MAX - 4 (255 minus open, close, read and write)) of void*ers representing functions commands[0] is equal to calling actual_commands[0 + 4]
 }
+```
+
+Due to this, the following would be valid
+```rs
+pub fn write_to_framebuffer(byte: u8, x: u32, y: u32) -> i32 {
+    // The Following does not use the traditional C-like interface,
+    // but uses the Rust-Layer
+    let file = open("/Devices/Framebuffer");
+    // The Macro is required. It matches the amount of arguments given
+    // and passes them to the correct function (file.command, file.command1, file.command2, file.command3, ...)
+    command!(file, CMD_FB_CLEAR_COLOUR, 0xff); // Make Screen White
+    let (width, height) = {
+        // Command can be used here as there are no other arguments.
+        // The Wrapper command< T > returns the result of the command
+        // Casted to T
+        let width: u32 = file.command(CMD_FB_GET_HEIGHT);
+        let height: u32 = file.command(CMD_FB_GET_WIDTH);
+        (width, height)
+    };
+    if x > width || y > height || x < 0 || y < 0 {
+        return Error::Inval;
+    }
+    // This is not performant
+    let pix = file.read(size_of::<u8>() /* len */, Offset::new(x * y) /* Offset */);
+    if pix == byte {
+        return 0;
+    }
+    let bytes_written = file.write(byte, size_of::<u8>() /* len */, Offset::new(x * y) /* Offset */);
+    assert_eq!(bytes_written, size_of::<u8>())
+    return 0;
+}
+
 ```
 
 The following represents a device
@@ -35,6 +67,7 @@ pub struct Device {
     name: [u8; 255 /* DEVICE_NAME_MAX */], // C-Compatibility
     operations: FileOperations,
 }
+```
 
 ## Screenshots
 ![A Blue Screen of Death (Kernel Panic) in Esque](binaries/screenshots/bsod.png)
