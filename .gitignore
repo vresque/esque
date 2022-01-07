@@ -6,3 +6,5 @@ Cargo.lock
 *.pbd
 **/.vscode
 *.log
+__pycache__
+*.pyc
