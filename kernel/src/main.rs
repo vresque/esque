@@ -52,31 +52,9 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::memory::map_memory(&mut handover);
     init::memory::init_heap(&mut handover);
     drivers::init_fallback_drivers(&mut handover);
-    //init::security::setup_security(&mut handover);
     //init::ipc::init_ipc(&mut handover);
     initramfs::load_initramfs(&mut handover);
-
-    //init::executive::launch_executive(&mut handover);
-    unsafe {
-        let process = Launchpad::new(
-            *INITRAMFS.lock().assume_init_mut(),
-            "initramfs/initfs",
-            true,
-        )
-        .with_pid(Pid::force_new(1))
-        .launch();
-    debug!("Launchy Launchy!");
-    // Consumes Handover
-    init::userspace::init_userspace(handover);
-
-    let process = Launchpad::new(
-        *INITRAMFS.lock().assume_init_mut(),
-        "/init",
-        true,
-    )
-    .with_pid(Pid::force_new(1))
-    .launch();
-};
+    initramfs::load_kernel_modules_in_initramfs(&mut handover);
 
     loop {}
 }

@@ -76,8 +76,33 @@ A Blue Screen of Death in Esque (Kernel Panic)
 ![Debugging the Memory map](binaries/screenshots/mem-map.png)
 A simple dump of the memory map
 
+## The InitRamFs
+In the InitRamFs, as of right now, no directories are supported.
+You can create a new InitRamFs simply by putting files into the `initramfs/` subdirectory.
+Then, using `make initramfs` the finished initramfs is going to be found in `build/initramfs.tar`. The bootloader expects this file to be found on the root partition.
 
-## Building
+All files ending with `.ko` will then be loaded by the InitRamFs. The most vital
+file might be the `initfs.ko` file, which is responsible for setting up the *root* partition of the filesystem. The default `initfs.ko` will try to load an `ext2` filesystem.
+
+### InitFs.ko
+If you are interested in what the `initfs.ko` must do, please read the [Documentation](Documentation/modules/initfs.md)
+
+## Building (Using y.py)
+
+`y.py` is an utility inspired by rustc's `x.py`. You can configure
+the kernel using the `Esque.toml` file that may be found in the sysroot of this directory.
+
+You can build the project simply using
+```
+./y.py build
+```
+This system is very configurable. Simply type
+```
+./y.py --help
+```
+to see all options.
+
+## Building (Using the deprecated Makefile)
 
 Run
 ```
@@ -112,7 +137,7 @@ A total of 52 occurences have been found (1641 LOC, 0 Percent)
 - [x] Font Loading
 - [x] GDT
 - [x] IDT
-- [ ] All Faults Handled
+- [x] All Faults Handled
 - [x] Port-IO
 - [x] Fallback Drivers for Fallback-Shell (For debugging purposes)
 - [x] Level 4 Paging
@@ -121,8 +146,10 @@ A total of 52 occurences have been found (1641 LOC, 0 Percent)
 - [x] Memory Allocation
 - [x] Support the `alloc` crate
 - [ ] Remapping the Page Table
-- [ ] Fallback Kernel Shell
 - [ ] Syscalls
-- [ ] WebAssembly-Executables
-- [ ] Heap
+- [ ] Executables
+- [x] Heap
+- [ ] Load Kernel Modules
+- [x] Load the InitRamFs
+- [x] Finish the Ext2 driver
 - [ ] Release Milestone 1  

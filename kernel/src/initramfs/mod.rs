@@ -47,6 +47,10 @@ pub fn load_initramfs(handover: &mut Handover) {
     ));
 }
 
+pub fn load_kernel_modules_in_initramfs(handover: &mut Handover) {
+
+}
+
 pub struct InitRamFs;
 
 unsafe impl FileSystem for InitRamFs {

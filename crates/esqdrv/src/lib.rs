@@ -1,2 +1,2 @@
 #![no_std]
-pub mod filesystem;
+pub mod device;

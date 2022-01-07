@@ -37,13 +37,6 @@ format:
 apps:
 	@echo
 
-
-.PHONY: executive
-executive:
-	$(MAKE) -C executive ARCH=$(ARCH) MODE=$(MODE)
-
-security:
-	@echo
 clean:
 #	rust-analyzer may place weird files into target/debug/deps that cannot be removed
 	rm -rf build || rm -rf target/{kernel,boot} || true

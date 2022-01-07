@@ -1,0 +1,12 @@
+[package]
+version = "0.0.1"
+name = "Winter Wonderland"
+initramfs = "default"
+features = [ "yikes" ]
+mode = "debug"
+documentation = true
+
+
+[modules]
+no-modules = false
+modules = []

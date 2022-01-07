@@ -7,9 +7,6 @@ members = [
     "kernel",
     "crates/*",
     "apps/*",
-    "hal",
-    "executive/*",
-    "security/*"
 ]
 
 [profile.release]

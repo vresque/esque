@@ -16,7 +16,7 @@ enumtastic = { path = "../crates/enumtastic" }
 volatile = { path = "../crates/volatile" }
 keyboard-layout = { path = "../crates/keyboard-layout" }
 tar = { path = "../crates/tar" }
-esqdev = { path = "../crates/esqdev" }
+esqmod = { path = "../crates/esqmod" }
 unique = { path = "../crates/unique" }
 esqdrv = { path = "../crates/esqdrv" }
 strutil = { path = "../crates/strutil" }
