@@ -1,8 +1,8 @@
 use keyboard_layout::{translator, Modifier, RELEASED_COUNTERPART};
 use spin::Mutex;
 
+use crate::config;
 use crate::framebuffer::FRAMEBUFFER_GUARD;
-use crate::{config, kprint};
 use crate::{
     interrupts::interrupt_frame::InterruptFrame,
     iobus::inb,
@@ -11,7 +11,7 @@ use crate::{
 };
 use core::fmt::Write;
 
-pub extern "x86-interrupt" fn ps2_keyboard_int_handler(a: InterruptFrame) {
+pub extern "x86-interrupt" fn ps2_keyboard_int_handler(_a: InterruptFrame) {
     // Get Keyboard Scancode
     let scancode = inb(PicPort::Ps2KeyboardScancodePort);
     handle_keyboard(scancode);
@@ -52,7 +52,11 @@ pub fn handle_keyboard(scancode: u8) {
         }
 
         Modifier::Spacebar => unsafe {
-            FRAMEBUFFER_GUARD.lock().assume_init_mut().write_char(' ');
+            FRAMEBUFFER_GUARD
+                .lock()
+                .assume_init_mut()
+                .write_char(' ')
+                .unwrap();
         },
 
         Modifier::Enter => {
@@ -71,7 +75,11 @@ pub fn handle_keyboard(scancode: u8) {
             // NULLs cannot be displayed
             if ascii != 0 as char {
                 unsafe {
-                    FRAMEBUFFER_GUARD.lock().assume_init_mut().write_char(ascii);
+                    FRAMEBUFFER_GUARD
+                        .lock()
+                        .assume_init_mut()
+                        .write_char(ascii)
+                        .unwrap();
                 }
             }
         }

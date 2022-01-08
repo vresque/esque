@@ -1,5 +1,5 @@
 # Esque
-A modern microkernel kernel featuring executables in WebAssembly as well as ELF - Uniting Past and Present
+A modern microkernel kernel with ELF Executables - Uniting Past and Present
 
 ## Warning
 While working, some parts of the operating system are in dire need of

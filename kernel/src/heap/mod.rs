@@ -7,10 +7,8 @@ use unique::Unique;
 use crate::{
     debug, kprintln,
     memory::paging::{
-        page_frame_allocator::{request_page, PAGE_FRAME_ALLOCATOR},
-        page_table_manager::GLOBAL_PAGE_TABLE_MANAGER,
+        page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::GLOBAL_PAGE_TABLE_MANAGER,
     },
-    HEAP_LENGTH,
 };
 pub static GLOBAL_HEAP: Mutex<MaybeUninit<Heap>> = Mutex::new(MaybeUninit::uninit());
 
@@ -40,7 +38,7 @@ impl HeapSegmentHeader {
     }
 
     pub unsafe fn from_addr<'header>(addr: u64) -> &'header mut Self {
-        let mut me = &mut *(addr as *mut u64 as *mut Self);
+        let me = &mut *(addr as *mut u64 as *mut Self);
         me
     }
 
@@ -58,15 +56,17 @@ impl HeapSegmentHeader {
     /// Combines the current header with the next segment header extending it
     pub fn combine_with_next<'heap_last_header_lt>(
         &'heap_last_header_lt mut self,
-        mut heap_last_hdr: HeapSegmentHeader,
+        // This is borrowed to avoid me having to spend 15s changing the current API
+        heap_last_hdr_borrow: &'heap_last_header_lt mut HeapSegmentHeader,
     ) {
+        let mut heap_last_hdr = Unique::new_borrowed_mut(heap_last_hdr_borrow).unwrap();
         if let Some(mut next) = self.next {
             unsafe {
                 if next.as_mut().free == false {
                     return;
                 }
-                if next.as_mut() == &heap_last_hdr {
-                    heap_last_hdr = *self;
+                if next == heap_last_hdr {
+                    heap_last_hdr = Unique::new_borrowed_mut(self).unwrap();
                 }
 
                 if let Some(mut next_next) = next.as_mut().next {
@@ -74,6 +74,7 @@ impl HeapSegmentHeader {
                 }
 
                 self.len += next.as_mut().len + size_of::<HeapSegmentHeader>();
+                self.next = next.as_mut().next;
             }
         } else {
             return;
@@ -82,13 +83,14 @@ impl HeapSegmentHeader {
 
     /// # Combine With Last
     /// Combines the current header with the last segment header, extending it
-    pub fn combine_with_last(&mut self, mut heap_last_hdr: HeapSegmentHeader) {
+    pub fn combine_with_last(&mut self, heap_last_hdr: &mut HeapSegmentHeader) {
         if let Some(mut last) = self.last {
             unsafe {
                 if last.as_mut().free == true {
                     last.as_mut().combine_with_next(heap_last_hdr);
                 }
             }
+        } else {
         }
     }
 
@@ -114,9 +116,7 @@ impl HeapSegmentHeader {
 
         let new_split_header = unsafe {
             HeapSegmentHeader::from_addr(
-                (self.address()
-                    + new_segment_length as u64
-                    + size_of::<HeapSegmentHeader>() as u64),
+                self.address() + new_segment_length as u64 + size_of::<HeapSegmentHeader>() as u64,
             )
         };
 
@@ -194,7 +194,7 @@ impl<'header> Heap<'header> {
 
         let heap_len_in_bytes = page_count * PAGE_SIZE as usize;
 
-        let mut heap = Self {
+        let heap = Self {
             last_header: HeapSegmentHeader::genesis(heap_address, heap_len_in_bytes),
             heap_start: heap_address,
             heap_end: (heap_address + heap_len_in_bytes as u64),
@@ -208,12 +208,12 @@ impl<'header> Heap<'header> {
         let rounded_size = if size % 0x10 > 0 {
             // Round up the size to next u64 number
             // Not a multiple of 128. DISCUSS: Should this be 0x08 (u64)
-            ((size - (size % 0x10)) + 0x10)
+            (size - (size % 0x10)) + 0x10
         } else {
             size
         };
 
-        // The Size is not valid
+        // The Size is zero, according to the C Standard, we shall do nothing and return NULL
         if rounded_size == 0 {
             return 0;
         }
@@ -261,16 +261,19 @@ impl<'header> Heap<'header> {
 
         // If the header was the last header, the new one is now the last header
         if self.last_header == header {
-            debug!("Setting...");
             self.last_header = new;
         }
     }
 
     pub fn free(&mut self, address: u64) {
-        let header = unsafe { HeapSegmentHeader::from_addr(address - 1) }; // The Header is always stored 1 before the actual value
+        debug!("Freeing {:#x?}", address);
+        let header = unsafe {
+            HeapSegmentHeader::from_addr(address - size_of::<HeapSegmentHeader>() as u64)
+        }; // The Header is always size_of(HeapSegmentHeader) before the actual value
+        debug!("{:?}", header);
         header.free = true;
-        header.combine_with_last(*self.last_header);
-        header.combine_with_next(*self.last_header);
+        header.combine_with_last(self.last_header);
+        header.combine_with_next(self.last_header);
     }
 
     fn expand(&mut self, length: usize) {
@@ -302,7 +305,7 @@ impl<'header> Heap<'header> {
         self.last_header.next = Some(Unique::new(header).unwrap());
         header.next = None;
         header.len = length - size_of::<HeapSegmentHeader>();
-        header.combine_with_last(*self.last_header);
+        header.combine_with_last(self.last_header);
         self.last_header = header;
     }
 }
@@ -319,4 +322,6 @@ pub fn malloc_mut<'ptr_lifetime, T>() -> &'ptr_lifetime mut T {
     unsafe { &mut *(malloc_ptr(core::mem::size_of::<T>())) }
 }
 
-pub fn free(addr: u64) {}
+pub fn free(addr: u64) {
+    unsafe { GLOBAL_HEAP.lock().assume_init_mut().free(addr) }
+}

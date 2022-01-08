@@ -3,7 +3,7 @@ use core::mem::MaybeUninit;
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::init::memory::_KERNEL_OFFSET;
-use crate::{debug, info, kprintln, success};
+use crate::{debug, info, kprintln};
 
 use crate::memory::bitmap::Bitmap;
 use spin::Mutex;
@@ -223,7 +223,6 @@ impl<'a> PageFrameAllocator<'a> {
             unsafe { ACCEPTS },
             self.total_memory() * PAGE_SIZE
         );
-        return 0;
     }
 
     pub fn allocate_from_addr_to_count_unchecked(&mut self, addr: u64, count: usize) -> bool {
@@ -248,7 +247,7 @@ impl<'a> PageFrameAllocator<'a> {
             return true;
         };
 
-        'checker_loop: loop {
+        loop {
             if is_current_index_good(current) == true {
                 // The Index 'current' and the next 'count' pages are free
                 return current as u64 * PAGE_SIZE;

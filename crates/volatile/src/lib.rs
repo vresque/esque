@@ -47,11 +47,9 @@ impl<T: Copy> Volatile<T, ReadWrite> {
 
 impl<T: Copy> Volatile<T, ReadOnly> {
     pub const fn new_ro(val: T) -> Self {
-        unsafe {
-            Self {
-                value: val,
-                _accessor: PhantomData,
-            }
+        Self {
+            value: val,
+            _accessor: PhantomData,
         }
     }
 

@@ -1,4 +1,3 @@
-use alloc::string::String;
 use arrayvec::ArrayString;
 
 pub const BLOCK_SIZE: usize = 512;
@@ -53,7 +52,6 @@ impl PosixHeader {
             || self.magic[4] != 'r' as u8
             || self.magic[5] != 32 as u8
         {
-            let vectest = alloc::vec![20, 23, 12, 3];
             panic!(
                 "Invalid TAR Magic! (Expected: 'ustar\\0', found '{}', magic = {:?} (Size: {})",
                 as_string(self.magic),

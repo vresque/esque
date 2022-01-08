@@ -1,6 +1,5 @@
 use core::str::Utf8Error;
 
-use alloc::string::String;
 pub use arrayvec::ArrayString;
 
 use crate::{
@@ -8,7 +7,6 @@ use crate::{
     types::TarEntryType,
 };
 
-use alloc::string::ToString;
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TarEntry<'data> {
     pub filename: ArrayString<100>,
@@ -81,7 +79,7 @@ impl<'data> Iterator for TarIter<'data> {
         let begin = (self.idx + 1) * BLOCK_SIZE;
         let end = begin + block_count * BLOCK_SIZE;
 
-        let bytes = (&self.data[begin..end][0..octal_ascii_size_as_usize(block_header.size)]);
+        let bytes = &self.data[begin..end][0..octal_ascii_size_as_usize(block_header.size)];
         let entry = TarEntry::new(
             as_string(block_header.name),
             bytes,

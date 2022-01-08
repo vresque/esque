@@ -3,6 +3,6 @@ extern "C" {
     fn __syscall();
 }
 
-extern "C" fn handle_syscall(reg: Registers, )
+//extern "C" fn handle_syscall(reg: Registers, )
 
-pub struct Registers {}
+//pub struct Registers {}

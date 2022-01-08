@@ -14,11 +14,8 @@ unsafe impl GlobalAlloc for HeapAllocator {
         ptr as *mut u8
     }
 
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
-        GLOBAL_HEAP
-            .lock()
-            .assume_init_mut()
-            .free(ptr as *mut u64 as u64);
+    unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
+        GLOBAL_HEAP.lock().assume_init_mut().free(ptr as u64);
     }
 }
 

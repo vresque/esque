@@ -1,17 +1,14 @@
 use bks::Handover;
 
 use crate::drivers::input::ps2::ps2_keyboard_int_handler;
-use crate::init::{pic, pit};
-use crate::interrupts::exceptions::ExceptionHandler;
 use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::pic::PicInterrupt;
 use crate::scheduler::pit::{pit_interrupt_handler, PIT_INTERRUPT};
-use crate::{debug, info, success};
+use crate::{info, success};
 use crate::{interrupts::exceptions::IDTException, kprintln};
 use core::arch::asm;
-use core::fmt::Debug;
 
 use crate::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 
@@ -26,11 +23,11 @@ bitflags::bitflags! {
     }
 }
 
-extern "x86-interrupt" fn generic_fault_handler(frame: InterruptFrame) {
+extern "x86-interrupt" fn generic_fault_handler(_frame: InterruptFrame) {
     panic!("A fault occured");
 }
 
-extern "x86-interrupt" fn page_fault_handler(frame: InterruptFrame) {
+extern "x86-interrupt" fn page_fault_handler(_frame: InterruptFrame) {
     let code: u64;
     let cr2: u64;
     unsafe {
@@ -44,11 +41,11 @@ extern "x86-interrupt" fn page_fault_handler(frame: InterruptFrame) {
     );
 }
 
-extern "x86-interrupt" fn double_fault_handler(a: InterruptFrame) {
+extern "x86-interrupt" fn double_fault_handler(_a: InterruptFrame) {
     panic!("Double Fault detected");
 }
 
-extern "x86-interrupt" fn general_protection_fault_handler(a: InterruptFrame) {
+extern "x86-interrupt" fn general_protection_fault_handler(_a: InterruptFrame) {
     panic!("General Protection Fault detected");
 }
 

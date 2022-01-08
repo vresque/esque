@@ -1,5 +1,3 @@
-use alloc::vec;
-use alloc::vec::Vec;
 use bks::Framebuffer;
 use bks::Psf1Font;
 use bks::Psf1Header;

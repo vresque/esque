@@ -1,15 +1,11 @@
 use core::{
-    fmt::Write,
-    iter::Filter,
     mem::MaybeUninit,
     ops::{Index, IndexMut},
 };
 
 use spin::Mutex;
 
-use crate::{
-    framebuffer::FRAMEBUFFER_GUARD, kprintln, memory::paging::page_frame_allocator::request_page,
-};
+use crate::{kprintln, memory::paging::page_frame_allocator::request_page};
 
 pub static GLOBAL_PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
@@ -207,8 +203,6 @@ impl<'table> PageTableManager<'table> {
 
         // Map PageDirectoryEntry
         let mut pd_pde = pdp.entries[indexer.pd_idx];
-        let has_flag = pd_pde.get_flag(PageTableFlag::PRESENT);
-        let flags = pd_pde.flags();
         let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
             let tmp = request_page();
             SET_PT_TO_NULL(tmp);

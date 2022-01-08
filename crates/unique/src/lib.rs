@@ -38,6 +38,14 @@ impl<T> Unique<T> {
         Self(NonNull::new_unchecked(ptr))
     }
 
+    pub fn new_borrowed_mut(x: &mut T) -> Option<Self> {
+        Self::new(x as *mut T)
+    }
+
+    pub fn new_borrowed(x: &T) -> Option<Self> {
+        Self::new_const(x as *const T)
+    }
+
     pub fn inner<'retval>(self) -> NonNull<T> {
         self.0
     }

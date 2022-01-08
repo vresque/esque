@@ -193,7 +193,7 @@ impl FramebufferGuard {
         // Check that we do not clear nonexistant screen space
         if self.col == 0 {
             self.col = self.framebuffer().width;
-            if self.row - 16 < 0 {
+            if (self.row as isize) - 16 < 0 {
                 self.row = 0;
             } else {
                 self.row -= 16;
@@ -212,9 +212,9 @@ impl FramebufferGuard {
                 }
             }
         }
-        if self.col - 8 < 0 {
+        if (self.col as isize) - 8 < 0 {
             self.col = self.framebuffer().width;
-            if self.row - 16 < 0 {
+            if (self.row as isize) - 16 < 0 {
                 self.row = 0;
             } else {
                 self.row -= 16;

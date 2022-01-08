@@ -29,7 +29,7 @@ clippy: kernel-clippy
 
 check: kernel-check
 
-build: apps executive security initramfs format kernel boot strip image
+build: apps initramfs format kernel boot strip image
 
 format:
 	cargo fmt
@@ -81,10 +81,9 @@ image:
 	@mcopy -i $(FPATH) $(OUTDIR)/initramfs.tar ::
 
 .PHONY: initramfs
-initramfs: initrdmove $(INITRAMFS)
+initramfs: $(INITRAMFS) initrdmove
 initrdmove:
-	cp build/initfs initramfs/initfs
-
+	@echo
 .PHONY: $(INITRAMFS)
 $(INITRAMFS): $(INITRDFILES)
 	tar -cvf $(INITRAMFS) initramfs

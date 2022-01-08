@@ -1,5 +1,3 @@
-use super::interrupt_frame::InterruptFrame;
-
 #[allow(unused)]
 pub enum ExceptionType {
     Fault,

@@ -2,7 +2,6 @@ use spin::mutex::Mutex;
 use volatile::Volatile;
 
 use crate::{
-    debug,
     interrupts::interrupt_frame::InterruptFrame,
     iobus::{io_wait, outb},
     pic::{end_main_pic, PicPort},
@@ -120,7 +119,7 @@ pub fn tick() {
         .write(old_value + (1f64 / get_frequency() as f64));
 }
 
-pub extern "x86-interrupt" fn pit_interrupt_handler(a: InterruptFrame) {
+pub extern "x86-interrupt" fn pit_interrupt_handler(_a: InterruptFrame) {
     tick();
     end_main_pic();
 }

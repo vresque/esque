@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(asm)]
 #![feature(abi_efiapi)]
 
 extern crate alloc;
@@ -8,7 +7,6 @@ extern crate uefi;
 extern crate uefi_services;
 
 mod handover;
-use core::mem::size_of;
 use uefi::table::{Boot, SystemTable};
 
 use crate::alloc::vec::Vec;
@@ -25,7 +23,7 @@ use uefi::{
             fs::SimpleFileSystem,
         },
     },
-    table::boot::{AllocateType, MemoryDescriptor, MemoryType},
+    table::boot::{AllocateType, MemoryType},
 };
 use xmas_elf::{
     header::sanity_check,
@@ -201,7 +199,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     let slice = &mut vec![EfiMemoryDescriptor::empty(); entries][..];
 
     info!("Exiting boot services...");
-    let (rt, map_iter) = table
+    let (_, map_iter) = table
         .exit_boot_services(handle, &mut storage[..])
         .expect_success("Failed to exit boot services");
     let mut ents = 0;
