@@ -1,4 +1,37 @@
 import argparse
+import subcommands as sc
+
+SUBCOMMANDS = [
+    "build",
+    "clean",
+    "clippy",
+    "all",
+    "format",
+    "run",
+    "build-kernel",
+    "build-boot",
+    "strip",
+    "image",
+    "initramfs",
+    "cloc",
+    "count-unsafe"
+]
+
+SUBCOMMANDS_TO_FN = {
+    "build": sc.build,
+    "clean": sc.clean,
+    "clippy": sc.clippy,
+    "all": sc.all,
+    "format": sc.format,
+    "run": sc.run_qemu,
+    "build-kernel": sc.build_kernel,
+    "build-boot": sc.build_boot,
+    "strip": sc.strip,
+    "image": sc.image,
+    "initramfs": sc.initramfs,
+    "cloc": sc.cloc,
+    "count-unsafe": sc.count_unsafe
+}
 
 def parse_args():
     argparser = argparse.ArgumentParser(description = "Build Esque using this tool")
@@ -9,10 +42,16 @@ def parse_args():
     mode_group.add_argument("--debug", default = False, action= "store_true", help="Builds the Project in Debug Mode")
 
     argparser.add_argument("--documentation", default = True, action = "store_true", help="Recompiles the documentation of all projects")
-    argparser.add_argument('--features',
+    argparser.add_argument('--kernel-features',
                         type=lambda x: x.split(':'),
                         default=[],
                         help='Which features the kernel should be built with. Format: --features feat1:feat2:feat3')
+
+    argparser.add_argument('--boot-features',
+                        type=lambda x: x.split(':'),
+                        default=[],
+                        help='Which features the bootloader should be built with. Format: --features feat1:feat2:feat3')
+
 
     argparser.add_argument('--modules',
                         type=lambda x: x.split(':'),
@@ -22,6 +61,8 @@ def parse_args():
     argparser.add_argument("--no-modules", default = False, action= "store_true", help="Selects whether the project should be built without any modules")
 
     argparser.add_argument("--custom-initramfs", default=None)
+
+    argparser.add_argument("subcommand", choices=SUBCOMMANDS)
 
     argparser.add_argument("--arch", default="",help="Which architecture the kernel should be built for")
     return argparser.parse_args()

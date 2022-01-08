@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tarfile
 import util
-from util import exec, info, error, success, warning
+from util import beautiful_exit, run, info, error, success, warning
 import json_handler
 import config
 import parser
@@ -33,9 +33,11 @@ def update_dependencies():
 
 def main():
     config.parse_config()
-
     success("Building Esque...")
     arguments = parser.parse_args()
-    print(arguments)
     config.adjust_config_values_based_on_parser(arguments)
-    print(config.CUSTOM_INITRAMFS)
+
+
+    # Calling the right function
+    code = parser.SUBCOMMANDS_TO_FN[arguments.subcommand]()
+    beautiful_exit(code)

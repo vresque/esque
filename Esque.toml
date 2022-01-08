@@ -1,12 +1,32 @@
 [package]
+arch = "x86_64"
 version = "0.0.1"
 name = "Winter Wonderland"
 initramfs = "default"
-features = [ "yikes" ]
-mode = "debug"
 documentation = true
+cargo-flags = [ "" ]
+mode = "release"
 
+[kernel]
+features = [ ""]
+cargo-flags = [ "mirror" ] # Also mirrors the global flags
+mode = "mirror" # Mirrors global mode
+
+[boot]
+features = [ "" ]
+cargo-flags = [ "mirror" ]
+mode = "mirror"
 
 [modules]
 no-modules = false
 modules = []
+
+[qemu]
+memlim = "512M"
+enable-kvm = true
+cpu = "qemu64" # Not needed if enable-kvm is on
+logfile = "qemu.log"
+should-log = true # Should log to file?
+smp = 1 # Cores
+machine = "q35"
+qemu-opts = [] # Additional arguments

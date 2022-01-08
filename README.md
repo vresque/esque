@@ -1,10 +1,21 @@
 # Esque
 A modern microkernel kernel with ELF Executables - Uniting Past and Present
 
-## Warning
-While working, some parts of the operating system are in dire need of
-renewal. For example, the Application Launcher simply malloc's a pointer
-that is big enough to load the ELF. Additionally, Mapping Memory has issues.
+## Building (Using y.py)
+
+`y.py` is an utility inspired by rustc's `x.py`. You can configure
+the kernel using the `Esque.toml` file that may be found in the sysroot of this directory. This file offers many options, have a look at it before building.
+
+You can build the project simply using
+```
+./y.py build
+```
+This system is very configurable. Simply type
+```
+./y.py --help
+```
+to see all options.
+
 
 ## Philosophy
 Esque is a Unix-esque operating system. This means that while everything is a file,
@@ -87,20 +98,6 @@ file might be the `initfs.ko` file, which is responsible for setting up the *roo
 ### InitFs.ko
 If you are interested in what the `initfs.ko` must do, please read the [Documentation](Documentation/modules/initfs.md)
 
-## Building (Using y.py)
-
-`y.py` is an utility inspired by rustc's `x.py`. You can configure
-the kernel using the `Esque.toml` file that may be found in the sysroot of this directory.
-
-You can build the project simply using
-```
-./y.py build
-```
-This system is very configurable. Simply type
-```
-./y.py --help
-```
-to see all options.
 
 ## Building (Using the deprecated Makefile)
 
