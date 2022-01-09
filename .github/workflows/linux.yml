@@ -23,7 +23,7 @@ jobs:
       - name: Install all Dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3
+          sudo apt install -y python3 mtools dosfstools
           python3 -m pip install xbstrap toml
       - run: ./y.py setup
       - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
