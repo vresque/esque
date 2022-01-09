@@ -12,7 +12,7 @@ import util
 from util import beautiful_exit, run, info, error, success, warning
 import json_handler
 import config
-import parser
+import cliparser
 
 try:
     import xbstrap
@@ -32,13 +32,12 @@ def update_dependencies():
 
 
 def main():
-    help(parser)
-    arguments = parser.parse_args()
+    arguments = cliparser.parse_args()
     config.parse_config(arguments.config)
     success("Building Esque...")
     config.adjust_config_values_based_on_parser(arguments)
 
 
     # Calling the right function
-    code = parser.SUBCOMMANDS_TO_FN[arguments.subcommand]()
+    code = cliparser.SUBCOMMANDS_TO_FN[arguments.subcommand]()
     beautiful_exit(code)
