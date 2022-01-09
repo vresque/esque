@@ -14,7 +14,7 @@ cargo-flags = [ "" ]
 mode = "debug"
 should-run = false # Should the project be run every time *any* commmand is invoked? (Not recommended)
 never-run = false # Should any --run or ./y.py run be ignored?
-out-image-path = "build/esque-m"
+out-image-path = "build/esque-m.img"
 minimal-toolchain = true
 
 [kernel]
