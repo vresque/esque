@@ -28,7 +28,7 @@ jobs:
       - name: Build the kernel
         run: |
           ./y.py setup
-          ./y.py build --documentation --minimal-toolchain --config .github/workflows/CI.toml --never-run
+          ./y.py build --config .github/workflows/CI.toml
       - name: Upload the .img file
         uses: actions/upload-artifact@v2
         with:
