@@ -25,9 +25,9 @@ jobs:
           sudo apt update
           sudo apt install -y python3
           python3 -m pip install xbstrap toml
+      - run: ./y.py setup
       - name: Build the kernel
         run: |
-          ./y.py setup
           ./y.py build --config .github/workflows/CI.toml
       - name: Upload the .img file
         uses: actions/upload-artifact@v2
