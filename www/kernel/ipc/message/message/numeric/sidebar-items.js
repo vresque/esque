@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["MessageU16",""],["MessageU32",""],["MessageU64",""],["MessageU8",""]]});

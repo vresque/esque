@@ -1,1 +1,0 @@
-initSidebarItems({"macro":[["assert_msg_size_is_correct",""],["implement_message_struct",""]],"mod":[["getinfo",""],["ipc",""],["process",""]]});

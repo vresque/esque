@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["allocator",""],["bitmap",""],["memset",""],["paging",""],["userspace",""]]});

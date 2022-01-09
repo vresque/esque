@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["KernelSpace",""],["Launchpad",""],["Userspace",""]]});

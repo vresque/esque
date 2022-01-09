@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["efi_main",""],["load_file",""],["load_kernel",""]],"mod":[["handover",""]]});

@@ -9,3 +9,5 @@ Cargo.lock
 __pycache__
 *.pyc
 *~
+www/*
+!www/.gitkeep

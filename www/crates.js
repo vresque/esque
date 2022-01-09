@@ -1,1 +1,0 @@
-window.ALL_CRATES = ["bks","boot","enumtastic","esqdrv","esqmod","esys","ffi","kernel","keyboard_layout","strutil","tar","unique","volatile"];

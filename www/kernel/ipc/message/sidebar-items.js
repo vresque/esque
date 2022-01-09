@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["message",""]],"struct":[["Message",""]],"union":[["MessageContent",""]]});

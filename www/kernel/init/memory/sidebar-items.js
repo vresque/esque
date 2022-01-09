@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["init_heap",""],["init_paging","Initializes the memory (Paging, Heap, etc)"],["map_memory",""]],"static":[["_KERNEL_END",""],["_KERNEL_OFFSET",""],["_KERNEL_START",""]]});

@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["kernel"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html\" title=\"trait core::ops::index::IndexMut\">IndexMut</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/core/primitive.usize.html\">usize</a>&gt; for <a class=\"struct\" href=\"kernel/memory/paging/page_table_manager/struct.PageTable.html\" title=\"struct kernel::memory::paging::page_table_manager::PageTable\">PageTable</a>","synthetic":false,"types":["kernel::memory::paging::page_table_manager::PageTable"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["common",""],["config",""],["gdt",""],["interrupts",""],["memory",""],["pic",""],["pit",""],["userspace",""]]});

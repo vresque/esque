@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["MessagePointer1",""],["MessagePointer2",""],["MessagePointer3",""],["MessagePointer4",""]]});

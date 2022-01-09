@@ -1,1 +1,0 @@
-initSidebarItems({"static":[["LAST_PID",""]],"struct":[["Pid",""]],"trait":[["KernelPid",""]]});

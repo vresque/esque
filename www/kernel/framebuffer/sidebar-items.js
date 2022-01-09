@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Color",""]],"fn":[["_screen_width",""],["clear_screen",""]],"static":[["FRAMEBUFFER_GUARD",""]],"struct":[["FramebufferGuard",""]]});

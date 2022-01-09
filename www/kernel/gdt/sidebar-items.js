@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["upload_gdt",""]],"static":[["GLOBAL_GDT",""]],"struct":[["GDTDescriptor",""],["GDTEntry",""],["GlobalDescriptorTable",""]]});
