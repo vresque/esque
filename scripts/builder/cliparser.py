@@ -77,5 +77,6 @@ def parse_args():
 
     argparser.add_argument("--disable-never-run", default=False, help="Should the 'never-run' parameter in the config be ignored?", action="store_true")
     argparser.add_argument("--outimage", default="config", help="Specifies the name and location of the produced image")
+    argparser.add_argument("--minimal-toolchain", default=False, help="Use this option if you are building using the minimal toolchain", action="store_true")
 
     return argparser.parse_args()

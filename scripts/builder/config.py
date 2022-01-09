@@ -29,6 +29,7 @@ QEMU_SMP = 1
 SHOULD_RUN: bool = False
 NEVER_RUN: bool = False
 OUT_IMG: str = ""
+MINIMAL_TOOLCHAIN: bool = False
 
 try:
     import toml
@@ -57,7 +58,7 @@ def adjust_config_values_based_on_parser(arguments):
     global SHOULD_RUN
     global NEVER_RUN
     global OUT_IMG
-
+    global MINIMAL_TOOLCHAIN
 
     MODE = "release" if arguments.release else "debug"
     DOCUMENTATION = arguments.documentation
@@ -73,6 +74,7 @@ def adjust_config_values_based_on_parser(arguments):
 
     OUT_IMG = arguments.outimage if arguments.outimage != "config" else OUT_IMG
 
+    MINIMAL_TOOLCHAIN = arguments.minimal_toolchain if arguments.minimal_toolchain != False else MINIMAL_TOOLCHAIN
 
     if KERNEL_FEATURES != [] and KERNEL_FEATURES != [""]:
         KERNEL_CARGO_FLAGS += " --features \""
@@ -129,6 +131,7 @@ def parse_config(config_path):
     global SHOULD_RUN
     global NEVER_RUN
     global OUT_IMG
+    global MINIMAL_TOOLCHAIN
 
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -167,3 +170,4 @@ def parse_config(config_path):
         SHOULD_RUN = cfg["package"]["should-run"]
         NEVER_RUN = cfg["package"]["never-run"]
         OUT_IMG = cfg["package"]["out-image-path"]
+        MINIMAL_TOOLCHAIN = cfg["package"]["minimal-toolchain"]
