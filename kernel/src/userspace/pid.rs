@@ -2,16 +2,17 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::{debug, scheduler::pit::TIME_SINCE_BOOT};
 
-pub static LAST_PID: AtomicUsize = AtomicUsize::new(1);
+pub static LAST_PID: AtomicUsize = AtomicUsize::new(0);
+pub use esys::process::pid::Pid;
 
-#[derive(Debug, Copy, Clone)]
-#[repr(C)]
-pub struct Pid {
-    id: usize,
+pub trait KernelPid {
+    fn new(pid: usize) -> Self;
+    fn force_new(pid: usize) -> Self;
+    fn random() -> Self;
 }
 
-impl Pid {
-    pub fn new(pid: usize) -> Self {
+impl KernelPid for Pid {
+    fn new(pid: usize) -> Self {
         if pid <= LAST_PID.load(core::sync::atomic::Ordering::Acquire) {
             return Self::new(LAST_PID.load(Ordering::Acquire) + 1);
         }
@@ -19,12 +20,12 @@ impl Pid {
         Self { id: pid }
     }
 
-    pub fn force_new(pid: usize) -> Self {
+    fn force_new(pid: usize) -> Self {
         LAST_PID.store(pid, Ordering::SeqCst);
         Self { id: pid }
     }
 
-    pub fn random() -> Self {
+    fn random() -> Self {
         let last_pid = LAST_PID.load(Ordering::SeqCst);
         // Pseudo-Random PID
         let time = (TIME_SINCE_BOOT.lock().read() * 100000000.0) as usize;

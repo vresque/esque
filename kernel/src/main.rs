@@ -32,7 +32,12 @@ mod pic;
 mod scheduler;
 mod userspace;
 use config::config;
-use userspace::{pid::Pid, process::Process};
+use esys::{
+    ipc::{message::ptr::MessagePointer2, MessageContent},
+    process::Process,
+};
+use userspace::pid::{KernelPid, Pid};
+mod ipc;
 
 use crate::heap::{free, malloc, malloc_ptr};
 
@@ -51,13 +56,20 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::memory::map_memory(&mut handover);
     init::memory::init_heap(&mut handover);
     drivers::init_fallback_drivers(&mut handover);
-    let vec = vec![23, 12, 342, 234];
-    success!("{:?}", vec);
-    loop {}
-    //init::ipc::init_ipc(&mut handover);
     initramfs::load_initramfs(&mut handover);
+    debug!("Still alive");
     initramfs::load_kernel_modules_in_initramfs(&mut handover);
-    let process = Process::new(Pid::random(), 0, 0, false);
+    let process = Process::new(Pid::force_new(1), 0, 0, false);
+
+    let message = esys::ipc::Message::new(
+        process,
+        process,
+        2,
+        MessageContent {
+            ptr2: MessagePointer2::new(0xffff, 0xff2, [0u64; 5]),
+        },
+    );
+    debug!("{:#?}", message.content.ptr2);
 
     loop {}
 }

@@ -1,6 +1,8 @@
-use super::pid::Pid;
+pub mod pid;
+use pid::Pid;
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug)]
 pub struct Process {
     pid: Pid,
     entry: u64,
