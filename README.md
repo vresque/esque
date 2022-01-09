@@ -2,8 +2,9 @@
 
 <p align="center">
     <h1 align="center">Esque</h1>
+    #![lines_of_code](https://tokei.rs/b1/github/visionizer/esque)
 </p>
-A modern microkernel kernel with ELF Executables - Uniting Past and Present
+A modern microkernel - Uniting Past and Present
 
 ## Building (Using y.py)
 
