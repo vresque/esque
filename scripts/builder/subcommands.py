@@ -139,5 +139,7 @@ def setup():
     try:
         os.mkdir("build")
         os.mkdir("build/www")
+        return 0
     except:
         pass
+    return 0
