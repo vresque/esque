@@ -1,4 +1,4 @@
-![](binaries/brand/main/twitter_header_photo_2.png)
+![](binaries/brand/twitter_header_photo_2.png)
 
 <p align="center">
     <h1 align="center">Esque</h1>
