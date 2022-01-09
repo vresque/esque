@@ -157,7 +157,6 @@ def parse_config(config_path):
         my_str = " ".join(cfg["boot"]["cargo-flags"])
         BOOT_CARGO_FLAGS = my_str if my_str != "mirror" else copy.deepcopy(flags)
         BOOT_FEATURES = cfg["boot"]["features"]
-
         MEMLIM = cfg["qemu"]["memlim"]
         QEMU_KVM = cfg["qemu"]["enable-kvm"]
         QEMU_CPU = cfg["qemu"]["cpu"]
