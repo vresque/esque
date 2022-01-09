@@ -41,7 +41,7 @@ I recommend that one read our [Syscall Documentation](Documentation/syscall.md)
 Yes - and no. In Esque, there are three different *virtual* 'spaces' for applications. Only two of those are real.
 There is
 - Kernel Space (*Only the Kernel* - Has access to the full array of hardware)
-- System Space (*Drivers* - Has access to syscalls, the full array of hardware *and the HAL-System-Calls* (Hal = The Hardware Abstraction Layer, a set of system calls that can only be used by Drivers))
+- System Space (*Drivers* - *Runs in the Kernel Space of the CPU* Has access to syscalls, the full array of hardware *and the HAL-System-Calls* (Hal = The Hardware Abstraction Layer, a set of system calls that can only be used by Drivers))
 - User Space (*Applications* - Only has access to the system calls)
 
 *System Space is not a synonym for Kernel Modules - The later uses the kernel functions themselves, the first can be compared to a small kernel with support from the actual kernel. As an analogy, if the Kernel Modules are co-workers of the kernel, drivers are cats - They believe they are all-powerful (And they could be, nobody could refuse something to a cat) they depend on their caretaker(s).*
