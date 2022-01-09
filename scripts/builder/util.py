@@ -34,7 +34,6 @@ def run(progarg, **kwargs):
     else:
         list = progarg
 
-
     output = subprocess.run(list, **kwargs)
 
     if output.returncode != 0:

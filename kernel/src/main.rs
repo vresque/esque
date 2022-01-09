@@ -14,35 +14,34 @@
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
 
 extern crate alloc;
-pub use alloc::*;
 
-mod framebuffer;
-mod gdt;
-mod init;
-mod memory;
-mod panic;
-use bks::Handover;
-mod config;
-mod drivers;
-mod heap;
-mod initramfs;
-mod interrupts;
-mod iobus;
-mod pic;
-mod scheduler;
-mod userspace;
-use config::config;
-use esys::{
+pub mod framebuffer;
+pub mod gdt;
+pub mod init;
+pub mod memory;
+pub mod panic;
+pub use bks::Handover;
+pub mod config;
+pub mod drivers;
+pub mod heap;
+pub mod initramfs;
+pub mod interrupts;
+pub mod iobus;
+pub mod pic;
+pub mod scheduler;
+pub mod userspace;
+pub use config::config;
+pub use esys::{
     ipc::{message::ptr::MessagePointer2, MessageContent},
     process::Process,
 };
-use userspace::pid::{KernelPid, Pid};
-mod ipc;
+pub use userspace::pid::{KernelPid, Pid};
+pub mod ipc;
 
 use crate::heap::{free, malloc, malloc_ptr};
 
-const HEAP_ADDRESS: u64 = 0x0000900000;
-const HEAP_LENGTH: usize = 0x1000;
+pub const HEAP_ADDRESS: u64 = 0x0000900000;
+pub const HEAP_LENGTH: usize = 0x1000;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {

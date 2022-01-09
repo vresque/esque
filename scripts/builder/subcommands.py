@@ -124,15 +124,11 @@ def count_unsafe():
     return 0
 
 def build_docs():
-    cargo.run_cargo_command_in_workspace("kernel", "doc", f"--target ../.targets/{config.ARCH}/kernel.json")
-    for path in os.listdir("crates"):
-        f = os.path.join("crates", path)
-        if os.path.isfile(f):
-            continue
-        else:
-            info(f"Documenting crate '{f}'")
-            cargo.run_cargo_command_in_workspace(f, "doc", [])
-    success("Successfully documented all crates")
+    cargo.run_cargo_command_in_workspace(".", "doc", f"--no-deps")
+
+
+    with open("target/doc/index.html", "w+") as f:
+        f.write('<meta http-equiv="refresh" content="0; url=kernel">')
     return 0
 
 def setup():
