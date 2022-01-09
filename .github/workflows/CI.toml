@@ -1,7 +1,9 @@
 # ----###---##+- Esque.toml -+##---###----
 # Edit your build of the Esque kernel
 # Attention: To edit the CI-Specific config, please use
-# the 
+# the CI.toml file
+
+## ATTENTION - WHILE THIS WORKS ON MY LOCAL MACHINE, IT STILL CALLS THE OLD FILE ON THE CI
 [package]
 arch = "x86_64"
 version = "0.0.1"
