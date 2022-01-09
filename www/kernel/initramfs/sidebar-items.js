@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["load_initramfs",""],["load_kernel_modules_in_initramfs",""]]});

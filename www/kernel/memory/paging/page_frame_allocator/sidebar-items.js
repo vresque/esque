@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["request_page",""]],"static":[["ACCEPTS",""],["IS_PAGE_FRAME_ALLOCATOR_INITIALIZED",""],["PAGE_FRAME_ALLOCATOR",""],["REJECTS",""]],"struct":[["PageFrameAllocator",""]]});

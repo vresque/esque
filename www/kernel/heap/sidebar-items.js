@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["free",""],["malloc",""],["malloc_mut",""],["malloc_ptr",""]],"static":[["GLOBAL_HEAP",""]],"struct":[["Heap",""],["HeapSegmentHeader",""]]});

@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["kernel"] = [{"text":"impl <a class=\"trait\" href=\"kernel/alloc/trait.GlobalAlloc.html\" title=\"trait kernel::alloc::GlobalAlloc\">GlobalAlloc</a> for <a class=\"struct\" href=\"kernel/memory/allocator/struct.HeapAllocator.html\" title=\"struct kernel::memory::allocator::HeapAllocator\">HeapAllocator</a>","synthetic":false,"types":["kernel::memory::allocator::HeapAllocator"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

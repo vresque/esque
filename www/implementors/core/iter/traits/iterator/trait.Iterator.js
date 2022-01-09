@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["tar"] = [{"text":"impl&lt;'data&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"tar/tar/struct.TarIter.html\" title=\"struct tar::tar::TarIter\">TarIter</a>&lt;'data&gt;","synthetic":false,"types":["tar::tar::TarIter"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

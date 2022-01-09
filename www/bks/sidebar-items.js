@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["KEYBOARD_LAYOUTS_SUPPORTED_NUM",""],["LANGUAGES_SUPPORTED_NUM",""],["PAGE_SIZE",""]],"mod":[["KeyboardLayout",""],["Language",""]],"struct":[["Config",""],["EfiMemoryDescriptor",""],["Framebuffer",""],["Handover",""],["MemoryAttribute",""],["MemoryType",""],["Psf1Font",""],["Psf1Header",""]]});

@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["bks"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"bks/struct.Framebuffer.html\" title=\"struct bks::Framebuffer\">Framebuffer</a>","synthetic":false,"types":["bks::Framebuffer"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

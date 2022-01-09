@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["IDTTypesAndAttrs",""]],"fn":[["upload_idt",""],["upload_idt_entry_at",""]],"static":[["IDT_REGISTER",""]],"struct":[["IDTDescriptorEntry",""],["IDTRegister",""]]});

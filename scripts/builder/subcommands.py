@@ -129,6 +129,8 @@ def build_docs():
 
     with open("target/doc/index.html", "w+") as f:
         f.write('<meta http-equiv="refresh" content="0; url=kernel">')
+    
+    shutil.copytree("target/doc", "www/", dirs_exist_ok=True)
     return 0
 
 def setup():
