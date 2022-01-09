@@ -4,9 +4,9 @@
     <h1 align="center">Esque</h1>
 </p>
 
-[#![lines_of_code](https://github.com/visionizer/esque)](https://tokei.rs/b1/github/visionizer/esque)
+[![lines_of_code](https://github.com/visionizer/esque)](https://tokei.rs/b1/github/visionizer/esque)
 [![Rust](https://github.com/visionizer/esque](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
-[#![license](https.//github.com/visionizer/esque](https://img.shields.io/github/license/visionizer/esque?style=for-the-badge)
+[![license](https.//github.com/visionizer/esque](https://img.shields.io/github/license/visionizer/esque?style=for-the-badge)
 
 A modern microkernel - Uniting Past and Present
 
