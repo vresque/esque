@@ -58,7 +58,7 @@ def all() -> int:
     return 0
 
 def format() -> int:
-    if config.MINIMAL_TOOLCHAIN:
+    if not config.MINIMAL_TOOLCHAIN:
         if cargo.run_cargo_command_in_workspace(".", "fmt", []) == None:
             return 1
     return 0
