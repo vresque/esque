@@ -58,8 +58,9 @@ def all() -> int:
     return 0
 
 def format() -> int:
-    if cargo.run_cargo_command_in_workspace(".", "fmt", []) == None:
-        return 1
+    if config.MINIMAL_TOOLCHAIN:
+        if cargo.run_cargo_command_in_workspace(".", "fmt", []) == None:
+            return 1
     return 0
 
 def run_qemu() -> int:
