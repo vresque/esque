@@ -33,7 +33,8 @@ def update_dependencies():
 
 def main():
     arguments = cliparser.parse_args()
-    success(arguments.config, arguments.minimal_toolchain)
+    success(arguments.config)
+    success(arguments.minimal_toolchain)
     config.parse_config(arguments.config)
     success("Building Esque...")
     config.adjust_config_values_based_on_parser(arguments)
