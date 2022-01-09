@@ -1,9 +1,8 @@
+[](binaries/brand/main/twitter_header_photo_2.png)
+
 <p align="center">
-    <img src="https://github.com/visionizer/esque/blob/binaries/brand/main/twitter_header_photo_2.png">
-    </img>
     <h1 align="center">Esque</h1>
 </p>
-# Esque
 A modern microkernel kernel with ELF Executables - Uniting Past and Present
 
 ## Building (Using y.py)
