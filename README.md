@@ -4,7 +4,7 @@
     <h1 align="center">Esque</h1>
 </p>
 
-[![lines_of_code](https://tokei.rs/b1/github/visionizer/esque)](https://github.com/visionizer/esque)
+[![If_You_See_This_Tokei_Is_Down_Again](https://tokei.rs/b1/github/visionizer/esque)](https://github.com/visionizer/esque)
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://github.com/visionizer/esque)
 [![license](https://img.shields.io/github/license/visionizer/esque?style=for-the-badge)](https://github.com/visionizer/esque)
 
