@@ -1,0 +1,42 @@
+name: Build on Ubuntu Latest
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Beautifies the output
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+      - name: Install all Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3
+          python3 -m pip install xbstrap
+      - name: Build the kernel
+        run: |
+          ./y.py setup
+          ./y.py build --documentation --config .github/workflows/CI.toml --never-run
+      - name: Upload the .img file
+        uses: actions/upload-artifact@v2
+        with:
+          name: Esque
+          path: ./build/esque-m.img
+      - name: Deploy Documentation
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'schedule')
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/www/

@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 WARN_COUNT: int = 0
 
@@ -47,7 +48,7 @@ def run(progarg, **kwargs):
             stderr_text = " ".join(map(str, output.stderr.splitlines()))
         else:
             stderr_text = "<No StdErr found>"
-        error(f"The command '{Colors.UNDERLINE}{Colors.CYAN}{command}{Colors.ENDC}{Colors.FAIL}' failed with error code {output.returncode}.\nStdErr: {stderr_text}\nStdOut: {stdout_text}\nExiting...")
+        error(f"The command '{Colors.UNDERLINE}{Colors.CYAN}{command}{Colors.ENDC}{Colors.FAIL}' executed in '{os.getcwd()}' failed with error code {output.returncode}.\nStdErr: {stderr_text}\nStdOut: {stdout_text}\nExiting...")
         beautiful_exit(output.returncode)
     return output.returncode, output.stdout, output.stderr,
 

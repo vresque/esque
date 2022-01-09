@@ -14,7 +14,9 @@ SUBCOMMANDS = [
     "image",
     "initramfs",
     "cloc",
-    "count-unsafe"
+    "count-unsafe",
+    "doc",
+    "setup"
 ]
 
 SUBCOMMANDS_TO_FN = {
@@ -30,7 +32,9 @@ SUBCOMMANDS_TO_FN = {
     "image": sc.image,
     "initramfs": sc.initramfs,
     "cloc": sc.cloc,
-    "count-unsafe": sc.count_unsafe
+    "count-unsafe": sc.count_unsafe,
+    "doc": sc.build_docs,
+    "setup": sc.setup,
 }
 
 def parse_args():
@@ -41,7 +45,7 @@ def parse_args():
     mode_group.add_argument("--release", default = False, action= "store_true", help="Builds the Project in Release Mode")
     mode_group.add_argument("--debug", default = False, action= "store_true", help="Builds the Project in Debug Mode")
 
-    argparser.add_argument("--documentation", default = True, action = "store_true", help="Recompiles the documentation of all projects")
+    argparser.add_argument("--documentation", default = False, action = "store_true", help="Recompiles the documentation of all projects")
     argparser.add_argument('--kernel-features',
                         type=lambda x: x.split(':'),
                         default=[],
@@ -65,4 +69,13 @@ def parse_args():
     argparser.add_argument("subcommand", choices=SUBCOMMANDS)
 
     argparser.add_argument("--arch", default="",help="Which architecture the kernel should be built for")
+    argparser.add_argument("--config", default="Esque.toml", help="Selects the config to use")
+    
+    run_group = argparser.add_mutually_exclusive_group()
+    run_group.add_argument("--run", default=False,help="Should the project be run after building?", action="store_true")
+    run_group.add_argument("--never-run", default=False, help="Ignore any running, even when ./y.py run is invoked", action="store_true")
+
+    argparser.add_argument("--disable-never-run", default=False, help="Should the 'never-run' parameter in the config be ignored?", action="store_true")
+    argparser.add_argument("--outimage", default="config", help="Specifies the name and location of the produced image")
+
     return argparser.parse_args()

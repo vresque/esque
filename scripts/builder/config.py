@@ -26,6 +26,9 @@ QEMU_MACHINE = "q35"
 QEMU_OPTS = []
 QEMU_SHOULD_LOG = True
 QEMU_SMP = 1
+SHOULD_RUN: bool = False
+NEVER_RUN: bool = False
+OUT_IMG: str = ""
 
 try:
     import toml
@@ -51,16 +54,25 @@ def adjust_config_values_based_on_parser(arguments):
     global ARCH
     global BOOT_FEATURES
     global KERNEL_FEATURES
+    global SHOULD_RUN
+    global NEVER_RUN
+    global OUT_IMG
 
 
     MODE = "release" if arguments.release else "debug"
-    DOCUMENTATION = arguments.documentation and DOCUMENTATION
+    DOCUMENTATION = arguments.documentation
     ARCH = ARCH if arguments.arch == "" else arguments.arch
     MODULES += arguments.modules
     NO_MODULES = arguments.no_modules and NO_MODULES
     CUSTOM_INITRAMFS = arguments.custom_initramfs if arguments.custom_initramfs is not None else CUSTOM_INITRAMFS
     KERNEL_FEATURES += arguments.kernel_features
     BOOT_FEATURES += arguments.boot_features
+    SHOULD_RUN = arguments.run
+    NEVER_RUN = arguments.never_run
+    NEVER_RUN = False if arguments.disable_never_run else NEVER_RUN
+
+    OUT_IMG = arguments.outimage if arguments.outimage != "config" else OUT_IMG
+
 
     if KERNEL_FEATURES != [] and KERNEL_FEATURES != [""]:
         KERNEL_CARGO_FLAGS += " --features \""
@@ -90,7 +102,7 @@ def adjust_config_values_based_on_parser(arguments):
     BOOT_CARGO_FLAGS = "".join(map(str, BOOT_CARGO_FLAGS))
     pass
 
-def parse_config():
+def parse_config(config_path):
     global VERSION
     global NAME
     global MODE
@@ -114,10 +126,13 @@ def parse_config():
     global QEMU_OPTS
     global QEMU_SMP
     global QEMU_SHOULD_LOG
+    global SHOULD_RUN
+    global NEVER_RUN
+    global OUT_IMG
 
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    toml_path = os.path.join(this_dir, "..", "..", "Esque.toml")
+    toml_path = os.path.join(this_dir, "..", "..", config_path)
     with open(toml_path, "r") as file:
         cfg = toml.load(file)
         ARCH = cfg["package"]["arch"]
@@ -148,3 +163,7 @@ def parse_config():
         QEMU_SMP = cfg["qemu"]["smp"]
         QEMU_MACHINE = cfg["qemu"]["machine"]
         QEMU_OPTS = cfg["qemu"]["qemu-opts"]
+
+        SHOULD_RUN = cfg["package"]["should-run"]
+        NEVER_RUN = cfg["package"]["never-run"]
+        OUT_IMG = cfg["package"]["out-image-path"]

@@ -87,11 +87,13 @@ A total of 52 occurences have been found (1641 LOC, 0.* percent Percent)
 - [x] Keyboard Layout Crate
 - [x] Memory Allocation
 - [x] Support the `alloc` crate
-- [ ] Remapping the Page Table
+- [x] Remapping the Page Table
 - [ ] Syscalls
+- [x] IPC-Messaging
+- [ ] IPC 
 - [ ] Executables
 - [x] Heap
-- [ ] Load Kernel Modules
+- [x] Load System Space Applications
 - [x] Load the InitRamFs
 - [x] Finish the Ext2 driver
 - [ ] Release Milestone 1  
