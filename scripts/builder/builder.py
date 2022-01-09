@@ -32,6 +32,7 @@ def update_dependencies():
 
 
 def main():
+    help(parser)
     arguments = parser.parse_args()
     config.parse_config(arguments.config)
     success("Building Esque...")
