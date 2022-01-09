@@ -2,9 +2,12 @@
 
 <p align="center">
     <h1 align="center">Esque</h1>
-    #![lines_of_code](https://tokei.rs/b1/github/visionizer/esque)
 </p>
+#![lines_of_code](https://tokei.rs/b1/github/visionizer/esque)
+![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
+#![license](https://img.shields.io/github/license/visionizer/esque?style=for-the-badge)
 A modern microkernel - Uniting Past and Present
+
 
 ## Building (Using y.py)
 
