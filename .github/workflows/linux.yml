@@ -35,10 +35,10 @@ jobs:
         with:
           name: Esque
           path: ./build/esque-m.img
-      - run: cp target/doc/* ./build/www
+      - run: ls
       - name: Deploy Documentation
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/www/
+          publish_dir: ./target/doc
