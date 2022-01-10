@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 
 use super::pid::Pid;
 #[derive(Copy, Clone)]
-pub struct KernelSpace;
+pub struct SystemSpace;
 #[derive(Copy, Clone)]
 pub struct Userspace;
 
@@ -14,7 +14,7 @@ pub struct Launchpad<'data, T> {
     _protected: bool,
 }
 
-impl<'data> Launchpad<'data, KernelSpace> {
+impl<'data> Launchpad<'data, SystemSpace> {
     //pub fn new<'fs>(fs: FileSystemObject, path: &'data str, protected: bool) {}
 
     pub fn with_pid<'me>(mut self, pid: Pid) -> Self {

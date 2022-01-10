@@ -14,11 +14,16 @@ enumtastic::const_enum! {
     impl {}
 }
 
-pub fn read_msr(_register: u64) -> u64 {
-    2
-    //let lo: u32;
-    //let hi: u32;
-    ////core::arch::asm!("rdmsr {}", in("c")register, out(reg_ad)lo, out("d")hi)
-    //let fin = ((hi as u64) << 32u64 ) | lo as u64;
-    //fin
+pub fn read_msr(register: u64) -> u64 {
+    let lo: u32;
+    let hi: u32;
+
+    core::arch::asm!("rdmsr", out("eax") lo, out("edx") hi, in("ecx")register, options(nomem));
+    ((hi as u64) << 32) | (lo as u64)
+}
+
+pub fn write_msr(register: u64, value: u64) {
+    let lo: u32 = value as u32;
+    let hi = (value >> 32) as u32;
+    core::arch::asm!("wrmsr", in("ecx") register, in("eax") lo, in (edx) hi, options(nomem))
 }

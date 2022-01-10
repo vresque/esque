@@ -37,6 +37,7 @@ pub use esys::{
 };
 pub use userspace::pid::{KernelPid, Pid};
 pub mod ipc;
+pub mod syscall;
 
 use crate::heap::{free, malloc, malloc_ptr};
 
@@ -47,28 +48,22 @@ pub const HEAP_LENGTH: usize = 0x1000;
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::config::init_config(&mut handover);
     init::gdt::init_gdt(&mut handover);
+    // -#---#@@- Enables Print Macros -@@#---#-
     init::common::init_common(&mut handover);
     init::memory::init_paging(&mut handover);
     init::interrupts::init_interrupts(&mut handover);
     init::pic::init_pic(&mut handover);
     init::pit::init_pit(&mut handover);
     init::memory::map_memory(&mut handover);
+    // -#---#@@- Enables Memory Allocation -@@#---#-
     init::memory::init_heap(&mut handover);
     drivers::init_fallback_drivers(&mut handover);
     initramfs::load_initramfs(&mut handover);
-    debug!("Still alive");
-    initramfs::load_kernel_modules_in_initramfs(&mut handover);
-    let process = Process::new(Pid::force_new(1), 0, 0, false);
 
-    let message = esys::ipc::Message::new(
-        process,
-        process,
-        2,
-        MessageContent {
-            ptr2: MessagePointer2::new(0xffff, 0xff2, [0u64; 5]),
-        },
-    );
-    debug!("{:#?}", message.content.ptr2);
+    // -#---#@@- Enables HAL System Calls -@@#---#-
+
+    initramfs::load_system_space_applications(&mut handover);
+
 
     loop {}
 }

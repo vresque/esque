@@ -60,7 +60,7 @@ In the InitRamFs, as of right now, no directories are supported.
 You can create a new InitRamFs simply by putting files into the `initramfs/` subdirectory.
 Then, using `./y.py initramfs` the finished initramfs is going to be found in `build/initramfs.tar`. The bootloader expects this file to be found on the root partition.
 
-All files ending with `.sys` will then be loaded by the InitRamFs. It is expected that one of said `.sys` files loads the FileSystem.
+All files ending with `.system` will then be loaded by the InitRamFs. It is expected that one of said `.system` files loads the FileSystem.
 
 ## About Unsafe
 While it is true that an operating system without unsafe code is impossible, I tried to limit it in here. At any point, 
