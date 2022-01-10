@@ -1,3 +1,23 @@
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Ring {
+    Ring0 = 0b00,
+    Ring3 = 0b11,
+}
+
+enumtastic::const_enum! {
+    pub enum GdtEntryType: u16 => {
+        KernelCode = 1,
+        KernelData = 2,
+        KernelTls = 3,
+        UserCode32Unused = 4,
+        Tss = 8,
+        Tss_Hi = 9,
+    }
+
+    impl {}
+}
+
+
 #[repr(packed)]
 #[repr(C)]
 pub struct GDTDescriptor {

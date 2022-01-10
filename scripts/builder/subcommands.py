@@ -6,21 +6,7 @@ import cargo
 import os
 
 QEMU = f"qemu-system-{config.ARCH}"
-QEMU_FLAGS = [
-    "-drive file={config.OUT_IMG},format=raw",
-    f"-m {config.MEMLIM}",
-    "-enable-kvm" if config.QEMU_KVM else f"-cpu {config.QEMU_CPU}",
-    f"-machine {config.QEMU_MACHINE},accel=kvm:tcg",
-    "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on ",
-    "-drive", "if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
-    "-net", "none",
-    "-d", "int,cpu_reset,guest_errors,page,strace",
-    "-D" if config.QEMU_SHOULD_LOG else "",
-    config.QEMU_LOGFILE if config.QEMU_SHOULD_LOG else "",
-    "-no-shutdown", "-no-reboot",
-    f"-smp {config.QEMU_SMP}",
-    *config.QEMU_OPTS,
-]
+
 
 def build() -> int:
     code = initramfs()
@@ -74,6 +60,22 @@ def run_qemu() -> int:
         error("\t 2) Remove the command line flag that you passed to the tool")
         error("\t 3) Change the line in the configuration file")
         return 1
+
+    QEMU_FLAGS = [
+        f"-drive file={config.OUT_IMG},format=raw" if config.OUT_IMG != "" else "-drive file=build/esque-m,format=raw",
+        f"-m {config.MEMLIM}",
+        "-enable-kvm" if config.QEMU_KVM else f"-cpu {config.QEMU_CPU}",
+        f"-machine {config.QEMU_MACHINE},accel=kvm:tcg",
+        "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on ",
+        "-drive", "if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
+        "-net", "none",
+        "-d", "int,cpu_reset,guest_errors,page,strace",
+        "-D" if config.QEMU_SHOULD_LOG else "",
+        config.QEMU_LOGFILE if config.QEMU_SHOULD_LOG else "",
+        "-no-shutdown", "-no-reboot",
+        f"-smp {config.QEMU_SMP}",
+        *config.QEMU_OPTS,
+    ]
 
     # It doesnt accept it as a list ???
     one_string: str = " ".join([QEMU, *QEMU_FLAGS])

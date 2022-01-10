@@ -43,7 +43,7 @@ impl<'tar> InitRamFs<'tar> {
 
     // ALLOC: Alloc must be used here as there may be many .system files in the initramfs
     pub fn all_entries_with_extension(&self, ext: &str) -> Vec<TarEntry> {
-        let ret: Vec<TarEntry> = alloc::vec![];
+        let mut ret: Vec<TarEntry> = alloc::vec![];
         for ent in self.tar.iter() {
             if ent.filename.ends_with(ext) {
                 ret.push(ent)

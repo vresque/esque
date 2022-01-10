@@ -1,5 +1,20 @@
 use bks::Handover;
 
-pub fn init_hardware_abstraction_syscalls(handover: &mut Handover) {}
+use crate::{gdt::GdtEntryType, iobus::msr::{write_msr, MsrRegister, read_msr}};
+use crate::syscall::syscall_handler;
 
-pub fn init_userspace_syscalls(handover: &mut Handover) {}
+
+pub fn init_syscalls(handover: &mut Handover) {
+    let syscall_base = GdtEntryType::KernelCode << 3;
+    let sysret_base = (GdtEntryType::UserCode32Unused << 3) | 3;
+
+    let star_hi = syscall_base as u32 | ((sysret_base as u32) << 16);
+
+    write_msr(MsrRegister::Star, (star_hi as u64) << 32);
+    write_msr(MsrRegister::LStar, syscall_handler as u64);
+
+    // Clear Trap Flag
+    write_msr(MsrRegister::SyscallMask, 0x300);
+
+    write_msr(MsrRegister::Efer, read_msr(MsrRegister::Efer) | 1);
+}
