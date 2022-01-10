@@ -1,3 +1,7 @@
+pub use self::IDTException::*;
+
+use super::interrupt_frame::InterruptFrame;
+
 #[allow(unused)]
 pub enum ExceptionType {
     Fault,
@@ -7,7 +11,7 @@ pub enum ExceptionType {
 }
 
 enumtastic::const_enum! {
-    pub enum IDTException: u8 => {
+    pub enum IDTException: usize => {
         DivideByZero = 0x0,
         Debug = 0x1,
         NonMaskable = 0x2,
@@ -98,16 +102,13 @@ enumtastic::const_enum! {
     }
 }
 
-pub struct ExceptionHandler<const T: u8>;
-
-pub fn exception_panic(_n: u8) -> ! {
-    let _ty = IDTException::PageFault;
-    panic!("Lol!");
-    //loop {}
+pub trait Exception<const T: usize> {
+    extern "x86-interrupt" fn handle(frame: InterruptFrame);
 }
-//
-//impl ExceptionHandler<{ IDTException::PageFault }> {
-//    pub extern "x86-interrupt" fn handle(_frame: InterruptFrame) {
-//        exception_panic(IDTException::PageFault)
-//    }
-//}
+pub struct ExceptionHandler<const T: usize>;
+
+impl Exception<InvalidTSS> for ExceptionHandler<InvalidTSS> {
+    extern "x86-interrupt" fn handle(frame: InterruptFrame) {
+        panic!("Triggered Fault {} with opcode {}", InvalidTSS, IDTException::error_code(&InvalidTSS))
+    }
+}

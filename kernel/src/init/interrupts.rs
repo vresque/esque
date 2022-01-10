@@ -1,6 +1,8 @@
 use bks::Handover;
 
 use crate::drivers::input::ps2::ps2_keyboard_int_handler;
+use crate::interrupts::exceptions::IDTException::InvalidTSS;
+use crate::interrupts::exceptions::{ExceptionHandler, Exception};
 use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
@@ -83,7 +85,7 @@ pub fn init_interrupts(_: &mut Handover) {
         IDTException::DeviceNotAvailable as u64,
         generic_fault_handler,
     );
-    set_interrupt_handler(IDTException::InvalidTSS as u64, generic_fault_handler);
+    set_interrupt_handler(IDTException::InvalidTSS as u64, ExceptionHandler::<InvalidTSS>::handle() as u64);
     set_interrupt_handler(
         IDTException::SegmentNotPresent as u64,
         generic_fault_handler,
