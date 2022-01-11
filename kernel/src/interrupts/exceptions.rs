@@ -1,6 +1,7 @@
 pub use self::IDTException::*;
 
 use super::interrupt_frame::InterruptFrame;
+use core::arch::asm;
 
 #[allow(unused)]
 pub enum ExceptionType {
@@ -104,11 +105,83 @@ enumtastic::const_enum! {
 
 pub trait Exception<const T: usize> {
     extern "x86-interrupt" fn handle(frame: InterruptFrame);
+    fn get_name() -> &'static str {
+        stringify!(T)
+    }
+
+    fn get_error_code() -> &'static str {
+        IDTException::error_code(&T)
+    }
 }
 pub struct ExceptionHandler<const T: usize>;
 
-impl Exception<InvalidTSS> for ExceptionHandler<InvalidTSS> {
+macro_rules! impl_generic_exception_handler {
+    (
+        $(
+            $op:ident,
+        )*
+    ) => {
+        $(
+            impl Exception<$op> for ExceptionHandler<$op> {
+                extern "x86-interrupt" fn handle(frame: InterruptFrame) {
+                    panic!("Triggered Fault {} ({:#x?}) with opcode {}", stringify!($op), $op, IDTException::error_code(&$op))
+                }
+            }
+        )*
+    }
+}
+
+impl_generic_exception_handler! {
+    DivideByZero,
+    Debug,
+    NonMaskable,
+    Breakpoint,
+    Overflow,
+    BoundRangeExceeded,
+    InvalidOpcode,
+    DeviceNotAvailable,
+    InvalidTSS,
+    SegmentNotPresent,
+    StackSegmentFault,
+    // 0xF = Reserved,
+    X87FloatingPointException ,
+    AlignmentCheck ,
+    MachineCheck ,
+    DoubleFault,
+    SIMDFloatingPointException ,
+    GeneralProtectionFault,
+    VirtualizationException ,
+    ControlProtection ,
+    HypervisorInjection ,
+    VMMCommunicationException ,
+    SecurityException ,
+    // 0x1F = Reserved,
+    // TripleFault does not have a code,
+}
+
+bitflags::bitflags! {
+    #[repr(transparent)]
+    pub struct PageFaultErrorCode: u64 {
+        const PAGE_PROTECTON_VIOLATION = 1;
+        const CAUSED_BY_WRITE_ACCESS = 1 << 1;
+        const USER_MODE = 1 << 2;
+        const MALFORMED_TABLE_RESERVED_WRITE = 1 << 3;
+        const INSTRUCTION_FETCH = 1 << 4;
+    }
+}
+
+impl Exception<PageFault> for ExceptionHandler<PageFault> {
     extern "x86-interrupt" fn handle(frame: InterruptFrame) {
-        panic!("Triggered Fault {} with opcode {}", InvalidTSS, IDTException::error_code(&InvalidTSS))
+        let code: u64;
+        let cr2: u64;
+        unsafe {
+            asm!("mov {}, rsp", out(reg) code);
+            asm!("mov {}, cr2", out(reg) cr2);
+        };
+        let err = PageFaultErrorCode::from_bits_truncate(code);
+        panic!(
+            "Page Fault Occured at address {:#x?} with code {:#?}",
+            cr2, err
+        );
     }
 }

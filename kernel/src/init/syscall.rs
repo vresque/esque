@@ -1,8 +1,10 @@
 use bks::Handover;
 
-use crate::{gdt::GdtEntryType, iobus::msr::{write_msr, MsrRegister, read_msr}};
 use crate::syscall::syscall_handler;
-
+use crate::{
+    gdt::GdtEntryType,
+    iobus::msr::{read_msr, write_msr, MsrRegister},
+};
 
 pub fn init_syscalls(handover: &mut Handover) {
     let syscall_base = GdtEntryType::KernelCode << 3;

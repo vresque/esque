@@ -64,8 +64,9 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
 
-    unsafe { core::arch::asm!("mov rax, 23");
-    core::arch::asm!("syscall");
-}
+    unsafe {
+        core::arch::asm!("mov rax, 23");
+        core::arch::asm!("syscall");
+    }
     loop {}
 }

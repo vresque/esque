@@ -1,6 +1,6 @@
 use core::mem::MaybeUninit;
 
-use alloc::vec::{Vec, self};
+use alloc::vec::{self, Vec};
 use bks::Handover;
 use spin::Mutex;
 use tar::tar::*;
@@ -31,11 +31,13 @@ pub struct InitRamFs<'tar> {
 }
 
 impl<'tar> InitRamFs<'tar> {
-    pub fn new(tar: Tar<'tar>) -> Self { Self { tar }}
+    pub fn new(tar: Tar<'tar>) -> Self {
+        Self { tar }
+    }
     pub fn open(&self, path: &str) -> Option<TarEntry> {
         for ent in self.tar.iter() {
             if ent.filename == ArrayString::<100>::from(path).unwrap() {
-                return Some(ent)
+                return Some(ent);
             }
         }
         None
@@ -55,5 +57,10 @@ impl<'tar> InitRamFs<'tar> {
 }
 
 pub fn load_system_space_applications(_handover: &mut Handover) {
-    unsafe { let sys_files = INITRAMFS.lock().assume_init_mut().all_entries_with_extension(".system"); }
+    unsafe {
+        let sys_files = INITRAMFS
+            .lock()
+            .assume_init_mut()
+            .all_entries_with_extension(".system");
+    }
 }

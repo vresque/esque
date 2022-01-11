@@ -17,7 +17,6 @@ enumtastic::const_enum! {
     impl {}
 }
 
-
 #[repr(packed)]
 #[repr(C)]
 pub struct GDTDescriptor {
