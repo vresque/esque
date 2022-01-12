@@ -30,6 +30,7 @@ class Colors:
 
 def run(progarg, **kwargs):
     if isinstance(progarg, str):
+        print("arrb")
         list = progarg.split(" ")
     else:
         list = progarg

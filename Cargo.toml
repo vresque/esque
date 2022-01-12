@@ -1,6 +1,3 @@
-cargo-features = [ "strip" ]
-
-
 [workspace]
 members = [
     "boot",
@@ -13,4 +10,4 @@ members = [
 strip = true
 
 [profile.dev]
-strip = true
+debug = true

@@ -60,13 +60,13 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     drivers::init_fallback_drivers(&mut handover);
     initramfs::load_initramfs(&mut handover);
 
-    // -#---#@@- Enables HAL System Calls -@@#---#-
+    // -#---#@@- Enables System Calls -@@#---#-
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
 
     unsafe {
         core::arch::asm!("mov rax, 23");
-        core::arch::asm!("syscall");
+        //core::arch::asm!("syscall");
     }
     loop {}
 }

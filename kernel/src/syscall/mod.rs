@@ -8,5 +8,5 @@ extern "C" {
 
 #[no_mangle]
 pub extern "C" fn syscall_dispatcher() {
-    success!("Called Syscall")
+    //success!("Called Syscall")
 }

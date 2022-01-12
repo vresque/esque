@@ -66,8 +66,8 @@ def run_qemu() -> int:
         f"-m {config.MEMLIM}",
         "-enable-kvm" if config.QEMU_KVM else f"-cpu {config.QEMU_CPU}",
         f"-machine {config.QEMU_MACHINE},accel=kvm:tcg",
-        "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on ",
-        "-drive", "if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
+        "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on",
+        "-drive if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
         "-net", "none",
         "-d", "int,cpu_reset,guest_errors,page,strace",
         "-D" if config.QEMU_SHOULD_LOG else "",
@@ -78,8 +78,9 @@ def run_qemu() -> int:
     ]
 
     # It doesnt accept it as a list ???
-    one_string: str = " ".join([QEMU, *QEMU_FLAGS])
-    run(one_string)
+    arr = [QEMU, *QEMU_FLAGS]
+    one = " ".join(arr)
+    run(one)
 def build_kernel() -> int:
     cargo.run_cargo_command_in_workspace("kernel", "build", config.KERNEL_CARGO_FLAGS)
     shutil.copy(f"target/kernel/{config.KERNEL_MODE}/kernel", "build/esque")
@@ -91,10 +92,11 @@ def build_boot() -> int:
     return 0
 
 def strip() -> int:
-    info("Striping binaries...")
-    run(["strip", "build/esque"])
-    run(["strip", "build/BOOTX64.EFI"])
-    success("Successfully stripped all binaries")
+    if config.STRIP:
+        info("Striping binaries...")
+        run(["strip", "build/esque"])
+        run(["strip", "build/BOOTX64.EFI"])
+        success("Successfully stripped all binaries")
     return 0
 
 def image():

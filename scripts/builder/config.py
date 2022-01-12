@@ -18,6 +18,7 @@ BOOT_MODE: str = ""
 BOOT_FEATRUES: List[str] = []
 KERNEL_FEATURES: List[str] = []
 MEMLIM: str = "512M"
+STRIP: bool = True
 
 QEMU_KVM = False
 QEMU_CPU = "qemu64"
@@ -157,6 +158,8 @@ def parse_config(config_path):
         my_str = " ".join(cfg["boot"]["cargo-flags"])
         BOOT_CARGO_FLAGS = my_str if my_str != "mirror" else copy.deepcopy(flags)
         BOOT_FEATURES = cfg["boot"]["features"]
+        STRIP = cfg["package"]["strip"]
+
         MEMLIM = cfg["qemu"]["memlim"]
         QEMU_KVM = cfg["qemu"]["enable-kvm"]
         QEMU_CPU = cfg["qemu"]["cpu"]
