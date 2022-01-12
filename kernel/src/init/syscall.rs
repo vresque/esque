@@ -1,5 +1,6 @@
 use bks::Handover;
 
+use crate::info;
 use crate::syscall::syscall_handler;
 use crate::{
     gdt::GdtEntryType,
@@ -18,5 +19,6 @@ pub fn init_syscalls(handover: &mut Handover) {
     // Clear Trap Flag
     write_msr(MsrRegister::SyscallMask, 0x300);
 
-    write_msr(MsrRegister::Efer, read_msr(MsrRegister::Efer) | 1);
+    let efer_val = read_msr(MsrRegister::Efer);
+    write_msr(MsrRegister::Efer, efer_val | 1);
 }

@@ -145,3 +145,29 @@ def setup():
     except:
         pass
     return 0
+
+def build_testing_kernel() -> int:
+    cargo.run_cargo_command_in_workspace("kernel", "test", "--no-run " + config.KERNEL_CARGO_FLAGS)
+    shutil.copy(f"target/kernel/{config.KERNEL_MODE}/kernel", "build/esque")
+    return 0
+
+
+def test() -> int:
+    code = initramfs()
+    code = ~format() & ~code
+    code = ~build_testing_kernel() & ~code
+    code = ~build_boot() & ~code
+    code = ~strip() & ~code
+    code = ~image() & ~code
+
+    if config.DOCUMENTATION:
+        code = ~build_docs() & ~code
+
+    code = ~run_qemu() & ~code
+
+    if code == -1 or code == 0:
+        return 0
+    else:
+        return 1
+
+    return 0

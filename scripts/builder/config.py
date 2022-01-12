@@ -78,10 +78,10 @@ def adjust_config_values_based_on_parser(arguments):
     MINIMAL_TOOLCHAIN = arguments.minimal_toolchain if arguments.minimal_toolchain != False else MINIMAL_TOOLCHAIN
 
     if KERNEL_FEATURES != [] and KERNEL_FEATURES != [""]:
-        KERNEL_CARGO_FLAGS += " --features \""
-        this_str = " ".join(KERNEL_FEATURES)
+        KERNEL_CARGO_FLAGS += " --features "
+        this_str = ",".join(KERNEL_FEATURES)
         KERNEL_CARGO_FLAGS += this_str
-        KERNEL_CARGO_FLAGS += "\" "
+        KERNEL_CARGO_FLAGS += " "
 
     if BOOT_FEATURES != [""] and BOOT_FEATRUES != [""]:
         BOOT_CARGO_FLAGS += "--features \""

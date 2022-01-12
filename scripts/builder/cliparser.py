@@ -16,7 +16,8 @@ SUBCOMMANDS = [
     "cloc",
     "count-unsafe",
     "doc",
-    "setup"
+    "setup",
+    "test"
 ]
 
 SUBCOMMANDS_TO_FN = {
@@ -35,6 +36,7 @@ SUBCOMMANDS_TO_FN = {
     "count-unsafe": sc.count_unsafe,
     "doc": sc.build_docs,
     "setup": sc.setup,
+    "test": sc.test,
 }
 
 def parse_args():

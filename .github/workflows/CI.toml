@@ -16,9 +16,10 @@ should-run = false # Should the project be run every time *any* commmand is invo
 never-run = false # Should any --run or ./y.py run be ignored?
 out-image-path = "build/esque-m.img"
 minimal-toolchain = true
+strip = true
 
 [kernel]
-features = [ ""]
+features = [ "ci" ]
 cargo-flags = [ "mirror" ] # Also mirrors the global flags
 mode = "mirror" # Mirrors global mode
 
@@ -39,4 +40,4 @@ logfile = "qemu.log"
 should-log = true # Should log to file?
 smp = 1 # Cores
 machine = "q35"
-qemu-opts = [] # Additional arguments
+qemu-opts = [ "-display none", "-device isa-debug-exit,iobase=0xf4,iosize=0x04"] # Additional arguments

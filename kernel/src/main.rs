@@ -7,6 +7,9 @@
 #![feature(abi_x86_interrupt)]
 #![allow(unstable_features)]
 #![feature(alloc_error_handler)]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 #![allow(unused_unsafe)]
 #![feature(int_log)]
 #![allow(dead_code)]
@@ -29,6 +32,7 @@ pub mod interrupts;
 pub mod iobus;
 pub mod pic;
 pub mod scheduler;
+pub mod test;
 pub mod userspace;
 pub use config::config;
 pub use esys::{
@@ -38,8 +42,6 @@ pub use esys::{
 pub use userspace::pid::{KernelPid, Pid};
 pub mod ipc;
 pub mod syscall;
-
-use crate::heap::{free, malloc, malloc_ptr};
 
 pub const HEAP_ADDRESS: u64 = 0x0000900000;
 pub const HEAP_LENGTH: usize = 0x1000;
@@ -63,10 +65,9 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     // -#---#@@- Enables System Calls -@@#---#-
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
+    success!("Still alive");
+    #[cfg(test)]
+    test_main();
 
-    unsafe {
-        core::arch::asm!("mov rax, 23");
-        //core::arch::asm!("syscall");
-    }
     loop {}
 }

@@ -2,5 +2,5 @@
 
 .global syscall_handler
 syscall_handler:
-    push rax
-    ret
+    call syscall_dispatcher
+    sysretq

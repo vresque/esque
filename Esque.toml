@@ -17,8 +17,8 @@ minimal-toolchain = false
 strip = false
 
 [kernel]
-features = [ ""]
-cargo-flags = [ "mirror" ] # Also mirrors the global flags
+features = [ "tests"]
+cargo-flags = [ "" ] # Also mirrors the global flags
 mode = "mirror" # Mirrors global mode
 
 [boot]
@@ -38,4 +38,4 @@ logfile = "qemu.log"
 should-log = true # Should log to file?
 smp = 1 # Cores
 machine = "q35"
-qemu-opts = [ "-s", "-S"] # Additional arguments
+qemu-opts = [] # Additional arguments

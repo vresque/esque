@@ -34,3 +34,26 @@ pub fn io_wait_for(cycles: usize) {
         io_wait();
     }
 }
+
+/// # Out Low
+/// Low Level Port Output with a u32 value
+#[inline(always)]
+pub fn outl(port: u16, value: u32) {
+    unsafe {
+        asm!(
+                "out dx, eax",
+                in("dx") port,
+                in("eax") value,
+                options(preserves_flags, nomem, nostack)
+        )
+    }
+}
+
+#[inline(always)]
+pub fn inl(port: u16) -> u32 {
+    let mut retval: u32;
+    unsafe {
+        asm!("in eax, dx", in("dx") port, out("eax") retval, options(preserves_flags, nomem, nostack));
+    };
+    retval
+}

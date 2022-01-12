@@ -149,7 +149,6 @@ impl_generic_exception_handler! {
     MachineCheck ,
     DoubleFault,
     SIMDFloatingPointException ,
-    GeneralProtectionFault,
     VirtualizationException ,
     ControlProtection ,
     HypervisorInjection ,
@@ -184,4 +183,8 @@ impl Exception<PageFault> for ExceptionHandler<PageFault> {
             cr2, err
         );
     }
+}
+
+impl Exception<GeneralProtectionFault> for ExceptionHandler<GeneralProtectionFault> {
+    extern "x86-interrupt" fn handle(frame: InterruptFrame) {}
 }

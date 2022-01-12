@@ -30,7 +30,6 @@ jobs:
       - name: Build the kernel
         run: |
           ./y.py build --config .github/workflows/CI.toml --minimal-toolchain
-      - run: tree
       - name: Upload the .img file
         uses: actions/upload-artifact@v2
         with:
@@ -42,3 +41,26 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/doc
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+      - name: Install all Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3 mtools dosfstools
+          python3 -m pip install xbstrap toml
+      - run: ./y.py clean
+      - run: ./y.py setup
+      - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+      - name: Test the kernel
+        run: |
+          ./y.py test --config .github/workflows/CI.toml --minimal-toolchain
+      - name: Run the Tests
+        run: |
+          ./y.py run --config .github/workflows/CI.toml
+
