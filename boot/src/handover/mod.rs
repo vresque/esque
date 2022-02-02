@@ -120,14 +120,9 @@ pub fn find_rsdp(table: &SystemTable<Runtime>) -> u64 {
     let mut config = table.config_table().iter();
 
     let rsdp = config
-        .find(|ent| {
-            matches!(
-                ent.guid,
-                uefi::table::cfg::ACPI_GUID | uefi::table::cfg::ACPI2_GUID
-            )
-        })
+        .find(|ent| matches!(ent.guid, uefi::table::cfg::ACPI2_GUID))
         .map(|ent| ent.address)
-        .expect("An ACPI Compatible System is expected");
+        .expect("An ACPI2 Compatible System is expected");
 
     rsdp as u64
 }

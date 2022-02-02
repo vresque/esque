@@ -12,6 +12,7 @@
 #![reexport_test_harness_main = "test_main"]
 #![allow(unused_unsafe)]
 #![feature(int_log)]
+#![feature(slice_pattern)]
 #![allow(dead_code)]
 // Functions and structs may not be used immediately, but may be added in case it will ever be needed
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
@@ -58,6 +59,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::pic::init_pic(&mut handover);
     init::pit::init_pit(&mut handover);
     init::memory::map_memory(&mut handover);
+    init::acpi::init_acpi(&mut handover);
     // -#---#@@- Enables Memory Allocation -@@#---#-
     init::memory::init_heap(&mut handover);
     drivers::init_drivers(&mut handover);
