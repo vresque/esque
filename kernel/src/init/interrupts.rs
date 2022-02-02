@@ -131,10 +131,10 @@ pub fn init_interrupts(_: &mut Handover) {
     );
 
     // Add the Mouse Interrupt Handler
-    //set_interrupt_handler(
-    //    PicInterrupt::Ps2MouseInterrupt as u64,
-    //    ps2_mouse_interrupt_handler,
-    //);
+    set_interrupt_handler(
+        PicInterrupt::Ps2MouseInterrupt as u64,
+        ps2_mouse_interrupt_handler,
+    );
 
     // Set PIT Interrupt Handler
     set_interrupt_handler(PIT_INTERRUPT as u64, pit_interrupt_handler);

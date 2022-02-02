@@ -1,1 +1,2 @@
-add-symbol-file kernel.elf 2M
+target remote localhost:1234
+add-symbol-file build/esque.sym

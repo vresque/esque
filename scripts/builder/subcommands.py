@@ -49,7 +49,7 @@ def format() -> int:
             return 1
     return 0
 
-def run_qemu() -> int:
+def run_qemu(in_background=False) -> int:
     # If never-run is set, ignore
     if config.NEVER_RUN:
         error("Not running due to either one of the following conditions being true")
@@ -68,7 +68,6 @@ def run_qemu() -> int:
         f"-machine {config.QEMU_MACHINE},accel=kvm:tcg",
         "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on",
         "-drive if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
-        "-net", "none",
         "-d", "int,cpu_reset,guest_errors,page,strace",
         "-D" if config.QEMU_SHOULD_LOG else "",
         config.QEMU_LOGFILE if config.QEMU_SHOULD_LOG else "",
@@ -80,7 +79,16 @@ def run_qemu() -> int:
     # It doesnt accept it as a list ???
     arr = [QEMU, *QEMU_FLAGS]
     one = " ".join(arr)
-    run(one)
+
+    if in_background:
+        run_in_bg(one)
+        info("Running QEMU in background")
+        return 0
+    else:
+        run(one)
+        return 0
+    return 0
+    
 def build_kernel() -> int:
     cargo.run_cargo_command_in_workspace("kernel", "build", config.KERNEL_CARGO_FLAGS)
     shutil.copy(f"target/kernel/{config.KERNEL_MODE}/kernel", "build/esque")
@@ -91,8 +99,18 @@ def build_boot() -> int:
     shutil.copy(f"target/boot/{config.BOOT_MODE}/boot.efi", "build/BOOTX64.EFI")
     return 0
 
+def debug() -> int:
+    config.STRIP = True
+    build()
+    config.QEMU_OPTS += ["-s", "-S"]
+    run_qemu(True)
+    run(["gdb", "--command=debug.gdb"])
+    
+
 def strip() -> int:
+    run(["objcopy", "--only-keep-debug", "build/esque", "build/esque.sym"])
     if config.STRIP:
+        run(["objcopy", "--strip-debug", "build/esque"])
         info("Striping binaries...")
         run(["strip", "build/esque"])
         run(["strip", "build/BOOTX64.EFI"])

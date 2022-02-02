@@ -119,6 +119,7 @@ pub struct Handover {
     pub config: Config,
     pub initramfs_base: u64,
     pub initramfs_size: usize,
+    pub rsdp: u64,
 }
 
 impl Handover {
@@ -144,6 +145,7 @@ impl Handover {
             config: config,
             initramfs_base,
             initramfs_size,
+            rsdp: 0,
         }
     }
 

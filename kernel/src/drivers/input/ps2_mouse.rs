@@ -73,7 +73,7 @@ pub fn mouse_wait_for_input_reading() {
     // It waits for a maximum of MOUSE_TIMEOUT
     // unless the bit on the device port is cleared
     // This waits for the input instead of for a clear
-    for i in 0..MOUSE_TIMEOUT {
+    for _ in 0..MOUSE_TIMEOUT {
         if (inb(Ps2MousePicPort::CommandPort) & 0b1) != 0 {
             return;
         }
@@ -88,7 +88,7 @@ pub fn mouse_wait() {
     // What this does is the following:
     // It waits for a maximum of MOUSE_TIMEOUT
     // unless the bit on the device port is cleared
-    for i in 0..MOUSE_TIMEOUT {
+    for _ in 0..MOUSE_TIMEOUT {
         if (inb(Ps2MousePicPort::CommandPort) & 0b10) == 0 {
             return;
         }
@@ -96,14 +96,13 @@ pub fn mouse_wait() {
 }
 
 pub fn mouse_write(value: u8) {
-    // Wait for mouse
-    mouse_wait();
     // We must address the mouse (not the keyboard)
-    outb(0x64, 0xD4);
+    outb(
+        Ps2MousePicPort::CommandPort,
+        Ps2MousePicValue::AddressTheMouse,
+    );
     mouse_wait();
-    outb(0x60, value);
-    mouse_wait_for_input_reading();
-    mouse_read();
+    outb(Ps2MousePicPort::DataPort, value);
 }
 
 // Enables the mouse
@@ -135,19 +134,26 @@ pub fn ps2_mouse_init() {
         Ps2MousePicPort::CommandPort,
         Ps2MousePicValue::PrepareForCommand,
     );
-    let status = inb(Ps2MousePicPort::DataPort) | 0b10;
+    mouse_wait_for_input_reading();
+    let mut status = inb(Ps2MousePicPort::DataPort);
+    status |= 0b10;
     mouse_wait();
+
     outb(
         Ps2MousePicPort::CommandPort,
         Ps2MousePicValue::PrepareForData,
     );
     mouse_wait();
+
     outb(Ps2MousePicPort::DataPort, status);
+    mouse_wait();
 
     // Use the default mouse settings
     mouse_write(Ps2MouseWriteValues::UseDefaultSettings);
+    mouse_wait_for_input_reading();
     mouse_read();
 
     mouse_write(Ps2MouseWriteValues::EnableDataReporting);
+    mouse_wait_for_input_reading();
     mouse_read();
 }

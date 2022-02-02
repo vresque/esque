@@ -28,6 +28,14 @@ class Colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def run_in_bg(progarg, **kwargs):
+    if isinstance(progarg, str):
+        list = progarg.split(" ")
+    else:
+        list = progarg
+
+    output = subprocess.Popen(list, **kwargs)
+
 def run(progarg, **kwargs):
     if isinstance(progarg, str):
         print("arrb")

@@ -15,8 +15,11 @@ A modern microkernel - Uniting Past and Present
 
 ### Esque.toml
 
-Before even talking about the hand-written build-system
+Before even talking about the hand-written build-system, I need to mention
+Esque.toml. This is a configuration file with a plethora of options available for customization. Setting this up took a lot of time, which is why it is now the standard for building the Esque OS.
 
+
+### Building
 `y.py` is an utility inspired by rustc's `x.py`. You can configure
 the kernel using the `Esque.toml` file that may be found in the sysroot of this directory. This file offers many options, have a look at it before building.
 
@@ -39,7 +42,7 @@ bitflags
 spin
 ```
 
-Over 10+ of our own dependencies are maintained within the `crates/` subdirectory.
+Over 10+ of our own dependencies are maintained within the `crates/` subdirectory. These dependencies include a tar loader and much more.
 
 - Bitflags is used to replace the C bitfields. This is a neccessary dependency. It is used in thousands of projects all over the world. I consider this a completely safe crate.
 - Spin is a replacement for Rust's `std::sync::{Mutex,...}`. This is an incredibly helpful crate that is used in nearly all major osdev projects. This crate *might* be dropped in the future.
@@ -106,6 +109,7 @@ A total of 52 occurences have been found (1641 LOC, 0.* percent Percent)
 - [x] Keyboard Layout Crate
 - [x] PS2 Mouse Support
 - [x] Memory Allocation
+- [x] Load TAR Files
 - [x] Support the `alloc` crate
 - [x] Remapping the Page Table
 - [ ] Syscalls
@@ -114,8 +118,11 @@ A total of 52 occurences have been found (1641 LOC, 0.* percent Percent)
 - [x] Heap
 - [x] Load System Space Applications
 - [x] Load the InitRamFs
-- [x] Finish the Ext2 driver
+- [ ] Finish the Ext2 driver
 - [ ] Release Milestone 1  
 - [ ] ACPI
+- [ ] RSDP POINTER
+- [ ] PCI Bus
+- [ ] PCI Enumeration
 - [ ] Full PIC Support
 - [x] A lot more...
