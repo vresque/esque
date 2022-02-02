@@ -18,7 +18,6 @@ esqmod = { path = "../crates/esqmod" }
 unique = { path = "../crates/unique" }
 esqdrv = { path = "../crates/esqdrv" }
 strutil = { path = "../crates/strutil" }
-xmas-elf = "0.8.0" # Will be dropped in future
 static_assertions = "1.1.0" # Will never be dropped
 esys = { path = "../crates/esys" } # System Calls + IPC
 esqtest =  { path = "../crates/esqtest" }

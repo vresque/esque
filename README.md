@@ -26,6 +26,20 @@ This system is very configurable. Simply type
 ```
 to see all options.
 
+## Dependencies
+
+An operating system should be close to being dependency free.
+Unfortunatley, this system depends on a total of 2 crates:
+```
+bitflags
+spin
+```
+
+Over 10+ of our own dependencies are maintained within the `crates/` subdirectory.
+
+- Bitflags is used to replace the C bitfields. This is a neccessary dependency. It is used in thousands of projects all over the world. I consider this a completely safe crate.
+- Spin is a replacement for Rust's `std::sync::{Mutex,...}`. This is an incredibly helpful crate that is used in nearly all major osdev projects. This crate *might* be dropped in the future.
+
 
 ## Philosophy
 Esque is a Windows-NT-esque and Minix-esque operating system.
@@ -35,6 +49,7 @@ As mentioned above, it's main inspiration is Minix, when it comes
 to kernel-design, but, when for the userspace-design, Windows is used.
 
 I recommend that one read our [Syscall Documentation](Documentation/syscall.md)
+
 
 ### Does everything run in Userspace?
 
@@ -85,15 +100,18 @@ A total of 52 occurences have been found (1641 LOC, 0.* percent Percent)
 - [x] Level 4 Paging
 - [x] PS2 Keyboard
 - [x] Keyboard Layout Crate
+- [x] PS2 Mouse Support
 - [x] Memory Allocation
 - [x] Support the `alloc` crate
 - [x] Remapping the Page Table
 - [ ] Syscalls
 - [x] IPC-Messaging
-- [ ] IPC 
 - [ ] Executables
 - [x] Heap
 - [x] Load System Space Applications
 - [x] Load the InitRamFs
 - [x] Finish the Ext2 driver
 - [ ] Release Milestone 1  
+- [ ] ACPI
+- [ ] Full PIC Support
+- [x] A lot more...

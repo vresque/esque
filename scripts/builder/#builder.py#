@@ -24,6 +24,8 @@ if __name__ == "__main__":
     print("Please do not directly execute builder.py. Execute y.py instead")
     exit(1)
 
+
+    
 def update_dependencies():
     """
     Updates the OVMF Dependency
@@ -37,7 +39,7 @@ def main():
     success("Building Esque...")
     config.adjust_config_values_based_on_parser(arguments)
 
-    
+
     # Calling the right function
     code = cliparser.SUBCOMMANDS_TO_FN[arguments.subcommand]()
     beautiful_exit(code)

@@ -16,6 +16,7 @@ enumtastic::const_enum! {
         // Utility
         Ps2KeyboardScancodePort = 0x60,
         PitPort = 0x40,
+        PicMouseScancodePort = 0x60,
     }
 
     impl {}
@@ -32,7 +33,8 @@ enumtastic::const_enum! {
 
 enumtastic::const_enum! {
     pub enum PicInterrupt: u8 => {
-        KeyboardInterrupt = PIC1_OFFSET + 0x1,
+        Ps2KeyboardInterrupt = PIC1_OFFSET + 0x1,
+        Ps2MouseInterrupt = 0x0,
     }
 
     impl {}

@@ -1,2 +1,2 @@
-pub mod mouse;
-pub mod ps2;
+pub mod ps2_mouse;
+pub mod ps2_keyboard;

@@ -59,7 +59,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::memory::map_memory(&mut handover);
     // -#---#@@- Enables Memory Allocation -@@#---#-
     init::memory::init_heap(&mut handover);
-    drivers::init_fallback_drivers(&mut handover);
+    drivers::init_drivers(&mut handover);
     initramfs::load_initramfs(&mut handover);
 
     // -#---#@@- Enables System Calls -@@#---#-
