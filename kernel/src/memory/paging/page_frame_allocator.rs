@@ -82,10 +82,7 @@ impl<'a> PageFrameAllocator<'a> {
 
         // Initialize Bitmap
         self.initialize_bitmap(bitmap_size as usize, current_largest_free_segment);
-        self.lock_pages(
-            self.bitmap.base,
-            self.bitmap.size / PAGE_SIZE as usize + 1,
-        );
+        self.lock_pages(self.bitmap.base, self.bitmap.size / PAGE_SIZE as usize + 1);
 
         let mut first_conventional_mem = 0;
         let mut last_conventional_mem = 0;

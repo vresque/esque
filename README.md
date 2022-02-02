@@ -13,6 +13,10 @@ A modern microkernel - Uniting Past and Present
 
 ## Building (Using y.py)
 
+### Esque.toml
+
+Before even talking about the hand-written build-system
+
 `y.py` is an utility inspired by rustc's `x.py`. You can configure
 the kernel using the `Esque.toml` file that may be found in the sysroot of this directory. This file offers many options, have a look at it before building.
 

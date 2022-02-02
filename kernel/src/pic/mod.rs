@@ -34,7 +34,7 @@ enumtastic::const_enum! {
 enumtastic::const_enum! {
     pub enum PicInterrupt: u8 => {
         Ps2KeyboardInterrupt = PIC1_OFFSET + 0x1,
-        Ps2MouseInterrupt = 0x0,
+        Ps2MouseInterrupt = 0x2C,
     }
 
     impl {}

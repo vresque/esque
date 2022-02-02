@@ -1,6 +1,7 @@
 use bks::Handover;
 
 use crate::drivers::input::ps2_keyboard::ps2_keyboard_int_handler;
+use crate::drivers::input::ps2_mouse::ps2_mouse_interrupt_handler;
 use crate::interrupts::exceptions::IDTException::*;
 use crate::interrupts::exceptions::{Exception, ExceptionHandler};
 use crate::interrupts::interrupt_frame::InterruptFrame;
@@ -127,6 +128,12 @@ pub fn init_interrupts(_: &mut Handover) {
     set_interrupt_handler(
         PicInterrupt::Ps2KeyboardInterrupt as u64,
         ps2_keyboard_int_handler,
+    );
+
+    // Add the Mouse Interrupt Handler
+    set_interrupt_handler(
+        PicInterrupt::Ps2MouseInterrupt as u64,
+        ps2_mouse_interrupt_handler,
     );
 
     // Set PIT Interrupt Handler
