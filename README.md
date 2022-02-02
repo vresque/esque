@@ -47,6 +47,10 @@ Over 10+ of our own dependencies are maintained within the `crates/` subdirector
 - Bitflags is used to replace the C bitfields. This is a neccessary dependency. It is used in thousands of projects all over the world. I consider this a completely safe crate.
 - Spin is a replacement for Rust's `std::sync::{Mutex,...}`. This is an incredibly helpful crate that is used in nearly all major osdev projects. This crate *might* be dropped in the future.
 
+## Doesn't rust produce huge binaries?
+
+While it may produce bigger binaries then, let's say, C, it still produces small ones after stripping. The current kernel is just ~300K in size, which is acceptable to me. The bootloader is about 270K big, due to its huge 'uefi' dependency.
+
 
 ## Philosophy
 Esque is a Windows-NT-esque and Minix-esque operating system.
@@ -63,10 +67,9 @@ I recommend that one read our [Syscall Documentation](Documentation/syscall.md)
 Yes - and no. In Esque, there are three different *virtual* 'spaces' for applications. Only two of those are real.
 There is
 - Kernel Space (*Only the Kernel* - Has access to the full array of hardware)
-- System Space (*Drivers* - *Runs in the Kernel Space of the CPU* Has access to syscalls, the full array of hardware *and the HAL-System-Calls* (Hal = The Hardware Abstraction Layer, a set of system calls that can only be used by Drivers))
+- System Space (*Drivers* - *Runs in the Kernel Space of the CPU* Has access to IPC with the kernel and the HAL (Hal = The Hardware Abstraction Layer)
 - User Space (*Applications* - Only has access to the system calls)
 
-*System Space is not a synonym for Kernel Modules - The later uses the kernel functions themselves, the first can be compared to a small kernel with support from the actual kernel. As an analogy, if the Kernel Modules are co-workers of the kernel, drivers are cats - They believe they are all-powerful (And they could be, nobody could refuse something to a cat) they depend on their caretaker(s).*
 
 ## Contributing
 
@@ -113,11 +116,13 @@ A total of 52 occurences have been found (1641 LOC, 0.* percent Percent)
 - [x] Support the `alloc` crate
 - [x] Remapping the Page Table
 - [ ] Syscalls
-- [x] IPC-Messaging
+- [ ] IPC-Messaging
+- [ ] PCI Device Descriptors
 - [ ] Executables
 - [x] Heap
 - [x] Load System Space Applications
 - [x] Load the InitRamFs
+- [ ] MultiTasking
 - [ ] Finish the Ext2 driver
 - [ ] Release Milestone 1  
 - [ ] ACPI

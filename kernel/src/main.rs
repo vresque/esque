@@ -24,6 +24,7 @@ pub mod init;
 pub mod memory;
 pub mod panic;
 pub use bks::Handover;
+pub mod acpi;
 pub mod config;
 pub mod drivers;
 pub mod heap;
@@ -65,7 +66,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     // -#---#@@- Enables System Calls -@@#---#-
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
-    success!("Still alive");
+
     #[cfg(test)]
     test_main();
 

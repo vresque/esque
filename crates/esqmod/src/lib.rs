@@ -34,7 +34,3 @@ macro_rules! module_tag {
         crate::__module_tag!($tag, stringify!($tag), $val);
     };
 }
-
-pub fn test() {
-    module_tag!(lmao_fuck_you, 23);
-}

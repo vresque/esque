@@ -199,9 +199,12 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     let slice = &mut vec![EfiMemoryDescriptor::empty(); entries][..];
 
     info!("Exiting boot services...");
-    let (_, map_iter) = table
+    let (mut rt_table, map_iter) = table
         .exit_boot_services(handle, &mut storage[..])
         .expect_success("Failed to exit boot services");
+
+    let rsdp = handover::find_rsdp(&mut rt_table);
+
     let mut ents = 0;
     unsafe {
         let _ = map_iter
@@ -239,6 +242,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         config,
         initramfs_base,
         initramfs_size,
+        rsdp,
     );
 
     kmain(handover);

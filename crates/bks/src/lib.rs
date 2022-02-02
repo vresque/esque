@@ -133,6 +133,7 @@ impl Handover {
         config: Config,
         initramfs_base: u64,
         initramfs_size: usize,
+        rsdp: u64,
     ) -> Self {
         Self {
             checknum: 42,
@@ -145,7 +146,7 @@ impl Handover {
             config: config,
             initramfs_base,
             initramfs_size,
-            rsdp: 0,
+            rsdp,
         }
     }
 

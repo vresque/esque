@@ -9,6 +9,7 @@ use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileInfo;
 use uefi::table::boot::AllocateType;
 use uefi::table::boot::MemoryType;
+use uefi::table::Runtime;
 use uefi::Handle;
 
 use crate::load_file;
@@ -113,4 +114,20 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
     //info!("{:?}", file);
     info!("{:#x?}", ptr);
     Some((ptr, size))
+}
+
+pub fn find_rsdp(table: &SystemTable<Runtime>) -> u64 {
+    let mut config = table.config_table().iter();
+
+    let rsdp = config
+        .find(|ent| {
+            matches!(
+                ent.guid,
+                uefi::table::cfg::ACPI_GUID | uefi::table::cfg::ACPI2_GUID
+            )
+        })
+        .map(|ent| ent.address)
+        .expect("An ACPI Compatible System is expected");
+
+    rsdp as u64
 }
