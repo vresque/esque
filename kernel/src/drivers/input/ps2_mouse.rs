@@ -55,6 +55,7 @@ const_enum! {
 }
 
 pub extern "x86-interrupt" fn ps2_mouse_interrupt_handler(_a: InterruptFrame) {
+    return;
     // Read the input
     let data = inb(Ps2MousePicPort::DataPort);
     debug!("Mouse handler called");
@@ -98,12 +99,11 @@ pub fn mouse_write(value: u8) {
     // Wait for mouse
     mouse_wait();
     // We must address the mouse (not the keyboard)
-    outb(
-        Ps2MousePicPort::CommandPort,
-        Ps2MousePicValue::AddressTheMouse,
-    );
+    outb(0x64, 0xD4);
     mouse_wait();
-    outb(Ps2MousePicPort::DataPort, value);
+    outb(0x60, value);
+    mouse_wait_for_input_reading();
+    mouse_read();
 }
 
 // Enables the mouse
@@ -125,27 +125,25 @@ pub fn ps2_mouse_init() {
     // osdev.org :: https://wiki.osdev.org/Mouse_Input
     // > After the PS2 Aux port has been enabled, you can send commands to the mouse.
     // > It is recommended to disable automatic packet streaming mode while "reprogramming" the mouse. You can do this by either sending command 0xF5 to the mouse, or disabling the "master mouse clock" by setting bit 5 of the Compaq Status byte (see below).
-    {
-        // Always wait before sending the next
-        mouse_wait();
-        // osdev.org ::
-        // > ... On some systems, the PS2 aux port is disabled at boot. Data coming from the aux port will not generate any interrupts. To know that data has arrived, you need to enable the aux port to generate IRQ12. There is only one way to do that, which involves getting/modifying the "compaq status" byte. You need to send the command byte 0x20 ("Get Compaq Status Byte") to the PS2 controller on port 0x64. ...
-        // Context: PrepareForCommand = 0x20
-        outb(
-            Ps2MousePicPort::CommandPort,
-            Ps2MousePicValue::PrepareForCommand,
-        );
 
-        let status = inb(Ps2MousePicPort::DataPort) | 0b10;
-        mouse_wait();
-        outb(
-            Ps2MousePicPort::CommandPort,
-            Ps2MousePicValue::PrepareForData,
-        );
+    // Always wait before sending the next
+    mouse_wait();
+    // osdev.org ::
+    // > ... On some systems, the PS2 aux port is disabled at boot. Data coming from the aux port will not generate any interrupts. To know that data has arrived, you need to enable the aux port to generate IRQ12. There is only one way to do that, which involves getting/modifying the "compaq status" byte. You need to send the command byte 0x20 ("Get Compaq Status Byte") to the PS2 controller on port 0x64. ...
+    // Context: PrepareForCommand = 0x20
+    outb(
+        Ps2MousePicPort::CommandPort,
+        Ps2MousePicValue::PrepareForCommand,
+    );
+    let status = inb(Ps2MousePicPort::DataPort) | 0b10;
+    mouse_wait();
+    outb(
+        Ps2MousePicPort::CommandPort,
+        Ps2MousePicValue::PrepareForData,
+    );
+    mouse_wait();
+    outb(Ps2MousePicPort::DataPort, status);
 
-        mouse_wait();
-        outb(Ps2MousePicPort::DataPort, status);
-    }
     // Use the default mouse settings
     mouse_write(Ps2MouseWriteValues::UseDefaultSettings);
     mouse_read();
