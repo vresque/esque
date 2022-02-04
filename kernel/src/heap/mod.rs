@@ -7,7 +7,7 @@ use unique::Unique;
 use crate::{
     debug, kprintln,
     memory::paging::{
-        page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::GLOBAL_PAGE_TABLE_MANAGER,
+        page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
     },
 };
 pub static GLOBAL_HEAP: Mutex<MaybeUninit<Heap>> = Mutex::new(MaybeUninit::uninit());
@@ -186,7 +186,7 @@ impl<'header> Heap<'header> {
     pub unsafe fn new(heap_address: u64, page_count: usize) -> Self {
         for i in (0..page_count).step_by(PAGE_SIZE as usize) {
             let page = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page();
-            GLOBAL_PAGE_TABLE_MANAGER
+            PAGE_TABLE_MANAGER
                 .lock()
                 .assume_init_mut()
                 .map_memory(i as u64, page);
@@ -290,7 +290,7 @@ impl<'header> Heap<'header> {
         for i in 0..page_count {
             unsafe {
                 let page = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page();
-                GLOBAL_PAGE_TABLE_MANAGER
+                PAGE_TABLE_MANAGER
                     .lock()
                     .assume_init_mut()
                     .map_memory(i as u64, page);

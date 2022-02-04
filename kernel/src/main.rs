@@ -18,12 +18,12 @@
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
 
 extern crate alloc;
-
 pub mod framebuffer;
 pub mod gdt;
 pub mod init;
 pub mod memory;
 pub mod panic;
+pub mod pci;
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;

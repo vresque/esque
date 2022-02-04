@@ -1,8 +1,12 @@
 use core::mem::size_of;
 
 use crate::{
-    acpi::{acpi_base::ACPIFindable, MCFGHeader, Rsdp2, SDTHeader},
+    acpi::{
+        acpi_base::{ACPIFindable, ACPITable},
+        MCFGHeader, Rsdp2, SDTHeader,
+    },
     debug, info, kprint,
+    pci::PCI,
 };
 use bks::Handover;
 
@@ -12,6 +16,8 @@ pub fn init_acpi(handover: &mut Handover) {
     let xsdt = SDTHeader::new(rsdp.xsdt_address).unwrap();
     // Print Tables of SDT
     let entries = (xsdt.length - size_of::<SDTHeader>() as u32) / 8;
-    let mcfg = MCFGHeader::find(xsdt).unwrap(); // Equivalent of xsdt.find_table::<MCFGHeader>()
-    debug!("{:?}", mcfg);
+    let mcfg = MCFGHeader::find_mut(xsdt).unwrap(); // Equivalent of xsdt.find_table::<MCFGHeader>()
+
+    let pci = PCI::new();
+    pci.enumerate(mcfg);
 }

@@ -1,14 +1,16 @@
 use bks::{Handover, PAGE_SIZE};
+use spin::Mutex;
 
 use crate::heap::{free, malloc_ptr, Heap};
 use crate::memory::paging::page_frame_allocator::{ACCEPTS, REJECTS};
-use crate::memory::paging::page_table_manager::{PageTable, PageTableManager};
-use crate::{debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
+use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
+use crate::{address_of, debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
 };
 use core::arch::asm;
+use core::mem::MaybeUninit;
 
 // Defined in Linker Script
 #[no_mangle]
@@ -73,7 +75,7 @@ pub fn map_memory(handover: &mut Handover) {
                 pml4 = &mut *(addr as *mut u64 as *mut PageTable);
             }
             let pml4_addr = pml4 as *mut PageTable as u64;
-            let page_table_manager = &mut PageTableManager::new(pml4);
+            let mut page_table_manager = PageTableManager::new(pml4);
 
             // Step through the memory mapping phys x -> virt x
             let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
@@ -84,7 +86,7 @@ pub fn map_memory(handover: &mut Handover) {
                 total_mem / 1024 / 1024,
             );
             for i in (_KERNEL_OFFSET..(total_mem)).step_by(0x1000) {
-                page_table_manager.map_memory(i as u64, i as u64);
+                &mut page_table_manager.map_memory(i as u64, i as u64);
             }
 
             debug!("Mapped Memory");
@@ -99,7 +101,7 @@ pub fn map_memory(handover: &mut Handover) {
                 .lock_pages(fb_base, fb_size / PAGE_SIZE as usize + 1);
             let fb_end = fb_base + fb_size as u64;
             for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
-                page_table_manager.map_memory(i, i);
+                &mut page_table_manager.map_memory(i, i);
                 if REJECTS > 0 {
                     kprintln!("{}", REJECTS);
                 }
@@ -109,6 +111,7 @@ pub fn map_memory(handover: &mut Handover) {
             let value = pml4_addr | (1 << 3) as u64;
             asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
 
+            PAGE_TABLE_MANAGER.lock().write(page_table_manager);
             success!("Finished preparing memory!");
         }
     }

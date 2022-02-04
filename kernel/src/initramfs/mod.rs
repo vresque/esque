@@ -5,14 +5,14 @@ use bks::Handover;
 use spin::Mutex;
 use tar::tar::*;
 
-use crate::{debug, kprint, memory::paging::page_table_manager::GLOBAL_PAGE_TABLE_MANAGER};
+use crate::{debug, kprint, memory::paging::page_table_manager::PAGE_TABLE_MANAGER};
 
 pub static INITRAMFS: Mutex<MaybeUninit<InitRamFs>> = Mutex::new(MaybeUninit::uninit());
 
 pub fn load_initramfs(handover: &mut Handover) {
     let ptr = handover.initramfs_base;
     unsafe {
-        GLOBAL_PAGE_TABLE_MANAGER
+        PAGE_TABLE_MANAGER
             .lock()
             .assume_init_mut()
             .map_memory(ptr, ptr);

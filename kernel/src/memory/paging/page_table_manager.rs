@@ -7,7 +7,7 @@ use spin::Mutex;
 
 use crate::{kprintln, memory::paging::page_frame_allocator::request_page};
 
-pub static GLOBAL_PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
+pub static PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
 
 use super::super::memset;
@@ -233,7 +233,7 @@ impl<'table> PageTableManager<'table> {
         page_pde.set_addr(physical_mem >> 12);
         page_pde.set_flag(PageTableFlag::PRESENT, true);
         page_pde.set_flag(PageTableFlag::READ_WRITE, true);
-        // pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
+        //pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
     }
 }
 

@@ -4,6 +4,7 @@ use crate::{address_of, impl_acpi_findable};
 
 use self::acpi_base::ACPIFindable;
 pub mod acpi_base;
+pub mod config;
 pub use acpi_base::*;
 #[repr(packed)]
 #[derive(Debug)]
