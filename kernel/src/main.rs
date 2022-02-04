@@ -50,7 +50,7 @@ pub mod ipc;
 pub mod syscall;
 
 pub const HEAP_ADDRESS: u64 = 0x0000900000;
-pub const HEAP_LENGTH: usize = PAGE_SIZE;
+pub const HEAP_LENGTH: usize = PAGE_SIZE as usize;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
