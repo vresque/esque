@@ -204,7 +204,7 @@ impl<'a> PageFrameAllocator<'a> {
     pub fn request_page(&mut self) -> u64 {
         while self.last_bmap_index < (self.bitmap.size as u64 * 8 as u64) {
             if self.bitmap[self.last_bmap_index as usize] == false {
-                self.lock_page(self.last_bmap_index * 4096);
+                self.lock_page(self.last_bmap_index * PAGE_SIZE);
                 unsafe {
                     ACCEPTS += 1;
                 }

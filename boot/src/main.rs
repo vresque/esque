@@ -11,7 +11,7 @@ use uefi::table::{Boot, SystemTable};
 
 use crate::alloc::vec::Vec;
 use alloc::vec;
-use bks::{Config, EfiMemoryDescriptor, Handover, KeyboardLayout, Language};
+use bks::{Config, EfiMemoryDescriptor, Handover, KeyboardLayout, Language, PAGE_SIZE};
 use log::{error, info};
 use uefi::ResultExt;
 use uefi::{
@@ -104,7 +104,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
                         "Allocating for program header (at {:#x?})",
                         hdr.physical_addr
                     );
-                    let pages = (hdr.mem_size + 0x1000 - 1) / 0x1000;
+                    let pages = (hdr.mem_size + PAGE_SIZE - 1) / PAGE_SIZE;
                     let segment = hdr.physical_addr as usize;
                     table
                         .boot_services()

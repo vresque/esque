@@ -36,11 +36,13 @@ pub mod pic;
 pub mod scheduler;
 pub mod test;
 pub mod userspace;
+use bks::PAGE_SIZE;
 pub use config::config;
 pub use esys::{
     ipc::{message::ptr::MessagePointer2, MessageContent},
     process::Process,
 };
+use iobus::outl;
 pub use userspace::pid::{KernelPid, Pid};
 
 use crate::memory::paging::page_table_manager::{PageTable, PageTableFlag};
@@ -48,7 +50,7 @@ pub mod ipc;
 pub mod syscall;
 
 pub const HEAP_ADDRESS: u64 = 0x0000900000;
-pub const HEAP_LENGTH: usize = 0x1000;
+pub const HEAP_LENGTH: usize = PAGE_SIZE;
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {

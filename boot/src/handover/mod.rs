@@ -1,4 +1,5 @@
 use bks::Framebuffer;
+use bks::PAGE_SIZE;
 use bks::Psf1Font;
 use bks::Psf1Header;
 use log::error;
@@ -92,7 +93,7 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
     info!("InitRamFs File Size: {}", info.file_size());
     let size = info.file_size() as usize;
 
-    let pages = (size + 0x1000 - 1) / 0x1000;
+    let pages = (size + PAGE_SIZE as usize - 1) / PAGE_SIZE as usize;
     let ptr = table
         .boot_services()
         .allocate_pages(

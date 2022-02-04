@@ -5,7 +5,7 @@ use core::{
 
 use spin::Mutex;
 
-use crate::{debug, kprintln, memory::paging::page_frame_allocator::request_page, address_of};
+use crate::{address_of, debug, kprintln, memory::paging::page_frame_allocator::request_page};
 
 pub static PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
@@ -95,7 +95,7 @@ bitflags::bitflags! {
 }
 
 const ENTRIES: usize = 512;
-#[repr(align(4096))]
+#[repr(align(0x1000))]
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct PageTable {
@@ -184,7 +184,7 @@ impl<'table> PageTableManager<'table> {
         let indexer = PageMapIndexer::new(virtual_mem);
         // First Page
         const SET_PT_TO_NULL: fn(&mut PageTable) = |pt| unsafe {
-            memset(PT_RAW_MEM_ADDR(pt), 0, 0x1000);
+            memset(address_of!(pt), 0, 0x1000);
         };
 
         // Map PDP

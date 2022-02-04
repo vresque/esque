@@ -1,7 +1,8 @@
 use bks::{Handover, PAGE_SIZE};
 use spin::Mutex;
 
-use crate::heap::{free, malloc_ptr, Heap};
+use crate::heap::{free, malloc_ptr, Heap, GLOBAL_HEAP};
+use crate::memory::memset;
 use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
 use crate::{address_of, debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
@@ -67,33 +68,19 @@ pub fn map_memory(handover: &mut Handover) {
 
         {
             // The PageMapLevel4
-            let mut pml4: &mut PageTable;
+            let pml4: &mut PageTable;
             {
                 let value: u64;
                 asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
-                let addr = value & 0x_000f_ffff_ffff_f000;
-                pml4 = &mut *(addr as *mut u64 as *mut PageTable);
+                let addr = request_page::<PageTable>();
+                pml4 = addr
             }
-
+            memset(address_of!(pml4), 0, bks::PAGE_SIZE as usize);
             let pml4_addr = pml4 as *const PageTable as u64;
             let mut page_table_manager = PageTableManager::new(pml4);
 
-            // Step through the memory mapping phys x -> virt x
-            let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
-            debug!(
-                "Mapping Memory ({} bytes, {}kb, {}mb)...",
-                total_mem,
-                total_mem / 1024,
-                total_mem / 1024 / 1024,
-            );
-            for i in (_KERNEL_OFFSET..(total_mem)).step_by(0x1000) {
-                &mut page_table_manager.map_memory(i as u64, i as u64);
-            }
-
-            debug!("Mapped Memory");
-            debug!("{}", REJECTS);
+            // Mapping (and locking) the framebuffer
             info!("Mapping Framebuffer...");
-            debug!("ACC: {}, FULL: {}", ACCEPTS, total_mem / 0x1000);
             let fb_base = handover.framebuffer().base;
             let fb_size = handover.framebuffer().size + PAGE_SIZE as usize;
             PAGE_FRAME_ALLOCATOR
@@ -103,23 +90,41 @@ pub fn map_memory(handover: &mut Handover) {
             let fb_end = fb_base + fb_size as u64;
             for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
                 &mut page_table_manager.map_memory(i, i);
-                if REJECTS > 0 {
-                    kprintln!("{}", REJECTS);
-                }
             }
+
+            // Step through the memory mapping phys x -> virt x
+            let total_mem = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().total_memory();
+            debug!(
+                "Mapping Memory ({} bytes, {}kb, {}mb)...",
+                total_mem,
+                total_mem / 1024,
+                total_mem / 1024 / 1024,
+            );
+            for i in (_KERNEL_START..(total_mem)).step_by(0x1000) {
+                if (fb_base..fb_end).contains(&i) {
+                    continue;
+                } // No double mapping of the framebuffer
+                &mut page_table_manager.map_memory(i as u64, i as u64);
+            }
+            debug!("Mapped Memory");
+
             info!("Setting default PML4");
 
             //debug!("{:x?}", &*(pml4_addr as *mut PageTable));
-            page_table_manager.map_memory(0xfffffffffff, 0x9000);
 
             let value = pml4_addr | 0; //(1 << 3) as u64;
-                                       //asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
-            let xyy = 0xfffffffffff as *mut u64;
-            *xyy = 24;
-            debug!("{}", *xyy);
+            asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
 
             PAGE_TABLE_MANAGER.lock().write(page_table_manager);
             success!("Finished preparing memory!");
+
+            PAGE_TABLE_MANAGER
+                .lock()
+                .assume_init_mut()
+                .map_memory(0x6_0000_0000, 0x800_000);
+            let xyy = 0x6_0000_0000 as *mut u64;
+            *xyy = 24;
+            debug!("{}", *xyy);
         }
     }
 }
@@ -130,37 +135,5 @@ pub fn init_heap(_handover: &mut Handover) {
         crate::heap::GLOBAL_HEAP
             .lock()
             .write(Heap::new(HEAP_ADDRESS, HEAP_LENGTH));
-        let alloc = malloc_ptr::<u64>(0x8000);
-        *alloc = 26;
-        debug!("{}", *alloc);
-
-        let alloc_b = malloc_ptr::<u64>(0x8000);
-        *alloc_b = 42;
-        debug!("{}", *alloc_b);
-
-        let alloc_c = malloc_ptr::<u64>(0x8000);
-        *alloc_c = 28;
-        //kprintln!("{}", *alloc_c);
-
-        {
-            let ptr = malloc_ptr::<u64>(0x1000);
-            debug!("{:p}", ptr);
-            free(ptr as u64);
-        }
-
-        {
-            let ptr = malloc_ptr::<u64>(0x1000);
-            debug!("{:p}", ptr);
-            free(ptr as u64);
-        }
-
-        {
-            let ptr = malloc_ptr::<u64>(0x1000);
-            debug!("{:p}", ptr);
-            free(ptr as u64);
-        }
-
-        debug!("{}", *alloc);
-        debug!("L");
     }
 }
