@@ -5,7 +5,7 @@ use core::{
 
 use spin::Mutex;
 
-use crate::{kprintln, memory::paging::page_frame_allocator::request_page};
+use crate::{debug, kprintln, memory::paging::page_frame_allocator::request_page, address_of};
 
 pub static PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
@@ -43,12 +43,10 @@ impl PageDescriptorEntry {
     }
     #[inline]
     pub fn get_flag(&self, flag: PageTableFlag) -> bool {
-        return if self.entry & flag.bits() > 0 {
-            true
-        } else {
-            false
-        };
+        assert!((self.entry & flag.bits() > 0) == self.flags().contains(flag));
+        return self.entry & flag.bits > 0;
     }
+
     #[inline]
     pub fn set_flag(&mut self, flag: PageTableFlag, enabled: bool) {
         self.entry &= !flag.bits();
@@ -147,14 +145,18 @@ pub struct PageMapIndexer {
 
 impl PageMapIndexer {
     pub fn new(addr: u64) -> Self {
-        let mut virtual_addr = addr >> 12;
-        let p_idx = (virtual_addr & 0x1ff) as usize;
+        let mut virtual_addr = (addr >> 12) as usize;
+        let p_idx = virtual_addr & 0x1ff;
         virtual_addr >>= 9;
-        let pt_idx = (virtual_addr & 0x1ff) as usize;
+        let pt_idx = virtual_addr & 0x1ff;
         virtual_addr >>= 9;
-        let pd_idx = (virtual_addr & 0x1ff) as usize;
+        let pd_idx = virtual_addr & 0x1ff;
         virtual_addr >>= 9;
-        let pdp_idx = (virtual_addr & 0x1ff) as usize;
+        let pdp_idx = virtual_addr & 0x1ff;
+        assert!(p_idx <= 512);
+        assert!(pt_idx <= 512);
+        assert!(pd_idx <= 512);
+        assert!(pdp_idx <= 512);
         Self {
             p_idx,
             pt_idx,
@@ -170,7 +172,7 @@ pub struct PageTableManager<'table> {
 }
 
 fn addr_to_page_table<'retval>(addr: u64) -> &'retval mut PageTable {
-    unsafe { &mut *(((addr as u64) as *mut u64) as *mut PageTable) }
+    unsafe { &mut *(addr as *mut u64 as *mut PageTable) }
 }
 
 impl<'table> PageTableManager<'table> {
@@ -181,8 +183,6 @@ impl<'table> PageTableManager<'table> {
     pub fn map_memory(&mut self, virtual_mem: u64, physical_mem: u64) {
         let indexer = PageMapIndexer::new(virtual_mem);
         // First Page
-        const PT_RAW_MEM_ADDR: fn(&mut PageTable) -> u64 =
-            |pt| (pt as *mut PageTable as *mut u64 as u64);
         const SET_PT_TO_NULL: fn(&mut PageTable) = |pt| unsafe {
             memset(PT_RAW_MEM_ADDR(pt), 0, 0x1000);
         };
@@ -192,7 +192,7 @@ impl<'table> PageTableManager<'table> {
         let pdp = if !pdp_pde.get_flag(PageTableFlag::PRESENT) {
             let tmp = request_page::<PageTable>();
             SET_PT_TO_NULL(tmp);
-            pdp_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pdp_pde.set_addr(address_of!(tmp) >> 12);
             pdp_pde.set_flag(PageTableFlag::PRESENT, true);
             pdp_pde.set_flag(PageTableFlag::READ_WRITE, true);
             self.pml4[indexer.pdp_idx] = pdp_pde;
@@ -206,7 +206,7 @@ impl<'table> PageTableManager<'table> {
         let pd = if !pd_pde.get_flag(PageTableFlag::PRESENT) {
             let tmp = request_page();
             SET_PT_TO_NULL(tmp);
-            pd_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pd_pde.set_addr(address_of!(tmp) >> 12);
             pd_pde.set_flag(PageTableFlag::PRESENT, true);
             pd_pde.set_flag(PageTableFlag::READ_WRITE, true);
             pdp.entries[indexer.pd_idx] = pd_pde;
@@ -220,7 +220,7 @@ impl<'table> PageTableManager<'table> {
         let pt = if !pt_pde.get_flag(PageTableFlag::PRESENT) {
             let tmp = request_page();
             SET_PT_TO_NULL(tmp);
-            pt_pde.set_addr(PT_RAW_MEM_ADDR(tmp) >> 12);
+            pt_pde.set_addr(address_of!(tmp) >> 12);
             pt_pde.set_flag(PageTableFlag::PRESENT, true);
             pt_pde.set_flag(PageTableFlag::READ_WRITE, true);
             pd.entries[indexer.pt_idx] = pt_pde;
@@ -233,7 +233,8 @@ impl<'table> PageTableManager<'table> {
         page_pde.set_addr(physical_mem >> 12);
         page_pde.set_flag(PageTableFlag::PRESENT, true);
         page_pde.set_flag(PageTableFlag::READ_WRITE, true);
-        //pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
+
+        pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
     }
 }
 

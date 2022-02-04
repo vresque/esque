@@ -68,7 +68,7 @@ def run_qemu(in_background=False) -> int:
         f"-machine {config.QEMU_MACHINE},accel=kvm:tcg",
         "-drive if=pflash,format=raw,unit=0,file=binaries/OVMF/OVMF_CODE.fd,readonly=on",
         "-drive if=pflash,format=raw,unit=1,file=binaries/OVMF/OVMF_VARS.fd",
-        "-d", "int,cpu_reset,guest_errors,page,strace",
+        "-d", "int,cpu_reset",
         "-D" if config.QEMU_SHOULD_LOG else "",
         config.QEMU_LOGFILE if config.QEMU_SHOULD_LOG else "",
         "-no-shutdown", "-no-reboot",

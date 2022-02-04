@@ -257,10 +257,6 @@ where
     }
 }
 
-pub fn _screen_width() -> u32 {
-    20 // TODO
-}
-
 impl Write for FramebufferGuard {
     fn write_char(&mut self, c: char) -> core::fmt::Result {
         unsafe {

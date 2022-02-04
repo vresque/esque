@@ -42,6 +42,8 @@ pub use esys::{
     process::Process,
 };
 pub use userspace::pid::{KernelPid, Pid};
+
+use crate::memory::paging::page_table_manager::{PageTable, PageTableFlag};
 pub mod ipc;
 pub mod syscall;
 

@@ -2,7 +2,7 @@ use bks::{Handover, PAGE_SIZE};
 use spin::Mutex;
 
 use crate::heap::{free, malloc_ptr, Heap};
-use crate::memory::paging::page_frame_allocator::{ACCEPTS, REJECTS};
+use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
 use crate::{address_of, debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
@@ -67,14 +67,15 @@ pub fn map_memory(handover: &mut Handover) {
 
         {
             // The PageMapLevel4
-            let pml4: &mut PageTable;
+            let mut pml4: &mut PageTable;
             {
                 let value: u64;
                 asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
                 let addr = value & 0x_000f_ffff_ffff_f000;
                 pml4 = &mut *(addr as *mut u64 as *mut PageTable);
             }
-            let pml4_addr = pml4 as *mut PageTable as u64;
+
+            let pml4_addr = pml4 as *const PageTable as u64;
             let mut page_table_manager = PageTableManager::new(pml4);
 
             // Step through the memory mapping phys x -> virt x
@@ -108,8 +109,14 @@ pub fn map_memory(handover: &mut Handover) {
             }
             info!("Setting default PML4");
 
-            let value = pml4_addr | (1 << 3) as u64;
-            asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
+            //debug!("{:x?}", &*(pml4_addr as *mut PageTable));
+            page_table_manager.map_memory(0xfffffffffff, 0x9000);
+
+            let value = pml4_addr | 0; //(1 << 3) as u64;
+                                       //asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
+            let xyy = 0xfffffffffff as *mut u64;
+            *xyy = 24;
+            debug!("{}", *xyy);
 
             PAGE_TABLE_MANAGER.lock().write(page_table_manager);
             success!("Finished preparing memory!");
