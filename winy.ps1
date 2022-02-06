@@ -36,26 +36,26 @@ Test-IfCommandExists "rustc"
 switch ($command) {
     "run" {
         Test-IfCommandExists "qemu-system-x86-64"
-        ./y.py $command
+        python y.py $command
         break
     }
     "clean" {
-        ./y.py $command
+        python y.py $command
         break
     }
     "format" {
-        ./y.py $command
+        python y.py $command
         break
     }
     "build" {
-        ./y.py initramfs
-        ./y.py format
-        ./y.py build-kernel
-        ./y.py build-boot
+        python y.py initramfs
+        python y.py format
+        python y.py build-kernel
+        python y.py build-boot
         wsl "python y.py strip; python y.py image"
     }
     "setup" {
-        ./y.py $command
+        python y.py $command
     }
     default {
         Write-Output "Running $command in WSL"
