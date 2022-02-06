@@ -15,11 +15,24 @@ A modern microkernel - Uniting Past and Present
 
 ### Esque.toml
 
-Before even talking about the hand-written build-system, I need to mention
-Esque.toml. This is a configuration file with a plethora of options available for customization. Setting this up took a lot of time, which is why it is now the standard for building the Esque OS.
+Before even talking about the hand-written build-system, I need to mentionvEsque.toml. This is a configuration file with a plethora of options available for customization. Setting this up took a lot of time, which is why it is now the standard for building the Esque OS.
 
+### Dependencies (On Linux)
+- `cargo`
+- `rustc`
+- `dd`
+- `mtools` (mcopy, mmd, ...)
+- `dosfstools` (mkfs.vfat)
+- `python >= 3`
+- `python.toml`
+- `python.xbstrap`
 
-### Building
+#### Install
+```sh
+$ sudo apt install cargo rustc binutils mtools dosfstools python3 python3-pip; pip install --user xbstrap toml
+```
+
+### Building (On Linux)
 `y.py` is an utility inspired by rustc's `x.py`. You can configure
 the kernel using the `Esque.toml` file that may be found in the sysroot of this directory. This file offers many options, have a look at it before building.
 
@@ -32,6 +45,49 @@ This system is very configurable. Simply type
 ./y.py --help
 ```
 to see all options.
+
+### Building (On Windows)
+
+**First, you must enter `Esque.toml` and change `enable-kvm` to false.**
+
+Building on Windows is not recommended. I am long-time linux user and the entire build process iis designed for me. As I have a work laptop which, unfortunately, comes preinstalled with a proprietary guard on my harddrive which prohibits the usage of any non-secureboot verified operating systems, I had to become proficient in "Windows Administrative Skills". This is also the reason why `winy` exists.
+
+
+On Windows, only certain `y.py` commands may be executed in the same way as on Linux (Example: `./y.py` build runs `dd` to create an IMG file). Therefore, you are presented with two options
+
+#### Option A: WSL + Native QEMU
+This may be a preferred option for some. In this scenario, you run *all* commands **except** for `./y.py run` using WSL.
+
+This requires all of the dependencies listed above in `Dependencies (On Linux)` section
+
+##### Pros
+- Fast
+
+##### Cons
+- You need to switch terminals each time you want to build and run it
+
+#### Option B: Using ./winy.ps1
+`winy.ps1` is a PowerShell script which decides what to run natively and what not. Usage is equal to `./y.py` e.g. `./winy run` runs the kernel and `./winy build` builds some parts of the kernel using WSL and others natively.
+
+**_Attention_**
+This requires you to have your ExecutionPolicy to be Bypass. You can temporarily change this by opening a command host with administrator privileges and typing
+```ps1
+Set-ExecutionPolicy Bypass
+```
+
+This requires all dependencies listed above *except* for cargo and rustc on WSL. It requires cargo, rustc, and a `tar` binary on on windows. Said dependencies may easily be installed using the rustup binary `rustup.rs`
+
+###### Installing said dependencies
+Run the following command on `WSL` (assumes Ubuntu):
+```sh
+$ sudo apt install binutils mtools dosfstools python3 python3-pip; pip install --user xbstrap toml
+```
+
+##### Pros
+- More user-friendly
+
+##### Cons
+- WSL-Commands have a significant startup time
 
 ## Dependencies
 

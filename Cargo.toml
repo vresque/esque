@@ -1,4 +1,3 @@
-cargo-features = [ "strip" ]
 [workspace]
 members = [
     "boot",
@@ -7,8 +6,6 @@ members = [
     "apps/*",
 ]
 
-[profile.release]
-strip = true
 
 [profile.dev]
 debug = true
