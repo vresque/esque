@@ -24,7 +24,15 @@ Function Test-IfCommandExists
     }
 }
 
-if ( Test-Path -Path "build" -ne "True" ) {
+
+
+# Otherwise, the condition below will often be triggered
+if ($command -eq "setup") {
+    python y.py $command
+    Exit
+}
+
+if (-Not ( Test-Path -Path "build")) {
     "Please run ./winy setup first"
     Exit
 }
