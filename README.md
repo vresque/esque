@@ -112,10 +112,10 @@ While it may produce bigger binaries then, let's say, C, it still produces small
 Esque is a Windows-NT-esque and Minix-esque operating system.
 It is a micro-kernel featuring a Windows-like userspace.
 
-As mentioned above, it's main inspiration is Minix, when it comes
+As mentioned above, it's main inspirations are Linux and Windows, when it comes
 to kernel-design, but, when for the userspace-design, Windows is used.
 
-I recommend that one read our [Syscall Documentation](Documentation/syscall.md)
+I recommend that one read our [Syscall Documentation](Documentation/syscall.md) as well as the [HAL IPC Documentation](Documentation/hal_ipc.md)
 
 
 ### Does everything run in Userspace?

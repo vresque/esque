@@ -1,7 +1,7 @@
 use bks::Framebuffer;
-use bks::PAGE_SIZE;
 use bks::Psf1Font;
 use bks::Psf1Header;
+use bks::PAGE_SIZE;
 use log::error;
 use log::info;
 use uefi::prelude::*;

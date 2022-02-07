@@ -60,14 +60,14 @@ switch ($command) {
         python y.py format
         python y.py build-kernel
         python y.py build-boot
-        wsl "python y.py strip; python y.py image"
+        wsl python y.py strip; python y.py image; logout
     }
     "setup" {
         python y.py $command
     }
     default {
         Write-Output "Running $command in WSL"
-        wsl "python y.py $command"
+        wsl python y.py $command
         Write-Output "WSL exited..."
     }
 }

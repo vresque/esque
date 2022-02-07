@@ -9,7 +9,7 @@
     "executables": true,
     "linker-flavor": "ld.lld",
     "code-model": "kernel",
-    "linker": "rust-lld",
+    "linker": "lld",
     "pre-link-args": {
         "ld.lld": [
             "--gc-sections",

@@ -34,14 +34,12 @@ pub mod interrupts;
 pub mod iobus;
 pub mod pic;
 pub mod scheduler;
+pub mod smp;
 pub mod test;
 pub mod userspace;
 use bks::PAGE_SIZE;
 pub use config::config;
-pub use esys::{
-    ipc::{message::ptr::MessagePointer2, MessageContent},
-    process::Process,
-};
+pub use esys::process::Process;
 use iobus::outl;
 pub use userspace::pid::{KernelPid, Pid};
 
@@ -66,6 +64,10 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::acpi::init_acpi(&mut handover);
     // -#---#@@- Enables Memory Allocation -@@#---#-
     init::memory::init_heap(&mut handover);
+    init::smp::init_smp(&mut handover);
+
+    Thread::new(smp::kernel_ipc_handler).launch();
+
     drivers::init_drivers(&mut handover);
     initramfs::load_initramfs(&mut handover);
 

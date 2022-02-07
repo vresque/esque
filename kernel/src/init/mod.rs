@@ -8,3 +8,4 @@ pub mod pic;
 pub mod pit;
 pub mod syscall;
 pub mod userspace;
+pub mod smp;
