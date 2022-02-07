@@ -12,8 +12,8 @@ impl PCI {
         Self {}
     }
     pub fn enumerate(&self, mcfg: &mut MCFGHeader) {
-        let mcfg_entry_count = ((mcfg.sdt_header.length - size_of::<MCFGHeader>() as u32)
-            / size_of::<DeviceConfig>() as u32);
+        let mcfg_entry_count = (mcfg.sdt_header.length - size_of::<MCFGHeader>() as u32)
+            / size_of::<DeviceConfig>() as u32;
         for i in 0..mcfg_entry_count {
             let config = DeviceConfig::new(
                 address_of!(mcfg) // At MCFG
@@ -31,9 +31,9 @@ impl PCI {
 
     fn enumerate_bus(&self, base: u64, bus: i64) {
         let offset = bus << 20;
-        let address = base as i64 + offset; //  The Address of the bus
+        let _address = base as i64 + offset; //  The Address of the bus
     }
-    fn enumerate_devic(&self, base: u64, device: u64) {}
+    fn enumerate_device(&self, _base: u64, _device: u64) {}
 
-    fn enumerate_function(&self, device_addr: u64, func: u64) {}
+    fn enumerate_function(&self, _device_addr: u64, _func: u64) {}
 }

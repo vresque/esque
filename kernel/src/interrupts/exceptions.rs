@@ -123,7 +123,7 @@ macro_rules! impl_generic_exception_handler {
     ) => {
         $(
             impl Exception<$op> for ExceptionHandler<$op> {
-                extern "x86-interrupt" fn handle(frame: InterruptFrame) {
+                extern "x86-interrupt" fn handle(_frame: InterruptFrame) {
                     panic!("Triggered Fault {} ({:#x?}) with opcode {}", stringify!($op), $op, IDTException::error_code(&$op))
                 }
             }
@@ -170,7 +170,7 @@ bitflags::bitflags! {
 }
 
 impl Exception<PageFault> for ExceptionHandler<PageFault> {
-    extern "x86-interrupt" fn handle(frame: InterruptFrame) {
+    extern "x86-interrupt" fn handle(_frame: InterruptFrame) {
         let code: u64;
         let cr2: u64;
         unsafe {
@@ -186,5 +186,5 @@ impl Exception<PageFault> for ExceptionHandler<PageFault> {
 }
 
 impl Exception<GeneralProtectionFault> for ExceptionHandler<GeneralProtectionFault> {
-    extern "x86-interrupt" fn handle(frame: InterruptFrame) {}
+    extern "x86-interrupt" fn handle(_frame: InterruptFrame) {}
 }

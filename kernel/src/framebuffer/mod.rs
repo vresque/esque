@@ -200,7 +200,6 @@ impl FramebufferGuard {
             }
         }
 
-        let charsize = self.font.header().charsize as usize;
         let stride = self.framebuffer.stride;
 
         for y in self.row..(self.row + 16) {

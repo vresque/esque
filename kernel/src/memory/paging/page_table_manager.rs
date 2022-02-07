@@ -5,7 +5,7 @@ use core::{
 
 use spin::Mutex;
 
-use crate::{address_of, debug, kprintln, memory::paging::page_frame_allocator::request_page};
+use crate::{address_of, kprintln, memory::paging::page_frame_allocator::request_page};
 
 pub static PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());

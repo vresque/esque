@@ -1,5 +1,3 @@
-use core::ptr::NonNull;
-
 use super::SDTHeader;
 
 pub trait ACPIFindable<'name>: Sized + ACPITable {

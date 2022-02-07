@@ -1,13 +1,12 @@
 use bks::Handover;
 
-use crate::info;
 use crate::syscall::syscall_handler;
 use crate::{
     gdt::GdtEntryType,
     iobus::msr::{read_msr, write_msr, MsrRegister},
 };
 
-pub fn init_syscalls(handover: &mut Handover) {
+pub fn init_syscalls(_: &mut Handover) {
     let syscall_base = GdtEntryType::KernelCode << 3;
     let sysret_base = (GdtEntryType::UserCode32Unused << 3) | 3;
 

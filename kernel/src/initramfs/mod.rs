@@ -1,11 +1,11 @@
 use core::mem::MaybeUninit;
 
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 use bks::Handover;
 use spin::Mutex;
 use tar::tar::*;
 
-use crate::{debug, kprint, memory::paging::page_table_manager::PAGE_TABLE_MANAGER};
+use crate::memory::paging::page_table_manager::PAGE_TABLE_MANAGER;
 
 pub static INITRAMFS: Mutex<MaybeUninit<InitRamFs>> = Mutex::new(MaybeUninit::uninit());
 
@@ -58,7 +58,7 @@ impl<'tar> InitRamFs<'tar> {
 
 pub fn load_system_space_applications(_handover: &mut Handover) {
     unsafe {
-        let sys_files = INITRAMFS
+        let _sys_files = INITRAMFS
             .lock()
             .assume_init_mut()
             .all_entries_with_extension(".system");

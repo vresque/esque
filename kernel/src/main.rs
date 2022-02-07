@@ -7,6 +7,7 @@
 #![feature(abi_x86_interrupt)]
 #![allow(unstable_features)]
 #![feature(alloc_error_handler)]
+#![feature(stmt_expr_attributes)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test::test_runner)]
 #![reexport_test_harness_main = "test_main"]
@@ -40,10 +41,9 @@ pub mod userspace;
 use bks::PAGE_SIZE;
 pub use config::config;
 pub use esys::process::Process;
-use iobus::outl;
+pub use smp::Thread;
 pub use userspace::pid::{KernelPid, Pid};
 
-use crate::memory::paging::page_table_manager::{PageTable, PageTableFlag};
 pub mod ipc;
 pub mod syscall;
 
@@ -66,7 +66,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::memory::init_heap(&mut handover);
     init::smp::init_smp(&mut handover);
 
-    Thread::new(smp::kernel_ipc_handler).launch();
+    Thread::new(ipc::kernel_ipc_handler).launch();
 
     drivers::init_drivers(&mut handover);
     initramfs::load_initramfs(&mut handover);

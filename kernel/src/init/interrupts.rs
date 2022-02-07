@@ -4,16 +4,12 @@ use crate::drivers::input::ps2_keyboard::ps2_keyboard_int_handler;
 use crate::drivers::input::ps2_mouse::ps2_mouse_interrupt_handler;
 use crate::interrupts::exceptions::IDTException::*;
 use crate::interrupts::exceptions::{Exception, ExceptionHandler};
-use crate::interrupts::interrupt_frame::InterruptFrame;
 use crate::interrupts::set_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::pic::PicInterrupt;
 use crate::scheduler::pit::{pit_interrupt_handler, PIT_INTERRUPT};
 use crate::{info, success};
 use crate::{interrupts::exceptions::IDTException, kprintln};
-use core::arch::asm;
-use core::fmt::Alignment;
-use core::ops::Bound;
 
 use crate::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 

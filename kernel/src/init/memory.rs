@@ -1,9 +1,7 @@
 use bks::{Handover, PAGE_SIZE};
-use spin::Mutex;
 
-use crate::heap::{free, malloc_ptr, Heap, GLOBAL_HEAP};
+use crate::heap::Heap;
 use crate::memory::memset;
-use crate::memory::paging::page_frame_allocator::{request_page, ACCEPTS, REJECTS};
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
 use crate::{address_of, debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
@@ -11,7 +9,6 @@ use crate::{
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
 };
 use core::arch::asm;
-use core::mem::MaybeUninit;
 
 // Defined in Linker Script
 #[no_mangle]
@@ -72,7 +69,7 @@ pub fn map_memory(handover: &mut Handover) {
             {
                 let value: u64;
                 asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
-                let addr = request_page::<PageTable>();
+                let addr = &mut *(value as *mut u64 as *mut PageTable);
                 pml4 = addr
             }
             memset(address_of!(pml4), 0, bks::PAGE_SIZE as usize);
@@ -89,7 +86,7 @@ pub fn map_memory(handover: &mut Handover) {
                 .lock_pages(fb_base, fb_size / PAGE_SIZE as usize + 1);
             let fb_end = fb_base + fb_size as u64;
             for i in (fb_base..fb_end).step_by(PAGE_SIZE as usize) {
-                &mut page_table_manager.map_memory(i, i);
+                let _ = &mut page_table_manager.map_memory(i, i);
             }
 
             // Step through the memory mapping phys x -> virt x
@@ -104,7 +101,7 @@ pub fn map_memory(handover: &mut Handover) {
                 if (fb_base..fb_end).contains(&i) {
                     continue;
                 } // No double mapping of the framebuffer
-                &mut page_table_manager.map_memory(i as u64, i as u64);
+                let _ = &mut page_table_manager.map_memory(i as u64, i as u64);
             }
             debug!("Mapped Memory");
 

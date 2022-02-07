@@ -66,6 +66,7 @@ impl HeapSegmentHeader {
                     return;
                 }
                 if next == heap_last_hdr {
+                    #[allow(unused_assignments)]
                     heap_last_hdr = Unique::new_borrowed_mut(self).unwrap();
                 }
 

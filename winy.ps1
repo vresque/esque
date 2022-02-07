@@ -20,6 +20,7 @@ Function Test-IfCommandExists
         $ErrorActionPreference = $oldPreference
     }
     if ($shouldExitAfterwards -eq "0") {
+        # If we exit before this, the ErrorActionPreference will not be reset
         Exit
     }
 }

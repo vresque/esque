@@ -36,7 +36,7 @@ pub fn test() {
 pub fn test_runner(tests: &[&RustTest]) {
     let mut passed_tests: u32 = 0;
     use crate::framebuffer::clear_screen;
-    use crate::{info, success};
+    use crate::info;
 
     clear_screen(0x0_u32);
     info!("Running {} tests...", tests.len());

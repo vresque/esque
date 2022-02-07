@@ -1,10 +1,10 @@
 pub struct Thread {
-    func: fn()
+    func: fn(),
 }
 
 impl Thread {
     pub fn new(func: fn()) -> Self {
         Self { func }
     }
-    pub fn launch() {}
+    pub fn launch(self) {}
 }

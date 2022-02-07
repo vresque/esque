@@ -58,7 +58,7 @@ impl<T> Unique<T> {
         self.0.as_ptr()
     }
 
-    pub unsafe fn as_mut(&mut self) -> &mut T {
-        self.0.as_mut()
+    pub fn as_mut(&mut self) -> &mut T {
+        unsafe { self.0.as_mut() }
     }
 }

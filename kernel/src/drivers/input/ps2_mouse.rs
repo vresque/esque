@@ -55,9 +55,8 @@ const_enum! {
 }
 
 pub extern "x86-interrupt" fn ps2_mouse_interrupt_handler(_a: InterruptFrame) {
-    return;
     // Read the input
-    let data = inb(Ps2MousePicPort::DataPort);
+    let _data = inb(Ps2MousePicPort::DataPort);
     debug!("Mouse handler called");
 
     pic::end_minor_pic();

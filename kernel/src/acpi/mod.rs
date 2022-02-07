@@ -1,4 +1,4 @@
-use core::{mem::size_of, ptr::addr_of, slice::SlicePattern};
+use core::mem::size_of;
 
 use crate::{address_of, impl_acpi_findable};
 
@@ -7,7 +7,6 @@ pub mod acpi_base;
 pub mod config;
 pub use acpi_base::*;
 #[repr(packed)]
-#[derive(Debug)]
 pub struct Rsdp2 {
     pub signature: [u8; 8],
     pub checksum: u8,
@@ -23,7 +22,6 @@ pub struct Rsdp2 {
 impl_acpi_findable!(Rsdp2 -> "RSDP");
 
 #[repr(packed)]
-#[derive(Debug)]
 pub struct SDTHeader {
     pub signature: [u8; 4],
     pub length: u32,
@@ -91,7 +89,6 @@ impl SDTHeader {
 }
 
 #[repr(packed)]
-#[derive(Debug)]
 pub struct MCFGHeader {
     pub sdt_header: SDTHeader,
     pub reserved: u64,
