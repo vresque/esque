@@ -1,5 +1,9 @@
 Param (
-    [string] $command
+    [string] $command,
+    [Parameter(
+        ValueFromRemainingArguments=$true
+    )][string[]]
+    $otherArgs
 )
 
 Function Test-IfCommandExists
@@ -29,7 +33,7 @@ Function Test-IfCommandExists
 
 # Otherwise, the condition below will often be triggered
 if ($command -eq "setup") {
-    python y.py $command
+    python y.py $command $otherArgs 
     Exit
 }
 
@@ -45,30 +49,33 @@ Test-IfCommandExists "rustc"
 switch ($command) {
     "run" {
         Test-IfCommandExists "qemu-system-x86-64"
-        python y.py $command
+        python y.py $command $otherArgs 
         break
     }
     "clean" {
-        python y.py $command
+        python y.py $command $otherArgs 
         break
     }
     "format" {
-        python y.py $command
+        python y.py $command $otherArgs 
         break
     }
     "build" {
-        python y.py initramfs
-        python y.py format
-        python y.py build-kernel
-        python y.py build-boot
-        wsl python y.py strip; python y.py image; logout
+        python y.py initramfs $otherArgs
+        python y.py format $otherArgs
+        python y.py build-kernel $otherArgs
+        python y.py build-boot $otherArgs
+        wsl python y.py strip $otherArgs; python y.py image $otherArgs; logout
     }
     "setup" {
-        python y.py $command
+        python y.py $command $otherArgs 
+    }
+    "wsl" {
+        wsl python y.py $otherArgs
     }
     default {
-        Write-Output "Running $command in WSL"
-        wsl python y.py $command
+        Write-Output "Running $command with $otherArgs in WSL"
+        wsl python y.py $command $otherArgs 
         Write-Output "WSL exited..."
     }
 }

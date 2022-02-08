@@ -23,16 +23,16 @@ impl QemuExitCode {
 }
 
 pub struct RustTest {
-    pub func: fn(),
+    pub func: fn() -> i32,
     pub name: &'static str,
 }
 
 #[esqtest::esqtest]
-pub fn test() {
+pub fn test() -> i32 {
     success!("printing works!");
 }
 
-#[cfg(feature = "tests")]
+#[cfg(feature = "test")]
 pub fn test_runner(tests: &[&RustTest]) {
     let mut passed_tests: u32 = 0;
     use crate::framebuffer::clear_screen;
@@ -51,5 +51,5 @@ pub fn test_runner(tests: &[&RustTest]) {
     QemuExitCode::Success.exit_qemu();
 }
 
-#[cfg(not(feature = "tests"))]
-pub fn test_runner(tests: &[&dyn Fn()]) {}
+#[cfg(not(feature = "test"))]
+pub fn test_runner(tests: &[&RustTest]) {}

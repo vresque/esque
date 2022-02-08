@@ -11,15 +11,14 @@ pub fn esqtest(_stream: TokenStream, r#in: TokenStream) -> TokenStream {
     let full_name = quote::format_ident!("{}_esqtest", name);
 
     let retval = quote::quote! {
+        fn #name() {
+            #body
+        }
         #[test_case]
         static #full_name: crate::test::RustTest = crate::test::RustTest {
             func: #name,
             name: concat!(module_path!(), ".", stringify!(#name))
         };
-
-        fn #name() {
-            #body
-        }
     };
     retval.into()
 }

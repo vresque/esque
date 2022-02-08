@@ -23,7 +23,7 @@ use uefi::{
             fs::SimpleFileSystem,
         },
     },
-    table::boot::{AllocateType, MemoryType},
+    table::boot::{AllocateType, MemoryType, OpenProtocolAttributes, OpenProtocolParams},
 };
 use xmas_elf::{
     header::sanity_check,
@@ -48,8 +48,16 @@ pub fn load_file<'a>(
     let filesystem = unsafe {
         &mut *(table
             .boot_services()
-            .handle_protocol::<SimpleFileSystem>(loaded_img.device())
+            .open_protocol::<SimpleFileSystem>(
+                OpenProtocolParams {
+                    handle: loaded_img.device(),
+                    agent: loaded_img.device(),
+                    controller: None,
+                },
+                OpenProtocolAttributes::Exclusive,
+            )
             .expect_success("Failed to open Root Filesystem")
+            .interface
             .get())
     };
 
