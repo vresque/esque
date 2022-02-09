@@ -40,4 +40,8 @@ logfile = "qemu.log"
 should-log = true # Should log to file?
 smp = 1 # Cores
 machine = "q35"
-qemu-opts = [ "-display none", "-device isa-debug-exit,iobase=0xf4,iosize=0x04"] # Additional arguments
+qemu-opts = [ "-display none"] # Additional arguments
+
+
+[apps]
+cargo-flags = [ "mirror" ]

@@ -4,6 +4,7 @@ members = [
     "kernel",
     "crates/*",
     "apps/*",
+    "libesque/rust/*"
 ]
 
 

@@ -39,3 +39,7 @@ should-log = true # Should log to file?
 smp = 1 # Cores
 machine = "q35"
 qemu-opts = [ ] # Additional arguments
+
+
+[apps]
+cargo-flags = [ "mirror" ]

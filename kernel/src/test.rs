@@ -1,13 +1,13 @@
 use crate::success;
 
-#[cfg(feature = "tests")]
+#[cfg(feature = "test")]
 #[repr(u32)]
 pub enum QemuExitCode {
     Success = 0x10,
     Failure = 0x11,
 }
 
-#[cfg(feature = "tests")]
+#[cfg(feature = "test")]
 impl QemuExitCode {
     pub fn exit_qemu(self) -> ! {
         use crate::iobus::outl;
@@ -52,4 +52,4 @@ pub fn test_runner(tests: &[&RustTest]) {
 }
 
 #[cfg(not(feature = "test"))]
-pub fn test_runner(tests: &[&RustTest]) {}
+pub fn test_runner(_tests: &[&RustTest]) {}

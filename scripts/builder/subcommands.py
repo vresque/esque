@@ -1,9 +1,12 @@
+from pathlib import Path
+from scripts.builder.cargo import run_cargo_command_in_workspace
 from util import *
 import config
 import shutil
 import subprocess
 import cargo
 import os
+import pathlib
 
 QEMU = f"qemu-system-{config.ARCH}"
 
@@ -73,6 +76,7 @@ def run_qemu(in_background=False) -> int:
         config.QEMU_LOGFILE if config.QEMU_SHOULD_LOG else "",
         "-no-shutdown", "-no-reboot",
         f"-smp {config.QEMU_SMP}",
+        "-device isa-debug-exit,iobase=0xf4,iosize=0x04",
         *config.QEMU_OPTS,
     ]
 
@@ -187,5 +191,54 @@ def test() -> int:
         return 0
     else:
         return 1
+
+    return 0
+
+def apps() -> int:
+    path = pathlib.Path("apps")
+    apps = [f for f in path.iterdir() if f.is_dir()]
+    for app in apps:
+        run_cargo_command_in_workspace(app, "build", config.APPS_CARGO_FLAGS)
+    return 0
+
+def new_app() -> int:
+    name = input("What is the name of the app? ")
+    success(f"Creating app {name}")
+    path_of_app = pathlib.Path("apps/" + name)
+    
+    try:
+        os.mkdir(path_of_app.__str__())
+    except:
+        error(f"App {name} already exists.")
+        opt = input("Deleate? (y/n;Y/N;Yes/No;yes/no) ").lower()
+        # I would love a match statement here, but it is not fair to expect Python 3.10+
+        if opt == "y" or opt == "yes":
+            shutil.rmtree(path_of_app)
+            os.mkdir(path_of_app)
+            pass
+        else:
+            return 1
+
+    run_cargo_command_in_workspace(path_of_app, "init", ["--bin"], rerun=False)
+    with open(path_of_app / "Cargo.toml", "a") as cargo:
+        cargo.write("esque = { path = \"../../libesque/rust/esque\" }")
+    
+    with open(path_of_app / "src" / "main.rs", "w") as main:
+        main.write("#![no_std]\n")
+        main.write("#![no_main]\n")
+        main.write("extern crate esque;\n")
+        main.write("\n")
+        main.write("\n")
+        main.write("#[no_mangle]\n")
+        main.write("pub fn main() {\n")
+        main.write("    // Your code goes here\n")
+        main.write("}\n")
+
+    os.mkdir(path_of_app / ".cargo")
+    with open(path_of_app / ".cargo" / "config.toml", "w+") as cfg:
+        cfg.write("[unstable]\n")
+        cfg.write("build-std-features = [\"compiler-builtins-mem\"]\n")
+        cfg.write("build-std = [\"core\", \"compiler_builtins\", \"alloc\"]\n")
+
 
     return 0

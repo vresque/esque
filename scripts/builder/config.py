@@ -31,6 +31,7 @@ SHOULD_RUN: bool = False
 NEVER_RUN: bool = False
 OUT_IMG: str = ""
 MINIMAL_TOOLCHAIN: bool = False
+APPS_CARGO_FLAGS: str = ""
 
 try:
     import toml
@@ -60,6 +61,7 @@ def adjust_config_values_based_on_parser(arguments):
     global NEVER_RUN
     global OUT_IMG
     global MINIMAL_TOOLCHAIN
+    global APPS_CARGO_FLAGS
 
     MODE = "release" if arguments.release else "debug"
     DOCUMENTATION = arguments.documentation
@@ -96,13 +98,15 @@ def adjust_config_values_based_on_parser(arguments):
         KERNEL_CARGO_FLAGS += "--release "
 
     # Add Target Files
-    KERNEL_CARGO_FLAGS += f"--target ../.targets/{ARCH}/kernel.json "
-    BOOT_CARGO_FLAGS += f"--target ../.targets/{ARCH}/boot.json "
+    KERNEL_CARGO_FLAGS += f" --target ../.targets/{ARCH}/kernel.json "
+    BOOT_CARGO_FLAGS += f" --target ../.targets/{ARCH}/boot.json "
+    APPS_CARGO_FLAGS += f" --target ../../.targets/{ARCH}/apps.json"
 
 
     # They turn into list somewhere along the way FIXME
     KERNEL_CARGO_FLAGS = "".join(map(str, KERNEL_CARGO_FLAGS))
     BOOT_CARGO_FLAGS = "".join(map(str, BOOT_CARGO_FLAGS))
+    APPS_CARGO_FLAGS = "".join(map(str, APPS_CARGO_FLAGS))
     pass
 
 def parse_config(config_path):
@@ -133,6 +137,7 @@ def parse_config(config_path):
     global NEVER_RUN
     global OUT_IMG
     global MINIMAL_TOOLCHAIN
+    global APPS_CARGO_FLAGS
 
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -153,6 +158,9 @@ def parse_config(config_path):
         this_str = " ".join(cfg["kernel"]["cargo-flags"])
         KERNEL_CARGO_FLAGS = this_str if this_str != "mirror" else copy.deepcopy(flags)
         KERNEL_FEATURES = cfg["kernel"]["features"]
+
+        app_cargo_flags = " ".join(cfg["apps"]["cargo-flags"])
+        APPS_CARGO_FLAGS = app_cargo_flags if app_cargo_flags != "mirror" else copy.deepcopy(flags)
         # Bootloader Options
         BOOT_MODE = cfg["boot"]["mode"] if cfg["boot"]["mode"] != "mirror" else MODE
         my_str = " ".join(cfg["boot"]["cargo-flags"])

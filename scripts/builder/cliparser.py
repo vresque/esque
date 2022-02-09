@@ -19,6 +19,8 @@ SUBCOMMANDS = [
     "setup",
     "test",
     "debug",
+    "apps",
+    "new-app",
 ]
 
 SUBCOMMANDS_TO_FN = {
@@ -39,6 +41,8 @@ SUBCOMMANDS_TO_FN = {
     "setup": sc.setup,
     "test": sc.test,
     "debug": sc.debug,
+    "apps": sc.apps,
+    "new-app": sc.new_app,
 }
 
 def parse_args():
