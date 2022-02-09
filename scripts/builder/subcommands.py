@@ -198,7 +198,17 @@ def apps() -> int:
     path = pathlib.Path("apps")
     apps = [f for f in path.iterdir() if f.is_dir()]
     for app in apps:
+        appname: str = apps.__str__().replace("\\", "/").split("/")[-1].replace("')]", "")
+        binpath: str = f"target/apps/{config.MODE}/" + appname
         run_cargo_command_in_workspace(app, "build", config.APPS_CARGO_FLAGS)
+        
+        print(binpath)
+        print(appname)
+        if os.path.exists(app / ".initramfs"):
+            shutil.copy2(binpath, "initramfs/" + appname)
+        else:
+            shutil.copy2(binpath, "build/" + appname)
+
     return 0
 
 def new_app() -> int:
@@ -240,5 +250,17 @@ def new_app() -> int:
         cfg.write("build-std-features = [\"compiler-builtins-mem\"]\n")
         cfg.write("build-std = [\"core\", \"compiler_builtins\", \"alloc\"]\n")
 
+
+
+    opt = input("Should this app be in the InitRamFs? (y/n;Y/N;Yes/No;yes/no) ").lower()
+        # I would love a match statement here, but it is not fair to expect Python 3.10+
+    if opt == "y" or opt == "yes":
+        f = open(path_of_app / ".initramfs", "w")
+        f.close()
+        os.mkdir(path_of_app)
+        pass
+    else:
+        return 1
+    
 
     return 0
