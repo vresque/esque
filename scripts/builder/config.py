@@ -99,7 +99,7 @@ def adjust_config_values_based_on_parser(arguments):
 
     for f in [KERNEL_CARGO_FLAGS, BOOT_CARGO_FLAGS, APPS_CARGO_FLAGS]:
         if f == "":
-            # Empty ones require a space - filled ones do no
+            # Empty ones require a space - filled ones do not
             f += " "
     # Add Target Files
     KERNEL_CARGO_FLAGS += f"--target ../.targets/{ARCH}/kernel.json "

@@ -11,10 +11,12 @@ if sys.version_info.major < 3:
         # python3 opens the Windows Store, sometimes even
         # on machines where python is installed (That happened on my old laptop)
         os.execvp("py", ["py", "-3"] + sys.argv)
+        exit(0)
     except OSError:
         # No py installed, so python *should* be available
         try:
             os.execvp("python3", ["python3"] + sys.argv)
+            exit(0)
         except OSError:
             print("Pre-Execution Error: No valid python3 interpreter found (Tried: `py` and `python3`")
             exit(1)
