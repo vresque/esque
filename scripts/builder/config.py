@@ -97,10 +97,14 @@ def adjust_config_values_based_on_parser(arguments):
     if KERNEL_MODE == "release":
         KERNEL_CARGO_FLAGS += "--release "
 
+    for f in [KERNEL_CARGO_FLAGS, BOOT_CARGO_FLAGS, APPS_CARGO_FLAGS]:
+        if f == "":
+            # Empty ones require a space - filled ones do no
+            f += " "
     # Add Target Files
-    KERNEL_CARGO_FLAGS += f" --target ../.targets/{ARCH}/kernel.json "
-    BOOT_CARGO_FLAGS += f" --target ../.targets/{ARCH}/boot.json "
-    APPS_CARGO_FLAGS += f" --target ../../.targets/{ARCH}/apps.json"
+    KERNEL_CARGO_FLAGS += f"--target ../.targets/{ARCH}/kernel.json "
+    BOOT_CARGO_FLAGS += f"--target ../.targets/{ARCH}/boot.json "
+    APPS_CARGO_FLAGS += f"--target ../../.targets/{ARCH}/apps.json"
 
 
     # They turn into list somewhere along the way FIXME

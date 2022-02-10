@@ -202,10 +202,10 @@ def apps() -> int:
         binpath: str = f"target/apps/{config.MODE}/" + appname
         run_cargo_command_in_workspace(app, "build", config.APPS_CARGO_FLAGS)
         
-        print(binpath)
-        print(appname)
         if os.path.exists(app / ".initramfs"):
-            shutil.copy2(binpath, "initramfs/" + appname)
+            with open(app / ".initramfs") as initramfs:
+                exported_name = initramfs.readline()
+                shutil.copy2(binpath, "initramfs/" + exported_name)
         else:
             shutil.copy2(binpath, "build/" + appname)
 
@@ -256,6 +256,9 @@ def new_app() -> int:
         # I would love a match statement here, but it is not fair to expect Python 3.10+
     if opt == "y" or opt == "yes":
         f = open(path_of_app / ".initramfs", "w")
+        inp = input(f"Under what name shall this app be exported into the InitRamFs? (Default: '{name}'. Leave blank for default.)")
+        exported_name = inp if inp != "" else name
+        f.write(exported_name)
         f.close()
         os.mkdir(path_of_app)
         pass
