@@ -9,6 +9,30 @@ use crate::memory::paging::page_table_manager::PAGE_TABLE_MANAGER;
 
 pub static INITRAMFS: Mutex<MaybeUninit<InitRamFs>> = Mutex::new(MaybeUninit::uninit());
 
+pub mod fs {
+    use alloc::{
+        string::{String, ToString},
+        vec::Vec,
+    };
+
+    use super::INITRAMFS;
+
+    pub fn read_to_string(path: &str) -> Option<String> {
+        Some(
+            String::from_utf8_lossy(
+                unsafe { INITRAMFS.lock().assume_init_mut() }
+                    .open(path)?
+                    .data,
+            )
+            .to_string(),
+        )
+    }
+
+    pub fn read_until_end(path: &str) -> Option<Vec<u8>> {
+        unsafe { Some(INITRAMFS.lock().assume_init_mut().open(path)?.data.to_vec()) }
+    }
+}
+
 pub fn load_initramfs(handover: &mut Handover) {
     let ptr = handover.initramfs_base;
     unsafe {

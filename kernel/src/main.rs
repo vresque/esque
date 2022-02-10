@@ -42,6 +42,7 @@ use bks::PAGE_SIZE;
 pub use config::config;
 pub use esys::process::Process;
 pub use smp::Thread;
+use userspace::launchpad::Launchpad;
 pub use userspace::pid::{KernelPid, Pid};
 
 pub mod ipc;
@@ -75,8 +76,14 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
 
+    Launchpad::new(&initramfs::fs::read_until_end("esqrc").unwrap(), true)
+        .with_pid(Pid::force_new(1))
+        .launch();
+
     #[cfg(test)]
     test_main();
 
-    loop {}
+    loop {
+        unsafe { core::arch::asm!("hlt") };
+    }
 }

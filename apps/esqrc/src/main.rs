@@ -1,9 +1,7 @@
 #![no_std]
 #![no_main]
-extern crate esque;
 
-
-#[no_mangle]
-pub fn main() {
-    // Your code goes here
+#[esque::main]
+pub fn main() -> u32 {
+    return 32;
 }

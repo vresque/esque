@@ -1,6 +1,7 @@
 // The following structure must be at the beginning of each IPC Queue
 pub struct IPCQueueHeader {
-    pub checknum: u8,     // 42
+    pub checknum: u8, // 42
+    pub queue: [IPCMessage; 255],
     pub slots: [u8; 255], // TRUE if the slot is occupied, FALSE if not
     pub is_empty: u8,
 }

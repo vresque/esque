@@ -29,7 +29,11 @@ Function Test-IfCommandExists
     }
 }
 
-
+Function Check-Retval {
+    if (-Not ($?)) {
+        Exit
+    }
+}
 
 # Otherwise, the condition below will often be triggered
 if ($command -eq "setup") {
@@ -62,10 +66,17 @@ switch ($command) {
     }
     "build" {
         python y.py initramfs $otherArgs
+        Check-Retval
         python y.py format $otherArgs
+        Check-Retval
         python y.py build-kernel $otherArgs
+        Check-Retval
         python y.py build-boot $otherArgs
-        wsl python y.py strip $otherArgs; python y.py image $otherArgs; logout
+        Check-Retval
+        wsl python y.py strip $otherArgs
+        Check-Retval
+        wsl python y.py image $otherArgs
+        Check-Retval
     }
     "setup" {
         python y.py $command $otherArgs 

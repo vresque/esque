@@ -1,13 +1,15 @@
 #![no_std]
+pub use esque_derive::*;
 
-
-extern {
+extern "C" {
     fn main();
 }
 
 #[no_mangle]
 pub fn _start() -> i32 {
-    unsafe { main(); };
+    unsafe {
+        main();
+    };
     return 22;
 }
 

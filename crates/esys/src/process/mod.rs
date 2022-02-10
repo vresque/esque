@@ -1,21 +1,26 @@
 pub mod pid;
 use pid::Pid;
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub struct Process {
-    pid: Pid,
-    entry: u64,
-    ipc_base: u64,
-    protected: bool,
+pub trait Process {
+    fn kill();
+    fn signal(signal: u64);
 }
 
-impl Process {
-    pub fn new(pid: Pid, entry: u64, ipc_base: u64, protected: bool) -> Self {
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub struct SystemProcess {
+    pub pid: Pid,
+    pub entry: u64,
+    pub msg_base: u64,
+    pub protected: bool,
+}
+
+impl SystemProcess {
+    pub fn new(pid: Pid, entry: u64, msg_base: u64, protected: bool) -> Self {
         Self {
             pid,
             entry,
-            ipc_base,
+            msg_base,
             protected,
         }
     }
