@@ -14,8 +14,15 @@ pub struct IPCMessage {
     pub version: u8,
     // If the IPC was answered and handled by the kernel
     pub is_answered: u8,
+    // The kernel error code; 0 = SUCCESS
+    pub errno: u8,
     // If the message was resolved (This must be selected by the user, the kernel will then remove the message from the stack and set the corresponding slot to false)
     pub is_resolved: u8,
+    // The Lane of the Message
+    // Examples:
+    // 0 => KERNEL SUBSYSTEM
+    // 1 => POSIX SUBSYSTEM
+    pub lane: u8,
     // The Group of the Message: Example
     // 0 => KERNEL
     // 1 => SECURITY

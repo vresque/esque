@@ -22,7 +22,6 @@ pub fn init_interrupts(_: &mut Handover) {
         IDT_REGISTER.force_unlock();
     }
     IDT_REGISTER.lock().write(idtr);
-    crate::debug!("{:#?}", IDT_REGISTER.lock().assume_init_mut());
 
     crate::scheduler::pit::set_divisor(65535 / 3);
 

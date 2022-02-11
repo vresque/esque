@@ -181,6 +181,8 @@ pub struct Heap<'header> {
     heap_start: u64,
     heap_end: u64,
     page_count: usize,
+    freed: u64,
+    allocated: u64,
 }
 
 impl<'header> Heap<'header> {
@@ -200,6 +202,8 @@ impl<'header> Heap<'header> {
             heap_start: heap_address,
             heap_end: (heap_address + heap_len_in_bytes as u64),
             page_count: page_count,
+            freed: 0,
+            allocated: 0,
         };
 
         heap
@@ -228,11 +232,13 @@ impl<'header> Heap<'header> {
                     // We split it into one perfect and one imperfect header
                     self.split_header(current_segment, rounded_size);
                     current_segment.free = false;
+                    self.allocated += 1;
                     return current_segment.address() + size_of::<HeapSegmentHeader>() as u64;
                 }
 
                 // It is a perfect fit
                 if current_segment.len == rounded_size {
+                    self.allocated += 1;
                     return current_segment.address() + size_of::<HeapSegmentHeader>() as u64;
                 }
             }
@@ -267,11 +273,14 @@ impl<'header> Heap<'header> {
     }
 
     pub fn free(&mut self, address: u64) {
-        debug!("Freeing {:#x?}", address);
+        if address == 0 {
+            return;
+        }
+
+        self.freed += 1;
         let header = unsafe {
             HeapSegmentHeader::from_addr(address - size_of::<HeapSegmentHeader>() as u64)
         }; // The Header is always size_of(HeapSegmentHeader) before the actual value
-        debug!("{:?}", header);
         header.free = true;
         header.combine_with_last(self.last_header);
         header.combine_with_next(self.last_header);
@@ -308,6 +317,18 @@ impl<'header> Heap<'header> {
         header.len = length - size_of::<HeapSegmentHeader>();
         header.combine_with_last(self.last_header);
         self.last_header = header;
+    }
+
+    pub fn freed(&self) -> u64 { self.freed }
+    pub fn allocated(&self) -> u64 { self.allocated }
+    pub fn leaks(&self) -> u64 {
+        assert!(self.allocated > self.freed);
+        let difference: i64 = self.allocated as i64 - self.freed as i64;
+        return if difference < 0 {
+            0
+        } else {
+            difference as u64
+        }
     }
 }
 

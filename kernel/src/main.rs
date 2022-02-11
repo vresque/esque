@@ -1,22 +1,32 @@
 #![no_std]
 #![no_main]
+
+
+// Features ---
 #![feature(arbitrary_enum_discriminant)]
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
 #![feature(rustc_private)]
 #![feature(abi_x86_interrupt)]
-#![allow(unstable_features)]
 #![feature(alloc_error_handler)]
 #![feature(stmt_expr_attributes)]
 #![feature(custom_test_frameworks)]
-#![test_runner(crate::test::test_runner)]
-#![reexport_test_harness_main = "test_main"]
-#![allow(unused_unsafe)]
 #![feature(int_log)]
 #![feature(slice_pattern)]
+
+// Allow ---
+#![allow(unused_unsafe)]
 #![allow(dead_code)]
+#![allow(unstable_features)]
+
+// Deny ---
 // Functions and structs may not be used immediately, but may be added in case it will ever be needed
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
+
+// Testing ----
+#![test_runner(crate::test::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
 
 extern crate alloc;
 pub mod framebuffer;
