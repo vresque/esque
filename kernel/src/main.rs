@@ -84,6 +84,6 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     test_main();
 
     loop {
-        unsafe { core::arch::asm!("hlt") };
+        unsafe { comasm::halt() };
     }
 }

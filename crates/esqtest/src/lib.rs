@@ -1,24 +1,66 @@
-use proc_macro::TokenStream;
-use syn::ItemFn;
+#![no_std]
 
-#[proc_macro_attribute]
-pub fn esqtest(_stream: TokenStream, r#in: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(r#in as ItemFn);
+pub use esqtest_derive::*;
 
-    let body = &input.block;
-    let name = &input.sig.ident;
+pub struct RustTest {
+    pub func: fn() -> i32,
+    pub name: &'static str,
+}
 
-    let full_name = quote::format_ident!("{}_esqtest", name);
-
-    let retval = quote::quote! {
-        fn #name() {
-            #body
+#[macro_export]
+macro_rules! check {
+    ($c:expr) => {
+        if !($c) {
+            return 1;
         }
-        #[test_case]
-        static #full_name: crate::test::RustTest = crate::test::RustTest {
-            func: #name,
-            name: concat!(module_path!(), ".", stringify!(#name))
-        };
     };
-    retval.into()
+}
+
+#[macro_export]
+macro_rules! check_eq {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a == $b)
+    };
+}
+
+#[macro_export]
+macro_rules! check_neq {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a != $b)
+    };
+}
+
+#[macro_export]
+macro_rules! check_gt {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a > $b)
+    };
+}
+
+#[macro_export]
+macro_rules! check_lt {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a < $b)
+    };
+}
+
+#[macro_export]
+macro_rules! check_ge {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a => $b)
+    };
+}
+
+#[macro_export]
+macro_rules! check_le {
+    ($a:expr, $b:expr) => {
+        esqtest::check!($a =< $b)
+    };
+}
+
+#[macro_export]
+macro_rules! all_good {
+    () => {
+        return 0;
+    };
 }

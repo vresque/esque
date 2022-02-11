@@ -234,7 +234,7 @@ impl<'table> PageTableManager<'table> {
         page_pde.set_flag(PageTableFlag::PRESENT, true);
         page_pde.set_flag(PageTableFlag::READ_WRITE, true);
 
-        pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
+        //pt.entries[indexer.p_idx] = page_pde; // FIXME: This causes a Page Fault
     }
 }
 

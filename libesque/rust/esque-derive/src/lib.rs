@@ -11,8 +11,8 @@ pub fn main(_stream: TokenStream, input: TokenStream) -> TokenStream {
         extern crate esque;
 
         #[no_mangle]
-        pub fn main() -> u32 {
-            let entry: fn() -> u32 = || -> u32 {
+        pub extern "C" fn main() -> u32 {
+            fn entry() -> u32 {
                 #body
             };
             return entry();

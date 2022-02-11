@@ -64,6 +64,20 @@ switch ($command) {
         python y.py $command $otherArgs 
         break
     }
+    "w-build" {
+        python y.py initramfs $otherArgs
+        Check-Retval
+        python y.py format $otherArgs
+        Check-Retval
+        wsl python y.py build-kernel $otherArgs
+        Check-Retval
+        wsl python y.py build-boot $otherArgs
+        Check-Retval
+        wsl python y.py strip $otherArgs
+        Check-Retval
+        wsl python y.py image $otherArgs
+        Check-Retval
+    }
     "build" {
         python y.py initramfs $otherArgs
         Check-Retval
@@ -77,16 +91,20 @@ switch ($command) {
         Check-Retval
         wsl python y.py image $otherArgs
         Check-Retval
+        break
     }
     "setup" {
-        python y.py $command $otherArgs 
+        python y.py $command $otherArgs
+        break
     }
     "wsl" {
         wsl python y.py $otherArgs
+        break
     }
     default {
         Write-Output "Running $command with $otherArgs in WSL"
         wsl python y.py $command $otherArgs 
         Write-Output "WSL exited..."
+        break
     }
 }

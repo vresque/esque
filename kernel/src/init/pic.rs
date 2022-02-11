@@ -16,6 +16,6 @@ pub fn init_pic(_: &mut Handover) {
 
     // Reload Interrupt Flags
     unsafe {
-        core::arch::asm!("sti");
+        comasm::reload_interrupt_flags();
     };
 }

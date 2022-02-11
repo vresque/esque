@@ -61,10 +61,12 @@ fn panic_handler(info: &PanicInfo) -> ! {
     }
     kprintln!();
     kprintln!("*+~*+~*+~*+~*+~*+~*+~*+~*+~ Panic End *+~*+~*+~*+~*+~*+~*+~*+~*+~");
-    unsafe { asm!("cli") };
+    unsafe {
+        comasm::clear_interrupts();
+    };
     loop {
         unsafe {
-            asm!("hlt");
+            comasm::halt();
         }
     }
 }

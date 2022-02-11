@@ -98,7 +98,7 @@ def adjust_config_values_based_on_parser(arguments):
         KERNEL_CARGO_FLAGS += "--release "
 
     for f in [KERNEL_CARGO_FLAGS, BOOT_CARGO_FLAGS, APPS_CARGO_FLAGS]:
-        if f == "":
+        if f == "" or f[-1] != ' ':
             # Empty ones require a space - filled ones do not
             f += " "
     # Add Target Files

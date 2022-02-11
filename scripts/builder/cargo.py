@@ -2,7 +2,7 @@ import util
 import subprocess
 import json_handler
 
-def run_cargo_command_in_workspace(cwd, command, args, rerun=True):
+def run_cargo_command_in_workspace(cwd, command, args, rerun=False):
     util.info(f"Executing cargo command 'cargo {command}' with flags '{args}' in directory '{cwd}'")
     # First Pass (With Output)
     if isinstance(args, str):
@@ -32,3 +32,4 @@ def run_cargo_command_in_workspace(cwd, command, args, rerun=True):
             stderr=subprocess.DEVNULL,
             cwd=cwd)
         return json_handler.find_executables_in_cargo_json(stdout)
+    return 0

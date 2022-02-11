@@ -40,8 +40,16 @@ pub fn load_file<'a>(
     let loaded_img = unsafe {
         &mut *(table
             .boot_services()
-            .handle_protocol::<LoadedImage>(handle)
+            .open_protocol::<LoadedImage>(
+                OpenProtocolParams {
+                    handle: handle,
+                    agent: handle,
+                    controller: None,
+                },
+                OpenProtocolAttributes::Exclusive,
+            )
             .expect_success("Failed to load the LoadedImage Protocol")
+            .interface
             .get())
     };
 
