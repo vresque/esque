@@ -19,7 +19,7 @@ minimal-toolchain = true
 strip = true
 
 [kernel]
-features = [ "ci" ]
+features = []
 cargo-flags = [ "mirror" ] # Also mirrors the global flags
 mode = "mirror" # Mirrors global mode
 
