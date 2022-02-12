@@ -1,6 +1,8 @@
 use core::mem::size_of;
 
-use pci_lookup::{get_device_name, get_subclass_name, get_vendor_name, DEVICE_CLASSES};
+use pci_lookup::{
+    get_device_name, get_prog_if_name, get_subclass_name, get_vendor_name, DEVICE_CLASSES,
+};
 
 use crate::{
     acpi::{config::DeviceConfig, ACPITable, MCFGHeader},
@@ -29,16 +31,17 @@ impl core::fmt::Display for PCIDeviceHeader {
         writeln!(f, "PCIDeviceHeader:")?;
         writeln!(
             f,
-            "   (Vendor ID = {:#x?}; Device ID = {:#x?})",
-            self.vendor_id, self.device_id
+            "   (Vendor ID = {:#x?}; Device ID = {:#x?}; Program Interface = {:#x?})",
+            self.vendor_id, self.device_id, self.program_interface
         )?;
         writeln!(
             f,
-            "Vendor = {}; Device = {}; Class = {}; Subclass = {}",
+            "   Vendor = {}; Device = {}; Class = {}; Subclass = {}; Program Interface = {}",
             get_vendor_name(self.vendor_id),
             get_device_name(self.vendor_id, self.device_id),
             DEVICE_CLASSES[self.class as usize],
-            get_subclass_name(self.class, self.subclass)
+            get_subclass_name(self.class, self.subclass),
+            get_prog_if_name(self.class, self.subclass, self.program_interface)
         )?;
 
         Ok(())

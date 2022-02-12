@@ -78,6 +78,44 @@ pub fn get_device_name(vendor: u16, device: u16) -> &'static str {
 
 macro_rules! match_tree {
     (
+        grand = $grand_matcher:expr => major = $major_matcher:expr => minor = $minor_matcher:expr =>
+        config: { grand-default = $final_grand:expr ; major-default = $final_major:expr ; minor-default = $final_minor:expr } => {
+        $(
+            $grand_match:tt {
+                $(
+                    $major_match:tt {
+                        $(
+                            $minor_match:tt = $minor_result:expr,
+                        )*
+                    },
+                )*
+        },
+    )*
+    }
+    ) => {
+        match $grand_matcher {
+            $(
+                $grand_match => {
+                    match $major_matcher {
+                        $(
+                            $major_match => {
+                                match $minor_matcher {
+                                    $(
+                                        $minor_match => { $minor_result },
+                                    )*
+                                    _ => { $final_minor }
+                                }
+                            },
+                        )*
+                        _ => { $final_major }
+                    }
+                }
+            )*
+            _ => { $final_grand }
+        }
+    };
+
+    (
         major = $major_matcher:expr => minor = $minor_matcher:expr =>
         config: { major-default = $final_major:expr ; minor-default = $final_minor:expr } => {$(
             $major_match:tt {
@@ -102,6 +140,7 @@ macro_rules! match_tree {
             _ => { $final_major }
         }
     };
+
 }
 
 /// # Get Subclass Name
@@ -277,6 +316,159 @@ pub fn get_subclass_name(class: u8, subclass: u8) -> &'static str {
                 0x12 - Processing Accelerator
                 0x13 - Non-Esential Instrumentation
             */
+        }
+    }
+}
+
+pub fn get_prog_if_name(class: u8, subclass: u8, prog_if: u8) -> &'static str {
+    match_tree! {
+        grand = class => major = subclass => minor = prog_if =>
+        config: { grand-default = "No Program Interface"; major-default = "No Program Interface"; minor-default = "No Program Interface" } =>
+        {
+            /* Mass Storage Controller */
+            0x1 {
+                /* IDE Controller */
+                0x1 {
+                    0x0 = "ISA Compatibility mode-only controller",
+                    0x5 = "PCI native mode-only controller",
+                    0xA = "ISA Compatibility mode controller, supports both channels switched to PCI native mode",
+                    0xF = "PCI native mode controller, supports both channels switched to ISA compatibility mode",
+                    0x80 = "ISA Compatibility mode-only controller, supports bus mastering",
+                    0x85 = "PCI native mode-only controller, supports bus mastering",
+                    0x8A = "ISA Compatibility mode controller, supports both channels switched to PCI native mode, supports bus mastering",
+                    0x8F = "PCI native mode controller, supports both channels switched to ISA compatibility mode, supports bus mastering",
+                },
+                /* ATA Controller */
+                0x5 {
+                    0x20 = "Single DMA",
+                    0x30 = "Chained DMA",
+                },
+                /* Serial ATA Controller */
+                0x6 {
+                    0x0 = "Vendor Specific Interface",
+                    0x1 = "AHCI 1.0",
+                    0x2 = "Serial Storage Bus",
+                },
+                /* Serial Attached SCSI Controller */
+                0x7 {
+                    0x0 = "SAS",
+                    0x1 = "Serial Storage Bus",
+                },
+                /* Non-Volatile Memory Controller */
+                0x8 {
+                    0x1 = "NVMHCI",
+                    0x2 = "NVM Express",
+                },
+            },
+            /* Display Controller */
+            0x3 {
+                /* VGA-Compatible Controller */
+                0x0 {
+                    0x0 = "VGA Controller",
+                    0x1 = "8541-Compatible Controller",
+                },
+            },
+            /* Bridge */
+            0x6 {
+                /* PCI-to-PCI Bridge */
+                0x4 {
+                    0x0 = "Normal Decode",
+                    0x1 = "Subtractive Decode",
+                },
+                /* RACEway Bridge */
+                0x8 {
+                    0x0 = "Transparent Mode",
+                    0x1 = "Endpoint Mode",
+                },
+                /* PCI-to-PCI Bridge */
+                0x9 {
+                    0x40 = "Semi-Transparent, Primary bus towards host CPU",
+                    0x80 = "Semi-Transparent, Secondary bus towards host CPU",
+                },
+            },
+            /* Simple Communication Controller */
+            0x7 {
+                /* Serial Controller */
+                0x0 {
+                    0x0 = "8250-Compatible (Generic XT)",
+                    0x1 = "16450-Compatible",
+                    0x2 = "16550-Compatible",
+                    0x3 = "16650-Compatible",
+                    0x4 = "16750-Compatible",
+                    0x5 = "16850-Compatible",
+                    0x6 = "16950-Compatible",
+                },
+                0x1 {/* Parallel Controller */
+                    0x0 = "Standard Parallel Port",
+                    0x1 = "Bi-Directional Parallel Port",
+                    0x2 = "ECP 1.X Compliant Parallel Port",
+                    0x3 = "IEEE 1284 Controller",
+                    0xFE = "IEEE 1284 Target Device",
+                },
+                /* Modem */
+                0x3 {
+                    0x0 = "Generic Modem",
+                    0x1 = "Hayes 16450-Compatible Interface",
+                    0x2 = "Hayes 16550-Compatible Interface",
+                    0x3 = "Hayes 16650-Compatible Interface",
+                    0x4 = "Hayes 16750-Compatible Interface",
+                },
+            },
+            /* Base System Peripheral */
+            0x8 {
+                /* PIC */
+                0x0 {
+                    0x0 = "Generic 8259-Compatible",
+                    0x1 = "ISA-Compatible",
+                    0x2 = "EISA-Compatible",
+                    0x10 = "I/O APIC Interrupt Controller",
+                    0x20 = "I/O(x) APIC Interrupt Controller",
+                },
+                /* DMA Controller */
+                0x01 {
+                    0x00 = "Generic 8237-Compatible",
+                    0x01 = "ISA-Compatible",
+                    0x02 = "EISA-Compatible",
+                },
+                /* Timer */
+                0x02 {
+                    0x00 = "Generic 8254-Compatible",
+                    0x01 = "ISA-Compatible",
+                    0x02 = "EISA-Compatible",
+                    0x03 = "HPET",
+                },
+                /* RTC Controller */
+                0x3 {
+                    0x0 = "Generic RTC",
+                    0x1 = "ISA-Compatible",
+                },
+            },
+            /* Input Device Controller */
+            0x9 {
+                /* Gameport Controller */
+                0x4 {
+                    0x0 = "Generic",
+                    0x10 = "Extended",
+                },
+            },
+            /* Serial Bus Controller */
+            0xC {
+                /* USB Controller */
+                0x3 {
+                    0x0 = "UHCI Controller",
+                    0x10 = "OHCI Controller",
+                    0x20 = "EHCI (USB2) Controller",
+                    0x30 = "XHCI (USB3) Controller",
+                    0x80 = "Unspecified",
+                    0xFE = "USB Device (not a host controller)",
+                },
+                /* IPMI Interface */
+                0x7 {
+                    0x0 = "SMIC",
+                    0x1 = "Keyboard Controller Style",
+                    0x2 = "Block Transfer",
+                },
+            },
         }
     }
 }
