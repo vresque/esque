@@ -37,12 +37,6 @@ pub fn check_printing() {
 }
 
 #[esqtest::test]
-pub fn check_testing_framework() {
-    check_neq!(0, 0);
-    all_good!();
-}
-
-#[esqtest::test]
 pub fn check_allocation() {
     check_neq!(address_of!(malloc::<IPCQueueHeader>()), 0);
     all_good!()

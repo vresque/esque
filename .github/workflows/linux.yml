@@ -52,7 +52,7 @@ jobs:
       - name: Install all Dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 mtools dosfstools qemu-system-x86_64
+          sudo apt install -y python3 mtools dosfstools qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
           python3 -m pip install xbstrap toml
       - run: python y.py clean
       - run: python y.py setup
