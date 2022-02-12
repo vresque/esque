@@ -56,11 +56,8 @@ jobs:
           python3 -m pip install xbstrap toml
       - run: python y.py clean
       - run: python y.py setup
-#      - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-#      - name: Test the kernel
-#        run: |
-#          ./y.py test --config .github/workflows/CI.toml --minimal-toolchain
-#      - name: Run the Tests
-#        run: |
-#          ./y.py run --config .github/workflows/CI.toml
-#
+      - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+      - name: Test the kernel
+        run: |
+          ./y.py ci --config .github/workflows/CI.toml --minimal-toolchain
+

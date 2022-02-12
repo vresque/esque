@@ -23,6 +23,5 @@ esqtest =  { path = "../crates/esqtest" }
 comasm = { path = "../crates/comasm" }
 
 [features]
-test = []
-ci = ["test"]
+harsh-tests = [] # Exit on Failure of a test
 default = ["rlibc"]

@@ -1,6 +1,6 @@
 use alloc::vec;
 use alloc::vec::Vec;
-use esys::ipc::{IPCQueueHeader, IPCMessage};
+use esys::ipc::{IPCMessage, IPCQueueHeader};
 use spin::Mutex;
 use unique::Unique;
 
@@ -21,22 +21,19 @@ pub fn handle_ipc_queue(queue: u64) {
     for slot in header.as_mut().slots {
         if slot == true as u8 {
             let ipc = &mut header.as_mut().queue[slot as usize];
-            
-            if ipc.lane != 0 { return; /* Lane 0 is the kernel lane */}
-            
-            
+
+            if ipc.lane != 0 {
+                return; /* Lane 0 is the kernel lane */
+            }
+
             // Everything other than 0 needs to be handled by another department
             match ipc.group {
-                0 => {
-                    kernel_handle_ipc_message(ipc)
-                }
+                0 => kernel_handle_ipc_message(ipc),
                 1 => {}
                 _ => return,
             }
-            
-            // TODO: Handle IPC Message
-            
 
+            // TODO: Handle IPC Message
 
             ipc.is_answered = true as u8;
             header.as_mut().slots[slot as usize] = true as u8;

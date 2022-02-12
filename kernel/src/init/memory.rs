@@ -70,12 +70,12 @@ pub fn map_memory(handover: &mut Handover) {
                 let value: u64;
                 asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
                 let addr = &mut *(value as *mut u64 as *mut PageTable);
-                pml4 = addr
+                pml4 = addr;
             }
-            memset(address_of!(pml4), 0, bks::PAGE_SIZE as usize);
+
+            //memset(address_of!(pml4), 0, bks::PAGE_SIZE as usize);
             let pml4_addr = pml4 as *const PageTable as u64;
             let mut page_table_manager = PageTableManager::new(pml4);
-
             // Mapping (and locking) the framebuffer
             info!("Mapping Framebuffer...");
             let fb_base = handover.framebuffer().base;
@@ -97,6 +97,7 @@ pub fn map_memory(handover: &mut Handover) {
                 total_mem / 1024,
                 total_mem / 1024 / 1024,
             );
+
             for i in (_KERNEL_START..(total_mem)).step_by(0x1000) {
                 if (fb_base..fb_end).contains(&i) {
                     continue;

@@ -1,16 +1,21 @@
 use esqtest::{all_good, check_neq};
 use esys::ipc::IPCQueueHeader;
 
-use crate::{address_of, heap::malloc, success};
+use crate::{address_of, emergency, heap::malloc, success};
 
-#[cfg(feature = "test")]
 #[repr(u32)]
+#[cfg(feature = "harsh-tests")]
+// QEMU will execute `exit(((code << 1) | 1))`
 pub enum QemuExitCode {
-    Success = 0x10,
-    Failure = 0x11,
+    // Note: exit(0) is not supported
+    // These values hold no significance at all, they were chosen at random
+    // (The meaning of life)
+    Success = 0x42,      // All Tests were good
+    TotalFailure = 0x43, // At least 50% of the tests failed
+    Mixed = 0x44,        // At least one test failed
 }
 
-#[cfg(feature = "test")]
+#[cfg(feature = "harsh-tests")]
 impl QemuExitCode {
     pub fn exit_qemu(self) -> ! {
         use crate::iobus::outl;
@@ -32,12 +37,17 @@ pub fn check_printing() {
 }
 
 #[esqtest::test]
+pub fn check_testing_framework() {
+    check_neq!(0, 0);
+    all_good!();
+}
+
+#[esqtest::test]
 pub fn check_allocation() {
     check_neq!(address_of!(malloc::<IPCQueueHeader>()), 0);
     all_good!()
 }
 
-#[cfg(feature = "test")]
 pub fn test_runner(tests: &[&esqtest::RustTest]) {
     let mut passed_tests: u32 = 0;
     let mut failed_tests: u32 = 0;
@@ -51,7 +61,7 @@ pub fn test_runner(tests: &[&esqtest::RustTest]) {
             success!("{}.............. ok", test.name);
             passed_tests += 1;
         } else {
-            error!("{}.............. failed", test.name);
+            emergency!("{}.............. failed", test.name);
             failed_tests += 1;
         }
     }
@@ -60,8 +70,21 @@ pub fn test_runner(tests: &[&esqtest::RustTest]) {
     success!("> Passed {} tests.", passed_tests);
     error!("> Failed {} tests.", failed_tests);
     info!("> Total Tests: {}", tests.len());
-    let f_percentage = failed_tests / tests.len() as u32;
-    let p_percentage = passed_tests / tests.len() as u32;
+    let f_percentage = (failed_tests as f32 / tests.len() as f32) * 100.0;
+    let p_percentage = (passed_tests as f32 / tests.len() as f32) * 100.0;
+
+    #[cfg(feature = "harsh-tests")]
+    // Must be here as it will otherwise be exclusive to the brackets below
+    let exit_code: QemuExitCode = if f_percentage > 0.0 {
+        // Bigger than 50?
+        if f_percentage > 50.0 {
+            QemuExitCode::TotalFailure
+        } else {
+            QemuExitCode::Mixed
+        }
+    } else {
+        QemuExitCode::Success
+    };
 
     if f_percentage < p_percentage {
         success!(
@@ -76,8 +99,6 @@ pub fn test_runner(tests: &[&esqtest::RustTest]) {
         );
     }
 
-    QemuExitCode::Success.exit_qemu();
+    #[cfg(feature = "harsh-tests")]
+    exit_code.exit_qemu();
 }
-
-#[cfg(not(feature = "test"))]
-pub fn test_runner(_tests: &[&esqtest::RustTest]) {}

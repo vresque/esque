@@ -1,7 +1,5 @@
 #![no_std]
 #![no_main]
-
-
 // Features ---
 #![feature(arbitrary_enum_discriminant)]
 #![feature(panic_info_message)]
@@ -13,12 +11,10 @@
 #![feature(custom_test_frameworks)]
 #![feature(int_log)]
 #![feature(slice_pattern)]
-
 // Allow ---
 #![allow(unused_unsafe)]
 #![allow(dead_code)]
 #![allow(unstable_features)]
-
 // Deny ---
 // Functions and structs may not be used immediately, but may be added in case it will ever be needed
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
@@ -26,7 +22,6 @@
 // Testing ----
 #![test_runner(crate::test::test_runner)]
 #![reexport_test_harness_main = "test_main"]
-
 
 extern crate alloc;
 pub mod framebuffer;
@@ -86,12 +81,23 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::syscall::init_syscalls(&mut handover);
     initramfs::load_system_space_applications(&mut handover);
 
-    Launchpad::new(&initramfs::fs::read_until_end("esqrc").unwrap(), true)
-        .with_pid(Pid::force_new(1))
-        .launch();
+    for i in unsafe { initramfs::INITRAMFS.lock().assume_init_mut().entries() } {
+        debug!("{:?}", i.filename);
+    }
+
+    Launchpad::new(
+        &initramfs::fs::read_until_end("initramfs/esqrc").unwrap(),
+        true,
+    )
+    .with_pid(Pid::force_new(1))
+    .launch();
 
     #[cfg(test)]
-    test_main();
+    {
+        success!("Running Tests...");
+        test_main();
+        success!("Ran all tests!");
+    }
 
     loop {
         unsafe { comasm::halt() };

@@ -4,9 +4,11 @@ from util import *
 import config
 import shutil
 import subprocess
+import math
 import cargo
 import os
 import pathlib
+import cliparser
 
 QEMU = f"qemu-system-{config.ARCH}"
 
@@ -52,7 +54,7 @@ def format() -> int:
             return 1
     return 0
 
-def run_qemu(in_background=False) -> int:
+def run_qemu(in_background=False, return_exit_code=False, exit_on_error=True) -> int:
     # If never-run is set, ignore
     if config.NEVER_RUN:
         error("Not running due to either one of the following conditions being true")
@@ -89,7 +91,9 @@ def run_qemu(in_background=False) -> int:
         info("Running QEMU in background")
         return 0
     else:
-        run(one)
+        code = run(one, exit_on_error=exit_on_error)[0]
+        if return_exit_code:
+            return code
         return 0
     return 0
     
@@ -169,12 +173,12 @@ def setup():
     return 0
 
 def build_testing_kernel() -> int:
-    cargo.run_cargo_command_in_workspace("kernel", "test", "--no-run " + config.KERNEL_CARGO_FLAGS)
-    shutil.copy(f"target/kernel/{config.KERNEL_MODE}/kernel", "build/esque")
+    testing_kernel_bin = cargo.run_cargo_command_in_workspace("kernel", "test", "--no-run " + config.KERNEL_CARGO_FLAGS)
+    shutil.copy(testing_kernel_bin[0], "build/esque")
     return 0
 
 
-def test() -> int:
+def test_inner(should_run=False) -> int:
     code = initramfs()
     code = ~format() & ~code
     code = ~build_testing_kernel() & ~code
@@ -185,7 +189,9 @@ def test() -> int:
     if config.DOCUMENTATION:
         code = ~build_docs() & ~code
 
-    code = ~run_qemu() & ~code
+    if should_run == True:
+        info("Running QEMU")
+        code = ~run_qemu() & ~code
 
     if code == -1 or code == 0:
         return 0
@@ -193,6 +199,9 @@ def test() -> int:
         return 1
 
     return 0
+
+def test() -> int:
+    return test_inner(True)
 
 def apps() -> int:
     path = pathlib.Path("apps")
@@ -253,7 +262,7 @@ def new_app() -> int:
 
 
     opt = input("Should this app be in the InitRamFs? (y/n;Y/N;Yes/No;yes/no) ").lower()
-        # I would love a match statement here, but it is not fair to expect Python 3.10+
+    # I would love a match statement here, but it is not fair to expect Python 3.10+
     if opt == "y" or opt == "yes":
         f = open(path_of_app / ".initramfs", "w")
         inp = input(f"Under what name shall this app be exported into the InitRamFs? (Default: '{name}'. Leave blank for default.)")
@@ -266,4 +275,40 @@ def new_app() -> int:
         return 1
     
 
+    return 0
+
+def run_ci() -> int:
+    # Runs the CI
+    
+    # This is a bit "hacky". but it would be hard to accomplish otherwise
+    config.KERNEL_CARGO_FLAGS = []
+    arguments = cliparser.parse_args()
+    # Force the recalculation of globals
+    config.parse_config(arguments.config)
+    config.KERNEL_FEATURES += ["harsh-tests"]
+    config.adjust_config_values_based_on_parser(arguments)
+    
+    
+    test_inner(False)
+    success("Running Qemu...")
+    outcode = run_qemu(return_exit_code=True, exit_on_error=False)
+    info(f"QEMU returned exit code {outcode}")
+    # QEMU cannot exit with 0 (If the user is in control)
+    # QEMU calculates the exit code like this:
+    # ((code << 1) | 1)
+    # AKA: code * 2 + 1
+    if outcode != 0x42 * 2 + 1:
+        def translate_code(code):
+            # Match Statements are not supported widely yet
+            if code == 0x43:
+                return "Total Failure (>50% of all tests failed)", 1
+            elif code == 0x44:
+                return "Mixed Results (<50% of all tests failed)", 2
+            else:
+                return "Invalid Exit Code", 254
+
+        error(f"CI Failed with code {hex(math.ceil(outcode / 2 - 1))} (= {translate_code(math.ceil(outcode / 2 - 1))[0]})")
+        return translate_code(outcode * 2 + 1)[1]
+        
+    success("CI succeeded completely (100% of all tests succeeded)")
     return 0

@@ -319,16 +319,16 @@ impl<'header> Heap<'header> {
         self.last_header = header;
     }
 
-    pub fn freed(&self) -> u64 { self.freed }
-    pub fn allocated(&self) -> u64 { self.allocated }
+    pub fn freed(&self) -> u64 {
+        self.freed
+    }
+    pub fn allocated(&self) -> u64 {
+        self.allocated
+    }
     pub fn leaks(&self) -> u64 {
         assert!(self.allocated > self.freed);
         let difference: i64 = self.allocated as i64 - self.freed as i64;
-        return if difference < 0 {
-            0
-        } else {
-            difference as u64
-        }
+        return if difference < 0 { 0 } else { difference as u64 };
     }
 }
 

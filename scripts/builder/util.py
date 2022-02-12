@@ -35,8 +35,9 @@ def run_in_bg(progarg, **kwargs):
         list = progarg
 
     output = subprocess.Popen(list, **kwargs)
+    return output
 
-def run(progarg, **kwargs):
+def run(progarg, exit_on_error=True, **kwargs):
     if isinstance(progarg, str):
         list = progarg.split(" ")
     else:
@@ -56,7 +57,10 @@ def run(progarg, **kwargs):
         else:
             stderr_text = "<No StdErr found>"
         error(f"The command '{Colors.UNDERLINE}{Colors.CYAN}{command}{Colors.ENDC}{Colors.FAIL}' executed in '{os.getcwd()}' failed with error code {output.returncode}.\nStdErr: {stderr_text}\nStdOut: {stdout_text}\nExiting...")
-        beautiful_exit(output.returncode)
+        
+        if exit_on_error:
+            beautiful_exit(output.returncode)
+
     return output.returncode, output.stdout, output.stderr,
 
 def info(fmt, **kwargs):

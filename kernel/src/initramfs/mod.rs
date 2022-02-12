@@ -58,6 +58,7 @@ impl<'tar> InitRamFs<'tar> {
     pub fn new(tar: Tar<'tar>) -> Self {
         Self { tar }
     }
+
     pub fn open(&self, path: &str) -> Option<TarEntry> {
         for ent in self.tar.iter() {
             if ent.filename == ArrayString::<100>::from(path).unwrap() {
@@ -77,6 +78,10 @@ impl<'tar> InitRamFs<'tar> {
         }
 
         ret
+    }
+
+    pub fn entries(&self) -> TarIter {
+        self.tar.iter()
     }
 }
 
