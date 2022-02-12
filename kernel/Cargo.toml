@@ -21,6 +21,7 @@ static_assertions = "1.1.0" # Will never be dropped
 esys = { path = "../crates/esys" } # System Calls + IPC
 esqtest =  { path = "../crates/esqtest" }
 comasm = { path = "../crates/comasm" }
+pci-lookup = { path = "../crates/pci-lookup" }
 
 [features]
 harsh-tests = [] # Exit on Failure of a test

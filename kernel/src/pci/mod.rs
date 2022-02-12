@@ -1,5 +1,7 @@
 use core::mem::size_of;
 
+use pci_lookup::{get_device_name, get_subclass_name, get_vendor_name, DEVICE_CLASSES};
+
 use crate::{
     acpi::{config::DeviceConfig, ACPITable, MCFGHeader},
     address_of, debug, from_addr,
@@ -19,6 +21,28 @@ struct PCIDeviceHeader {
     pub latency_timer: u8,
     pub header_type: u8,
     pub bist: u8,
+}
+
+impl core::fmt::Display for PCIDeviceHeader {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        writeln!(f)?;
+        writeln!(f, "PCIDeviceHeader:")?;
+        writeln!(
+            f,
+            "   (Vendor ID = {:#x?}; Device ID = {:#x?})",
+            self.vendor_id, self.device_id
+        )?;
+        writeln!(
+            f,
+            "Vendor = {}; Device = {}; Class = {}; Subclass = {}",
+            get_vendor_name(self.vendor_id),
+            get_device_name(self.vendor_id, self.device_id),
+            DEVICE_CLASSES[self.class as usize],
+            get_subclass_name(self.class, self.subclass)
+        )?;
+
+        Ok(())
+    }
 }
 
 pub struct PCI {}
@@ -107,7 +131,6 @@ impl PCI {
         }
 
         // Print all PCI Devices
-        debug!("Vendor ID: {:#x?}", header.vendor_id);
-        debug!("Device ID: {:#x?}", header.device_id);
+        debug!("{}", header);
     }
 }
