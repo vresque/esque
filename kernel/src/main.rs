@@ -23,6 +23,9 @@
 #![test_runner(crate::test::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+pub mod arch;
+pub mod math;
+
 extern crate alloc;
 pub mod framebuffer;
 pub mod gdt;
@@ -30,6 +33,7 @@ pub mod init;
 pub mod memory;
 pub mod panic;
 pub mod pci;
+use alloc::vec;
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;
@@ -47,8 +51,8 @@ use bks::PAGE_SIZE;
 pub use config::config;
 pub use esys::process::Process;
 pub use smp::Thread;
-use userspace::launchpad::Launchpad;
 pub use userspace::pid::{KernelPid, Pid};
+use userspace::{jump_to_userspace, launchpad::Launchpad};
 
 pub mod ipc;
 pub mod syscall;
@@ -85,13 +89,6 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
         debug!("{:?}", i.filename);
     }
 
-    Launchpad::new(
-        &initramfs::fs::read_until_end("initramfs/esqrc").unwrap(),
-        true,
-    )
-    .with_pid(Pid::force_new(1))
-    .launch();
-
     #[cfg(test)]
     {
         success!("Running Tests...");
@@ -99,7 +96,21 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
         success!("Ran all tests!");
     }
 
+    Launchpad::new(
+        &initramfs::fs::read_until_end("initramfs/esqrc").unwrap(),
+        true,
+    )
+    .with_pid(Pid::force_new(1))
+    .launch();
+
+    unsafe {
+        jump_to_userspace(kernel_userspace_stub as u32, vec!["kernel"], 0);
+    }
+
     loop {
         unsafe { comasm::halt() };
     }
 }
+
+// This is the stub that will be called if no init is found
+pub extern "C" fn kernel_userspace_stub(argc: u32, argv: *const *const u8) {}

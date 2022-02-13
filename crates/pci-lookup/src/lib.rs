@@ -5,7 +5,6 @@
 //! the kernel from userspace. All of this 'stringified' information
 //! will be written to a FileDescriptor
 
-use core::fmt::Debug;
 use match_tree::match_tree;
 
 pub const DEVICE_CLASSES: [&str; 20] = [

@@ -3,7 +3,9 @@ pub mod memset;
 pub mod paging;
 pub use memset::memset;
 pub mod allocator;
+pub mod structures;
 pub mod userspace;
+pub use structures::*;
 
 #[macro_export]
 macro_rules! address_of {

@@ -22,6 +22,7 @@ esys = { path = "../crates/esys" } # System Calls + IPC
 esqtest =  { path = "../crates/esqtest" }
 comasm = { path = "../crates/comasm" }
 pci-lookup = { path = "../crates/pci-lookup" }
+bit_field = "0.10.1"
 
 [features]
 harsh-tests = [] # Exit on Failure of a test
