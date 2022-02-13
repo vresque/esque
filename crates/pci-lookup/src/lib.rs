@@ -6,6 +6,7 @@
 //! will be written to a FileDescriptor
 
 use core::fmt::Debug;
+use match_tree::match_tree;
 
 pub const DEVICE_CLASSES: [&str; 20] = [
     "Unclassified",
@@ -59,88 +60,22 @@ pub fn get_vendor_name(id: u16) -> &'static str {
 /// *This is merely a debugging function. There exist over 47 thousand
 /// PCI devices (just on pcilookup), all with different names. I will never support them all.
 pub fn get_device_name(vendor: u16, device: u16) -> &'static str {
-    match vendor {
-        0x8086 /* Intel */ => {
-            match device {
-                // The following are just the QEMU default devices
-                0x29c0 => "Express DRAM Controller",
-                0x2918 => "LPC Interface Controller",
-                0x2922 => "6 port SATA Controller [AHCI mode]",
-                0x2930 => "SMBus Controller",
-                0x10d3 => "Gigabit CT Desktop Adapter",
-                _ => "Unknown Intel Device"
-            }
-        }
-        0x1234 => "QEMU Specific PCI Device",
-        _ => "Unknown Device"
-    }
-}
-
-macro_rules! match_tree {
-    (
-        grand = $grand_matcher:expr => major = $major_matcher:expr => minor = $minor_matcher:expr =>
-        config: { grand-default = $final_grand:expr ; major-default = $final_major:expr ; minor-default = $final_minor:expr } => {
-        $(
-            $grand_match:tt {
-                $(
-                    $major_match:tt {
-                        $(
-                            $minor_match:tt = $minor_result:expr,
-                        )*
-                    },
-                )*
-        },
-    )*
-    }
-    ) => {
-        match $grand_matcher {
-            $(
-                $grand_match => {
-                    match $major_matcher {
-                        $(
-                            $major_match => {
-                                match $minor_matcher {
-                                    $(
-                                        $minor_match => { $minor_result },
-                                    )*
-                                    _ => { $final_minor }
-                                }
-                            },
-                        )*
-                        _ => { $final_major }
-                    }
-                }
-            )*
-            _ => { $final_grand }
-        }
-    };
-
-    (
-        major = $major_matcher:expr => minor = $minor_matcher:expr =>
-        config: { major-default = $final_major:expr ; minor-default = $final_minor:expr } => {$(
-            $major_match:tt {
-                $(
-                    $minor_match:tt = $minor_result:expr,
-                )*
+    match_tree! {
+        major = vendor => minor = device =>
+        config: { major-default = "Unknown Vendor"; minor-default = "Unknown Device" } =>
+        {
+            0x8086 {
+                0x29c0 = "Express DRAM Controller",
+                0x2918 = "LPC Interface Controller",
+                0x2922 = "6 port SATA Controller [AHCI mode]",
+                0x2930 = "SMBus Controller",
+                0x10d3 = "Gigabit CT Desktop Adapter",
             },
-        )*
-    }
-    ) => {
-        match $major_matcher {
-            $(
-                $major_match => {
-                    match $minor_matcher {
-                        $(
-                            $minor_match => { $minor_result },
-                        )*
-                        _ => { $final_minor }
-                    }
-                },
-            )*
-            _ => { $final_major }
+            0x1234 {
+                _ = "QEMU Specific Device",
+            },
         }
-    };
-
+    }
 }
 
 /// # Get Subclass Name
