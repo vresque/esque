@@ -1,11 +1,9 @@
-use core::ops::{Sub, SubAssign, Add, AddAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 
 use bit_field::BitField;
 
 use crate::math;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
 /// # Virtual Address
 ///
 ///
@@ -14,6 +12,8 @@ use crate::math;
 /// are called “canonical”. This type guarantees that it always represents a canonical address.
 /// ## Source
 /// The idea to implement said structure comes from the `x86_64` crate: https://docs.rs/x86_64/0.14.8/src/x86_64/addr.rs.html#35
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct VirtAddr(u64);
 
 impl VirtAddr {
@@ -73,13 +73,13 @@ impl VirtAddr {
     }
 
     #[inline]
-    pub fn as_ref<'retval, T>(&self) -> &'retval T {
-        &unsafe { *self.as_ptr() }
+    pub fn as_ref<'retval, T: Copy>(&self) -> &'retval T {
+        unsafe { &*(self.as_ptr()) }
     }
 
     #[inline]
-    pub fn as_mut<'retval, T>(&self) -> &'retval mut T {
-        &mut unsafe { *self.as_mut_ptr() }
+    pub fn as_mut<'retval, T: Copy>(&self) -> &'retval mut T {
+        unsafe { &mut *self.as_mut_ptr() }
     }
 
     #[inline]
@@ -89,7 +89,8 @@ impl VirtAddr {
 
     #[inline]
     pub fn set(&mut self, addr: u64) {
-        self.try_set(addr).expect("Failed to set address due to bits 47..64 being occupied")
+        self.try_set(addr)
+            .expect("Failed to set address due to bits 47..64 being occupied")
     }
 
     #[inline(always)]
@@ -99,8 +100,14 @@ impl VirtAddr {
     /// the bits, which were bad
     pub fn try_set(&mut self, addr: u64) -> Result<(), (u64, u64)> {
         match addr.get_bits(47..64) {
-            0 | 0x1fff => { self.0 = addr; return Ok(()); },
-            1 => { self.0 = ((addr << 16) as i64 >> 16) as u64; return Ok(()); },
+            0 | 0x1fff => {
+                self.0 = addr;
+                return Ok(());
+            }
+            1 => {
+                self.0 = ((addr << 16) as i64 >> 16) as u64;
+                return Ok(());
+            }
             bad => Err((bad, Self::truncate(addr).as_u64())),
         }
     }
@@ -108,7 +115,7 @@ impl VirtAddr {
     #[inline(always)]
     pub fn align_up_and_get<U>(&self, align: U) -> Self
     where
-        U: Into<u64> 
+        U: Into<u64>,
     {
         Self(math::align_up(self.0, align.into()))
     }
@@ -116,7 +123,7 @@ impl VirtAddr {
     #[inline(always)]
     pub fn align_up_and_set<U>(&mut self, align: U)
     where
-        U: Into<u64> 
+        U: Into<u64>,
     {
         self.set(math::align_up(self.0, align.into()))
     }
@@ -124,7 +131,7 @@ impl VirtAddr {
     #[inline]
     pub fn align_down_and_get<U>(&self, align: U) -> Self
     where
-        U: Into<u64> 
+        U: Into<u64>,
     {
         Self(math::align_down(self.0, align.into()))
     }
@@ -132,7 +139,7 @@ impl VirtAddr {
     #[inline(always)]
     pub fn align_down_and_set<U>(&mut self, align: U)
     where
-        U: Into<u64> 
+        U: Into<u64>,
     {
         self.set(math::align_down(self.0, align.into()))
     }
@@ -140,11 +147,10 @@ impl VirtAddr {
     #[inline(always)]
     pub fn is_aligned<U>(&mut self, align: U) -> bool
     where
-        U: Into<u64> 
+        U: Into<u64>,
     {
-        self.align_down_and_get(align) == self
+        self.align_down_and_get(align) == *self
     }
-    
 }
 
 impl core::fmt::Debug for VirtAddr {
@@ -269,7 +275,6 @@ impl Sub<VirtAddr> for VirtAddr {
 /// `x86_64`, only the 52 lower bits of a physical address can be used. The top 12 bits need
 /// to be zero. This type guarantees that it always represents a valid physical address.
 /// The idea to implement said structure comes from the `x86_64` crate: https://docs.rs/x86_64/0.14.8/src/x86_64/addr.rs.html#35
-#[derive(Debug)]
 pub struct PhysAddr(u64);
 
 impl PhysAddr {
@@ -281,7 +286,10 @@ impl PhysAddr {
             Self(addr)
         };
 
-        assert!(ret.0.get_bits(52..64) == 0, "Even after truncating, the bits 52..64 were set");
+        assert!(
+            ret.0.get_bits(52..64) == 0,
+            "Even after truncating, the bits 52..64 were set"
+        );
         ret
     }
 
@@ -320,7 +328,8 @@ impl PhysAddr {
 
     #[inline]
     pub fn set(&mut self, addr: u64) {
-        self.try_set(addr).expect("Failed to set the address due to bits 47..56 being occupied");
+        self.try_set(addr)
+            .expect("Failed to set the address due to bits 47..56 being occupied");
     }
 
     /// # Try Set
@@ -360,7 +369,7 @@ impl PhysAddr {
     }
 
     #[inline]
-    pub fn align_up_and_set<U>(&self, align: U)
+    pub fn align_up_and_set<U>(&mut self, align: U)
     where
         U: Into<u64>,
     {
@@ -368,7 +377,7 @@ impl PhysAddr {
     }
 
     #[inline]
-    pub fn align_down_and_set<U>(self, align: U)
+    pub fn align_down_and_set<U>(&mut self, align: U)
     where
         U: Into<u64>,
     {

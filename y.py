@@ -32,3 +32,5 @@ if __name__ == "__main__":
         builder.main()
     except KeyboardInterrupt:
         exit(0)
+else:
+    print("Pre-Execution Error: Please do not import y.py. Either execute it, or load the builder file in scripts/builder")
