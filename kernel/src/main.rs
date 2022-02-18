@@ -25,10 +25,11 @@
 
 pub mod arch;
 pub mod math;
-
+pub mod error;
 extern crate alloc;
 pub mod framebuffer;
 pub mod gdt;
+pub mod common;
 pub mod init;
 pub mod memory;
 pub mod panic;
@@ -41,6 +42,7 @@ pub mod drivers;
 pub mod heap;
 pub mod initramfs;
 pub mod interrupts;
+pub mod stratagem;
 pub mod iobus;
 pub mod pic;
 pub mod scheduler;

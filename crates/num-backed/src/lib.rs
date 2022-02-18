@@ -1,5 +1,6 @@
 #![no_std]
 
+#[macro_export]
 macro_rules! num_backed {
     ($visi:vis $name:ident backed by $backend:ident) => {
         $visi struct $name($backend);
@@ -132,7 +133,7 @@ macro_rules! num_backed {
 
     ($visi:vis $name:ident backed by $backend:ident;
     atomic: $atomic_visi:vis $atomic_name:ident backed by $atomic_backend:ident) => {
-        num_backed!($visi $name backed by $backend);
+        num_backed::num_backed!($visi $name backed by $backend);
 
         // A holder for T that can be shared among threads
         $atomic_visi struct $atomic_name {
@@ -142,20 +143,21 @@ macro_rules! num_backed {
         impl $atomic_name {
             #[allow(dead_code)]
             pub const fn new(x: $name) -> Self {
-                Self { $atomic_backend::new(x.into()) }
+                Self { container: $atomic_backend::new(x.into()) }
             }
             #[allow(dead_code)]
             pub fn compare_exchange_weak(&self, current: $name, new: $name, order_on_success: ::core::sync::atomic::Ordering, order_on_failure: ::core::sync::atomic::Ordering) -> Result<$name, $name> {
                 match self.container.compare_exchange_weak(current.into(), new.into(), order_on_success, order_on_failure) {
-                    Ok(r) => Ok($name::from(result)),
-                    Err(e) => Err($name:.from(e)),
+                    Ok(good) => Ok($name::from(good)),
+                    Err(bad) => Err($name:.from(bad)),
                 }
             }
 
             #[allow(dead_code)]
             pub fn compare_exchange(&self, current: $name, new: $name, order_on_success: ::core::sync::atomic::Ordering, order_on_failure: ::core::sync::atomic::Ordering) -> Reuslt<$name, $name> {
                 match self.container.compare_exchange(current.into(), new.into(), order_on_success, order_on_failure) {
-
+                    Ok(good) => Ok($name::from(good)),
+                    Err(bad) => Err($name::from(bad)),
                 }
             }
 
