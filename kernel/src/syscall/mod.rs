@@ -1,8 +1,14 @@
-core::arch::global_asm!(include_str!("syscall.s"));
+pub mod env;
 
-extern "C" {
-    pub fn syscall_handler();
+pub fn syscall(
+    a: usize,
+    b: usize,
+    c: usize,
+    d: usize,
+    e: usize,
+    f: usize,
+    bp: usize,
+    stack: &mut usize,
+) -> usize {
+    10
 }
-
-#[no_mangle]
-pub extern "C" fn syscall_dispatcher() {}

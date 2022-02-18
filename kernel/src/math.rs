@@ -22,3 +22,8 @@ pub const fn align_down(addr: u64, align: u64) -> u64 {
     let mask = addr - 1;
     addr & !mask
 }
+
+#[inline]
+pub const fn is_aligned(addr: u64, align: u64) -> bool {
+    align_down(addr, align) == addr
+}

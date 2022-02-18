@@ -27,6 +27,10 @@ impl PageDescriptorEntry {
         self.entry == 0
     }
 
+    pub fn set_unused(&mut self) {
+        self.entry == 0;
+    }
+
     #[inline]
     pub const fn flags(&self) -> PageTableFlag {
         PageTableFlag::from_bits_truncate(self.entry)

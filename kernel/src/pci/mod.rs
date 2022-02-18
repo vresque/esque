@@ -134,6 +134,6 @@ impl PCI {
         }
 
         // Print all PCI Devices
-        debug!("{}", header);
+        //debug!("{}", header);
     }
 }

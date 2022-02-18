@@ -14,9 +14,9 @@ use crate::math;
 /// The idea to implement said structure comes from the `x86_64` crate: https://docs.rs/x86_64/0.14.8/src/x86_64/addr.rs.html#35
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct VirtAddr(u64);
+pub struct VirtualAddress(u64);
 
-impl VirtAddr {
+impl VirtualAddress {
     #[inline(always)]
     pub fn new(addr: u64) -> Self {
         Self::try_new(addr).expect(
@@ -28,17 +28,21 @@ impl VirtAddr {
     #[inline]
     /// # Try New
     /// Tries to create the struct, if any value in the 47..64 area is set, it returns an error
-    pub fn try_new(addr: u64) -> Result<VirtAddr, u64> {
+    pub fn try_new(addr: u64) -> Result<VirtualAddress, u64> {
         match addr.get_bits(47..64) {
-            0 | 0x1fff => Ok(VirtAddr(addr)),
-            1 => Ok(VirtAddr::truncate(addr)),
+            0 | 0x1fff => Ok(VirtualAddress(addr)),
+            1 => Ok(VirtualAddress::truncate(addr)),
             bad => Err(bad),
         }
     }
 
+    pub const fn const_new_unchecked(addr: u64) -> VirtualAddress {
+        VirtualAddress(addr)
+    }
+
     /// # Truncate
     /// Creates a new virtual address, but removes bits 47..64
-    pub fn truncate(addr: u64) -> Self {
+    pub const fn truncate(addr: u64) -> Self {
         // It will sign extend the value, repeating the leftmost bit.
         Self(((addr << 16) as i64 >> 16) as u64)
     }
@@ -153,7 +157,7 @@ impl VirtAddr {
     }
 }
 
-impl core::fmt::Debug for VirtAddr {
+impl core::fmt::Debug for VirtualAddress {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.debug_tuple("VirtAddr")
             .field(&format_args!("{:#x}", self.0))
@@ -161,50 +165,50 @@ impl core::fmt::Debug for VirtAddr {
     }
 }
 
-impl core::fmt::Binary for VirtAddr {
+impl core::fmt::Binary for VirtualAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Binary::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::LowerHex for VirtAddr {
+impl core::fmt::LowerHex for VirtualAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::LowerHex::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::Octal for VirtAddr {
+impl core::fmt::Octal for VirtualAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Octal::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::UpperHex for VirtAddr {
+impl core::fmt::UpperHex for VirtualAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::UpperHex::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::Pointer for VirtAddr {
+impl core::fmt::Pointer for VirtualAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Pointer::fmt(&(self.0 as *const ()), f)
     }
 }
 
-impl Add<u64> for VirtAddr {
+impl Add<u64> for VirtualAddress {
     type Output = Self;
     #[inline]
     fn add(self, rhs: u64) -> Self::Output {
-        VirtAddr::new(self.0 + rhs)
+        VirtualAddress::new(self.0 + rhs)
     }
 }
 
-impl AddAssign<u64> for VirtAddr {
+impl AddAssign<u64> for VirtualAddress {
     #[inline]
     fn add_assign(&mut self, rhs: u64) {
         *self = *self + rhs;
@@ -212,7 +216,7 @@ impl AddAssign<u64> for VirtAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl Add<usize> for VirtAddr {
+impl Add<usize> for VirtualAddress {
     type Output = Self;
     #[inline]
     fn add(self, rhs: usize) -> Self::Output {
@@ -221,22 +225,22 @@ impl Add<usize> for VirtAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl AddAssign<usize> for VirtAddr {
+impl AddAssign<usize> for VirtualAddress {
     #[inline]
     fn add_assign(&mut self, rhs: usize) {
         self.add_assign(rhs as u64)
     }
 }
 
-impl Sub<u64> for VirtAddr {
+impl Sub<u64> for VirtualAddress {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: u64) -> Self::Output {
-        VirtAddr::new(self.0.checked_sub(rhs).unwrap())
+        VirtualAddress::new(self.0.checked_sub(rhs).unwrap())
     }
 }
 
-impl SubAssign<u64> for VirtAddr {
+impl SubAssign<u64> for VirtualAddress {
     #[inline]
     fn sub_assign(&mut self, rhs: u64) {
         *self = *self - rhs;
@@ -244,7 +248,7 @@ impl SubAssign<u64> for VirtAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl Sub<usize> for VirtAddr {
+impl Sub<usize> for VirtualAddress {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: usize) -> Self::Output {
@@ -253,17 +257,17 @@ impl Sub<usize> for VirtAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl SubAssign<usize> for VirtAddr {
+impl SubAssign<usize> for VirtualAddress {
     #[inline]
     fn sub_assign(&mut self, rhs: usize) {
         self.sub_assign(rhs as u64)
     }
 }
 
-impl Sub<VirtAddr> for VirtAddr {
+impl Sub<VirtualAddress> for VirtualAddress {
     type Output = u64;
     #[inline]
-    fn sub(self, rhs: VirtAddr) -> Self::Output {
+    fn sub(self, rhs: VirtualAddress) -> Self::Output {
         self.as_u64().checked_sub(rhs.as_u64()).unwrap()
     }
 }
@@ -275,9 +279,9 @@ impl Sub<VirtAddr> for VirtAddr {
 /// `x86_64`, only the 52 lower bits of a physical address can be used. The top 12 bits need
 /// to be zero. This type guarantees that it always represents a valid physical address.
 /// The idea to implement said structure comes from the `x86_64` crate: https://docs.rs/x86_64/0.14.8/src/x86_64/addr.rs.html#35
-pub struct PhysAddr(u64);
+pub struct PhysicalAddress(u64);
 
-impl PhysAddr {
+impl PhysicalAddress {
     #[inline]
     pub fn new(addr: u64) -> Self {
         let ret = if addr.get_bits(52..64) != 0 {
@@ -307,7 +311,7 @@ impl PhysAddr {
     }
 
     #[inline]
-    pub fn truncate(addr: u64) -> Self {
+    pub const fn truncate(addr: u64) -> Self {
         Self(addr % (1 << 52))
     }
 
@@ -393,7 +397,7 @@ impl PhysAddr {
     }
 }
 
-impl core::fmt::Debug for PhysAddr {
+impl core::fmt::Debug for PhysicalAddress {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.debug_tuple("PhysAddr")
             .field(&format_args!("{:#x}", self.0))
@@ -401,50 +405,50 @@ impl core::fmt::Debug for PhysAddr {
     }
 }
 
-impl core::fmt::Binary for PhysAddr {
+impl core::fmt::Binary for PhysicalAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Binary::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::LowerHex for PhysAddr {
+impl core::fmt::LowerHex for PhysicalAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::LowerHex::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::Octal for PhysAddr {
+impl core::fmt::Octal for PhysicalAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Octal::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::UpperHex for PhysAddr {
+impl core::fmt::UpperHex for PhysicalAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::UpperHex::fmt(&self.0, f)
     }
 }
 
-impl core::fmt::Pointer for PhysAddr {
+impl core::fmt::Pointer for PhysicalAddress {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         core::fmt::Pointer::fmt(&(self.0 as *const ()), f)
     }
 }
 
-impl Add<u64> for PhysAddr {
+impl Add<u64> for PhysicalAddress {
     type Output = Self;
     #[inline]
     fn add(self, rhs: u64) -> Self::Output {
-        PhysAddr::new(self.0 + rhs)
+        PhysicalAddress::new(self.0 + rhs)
     }
 }
 
-impl AddAssign<u64> for PhysAddr {
+impl AddAssign<u64> for PhysicalAddress {
     #[inline]
     fn add_assign(&mut self, rhs: u64) {
         *self = *self + rhs;
@@ -452,7 +456,7 @@ impl AddAssign<u64> for PhysAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl Add<usize> for PhysAddr {
+impl Add<usize> for PhysicalAddress {
     type Output = Self;
     #[inline]
     fn add(self, rhs: usize) -> Self::Output {
@@ -461,22 +465,22 @@ impl Add<usize> for PhysAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl AddAssign<usize> for PhysAddr {
+impl AddAssign<usize> for PhysicalAddress {
     #[inline]
     fn add_assign(&mut self, rhs: usize) {
         self.add_assign(rhs as u64)
     }
 }
 
-impl Sub<u64> for PhysAddr {
+impl Sub<u64> for PhysicalAddress {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: u64) -> Self::Output {
-        PhysAddr::new(self.0.checked_sub(rhs).unwrap())
+        PhysicalAddress::new(self.0.checked_sub(rhs).unwrap())
     }
 }
 
-impl SubAssign<u64> for PhysAddr {
+impl SubAssign<u64> for PhysicalAddress {
     #[inline]
     fn sub_assign(&mut self, rhs: u64) {
         *self = *self - rhs;
@@ -484,7 +488,7 @@ impl SubAssign<u64> for PhysAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl Sub<usize> for PhysAddr {
+impl Sub<usize> for PhysicalAddress {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: usize) -> Self::Output {
@@ -493,17 +497,17 @@ impl Sub<usize> for PhysAddr {
 }
 
 #[cfg(target_pointer_width = "64")]
-impl SubAssign<usize> for PhysAddr {
+impl SubAssign<usize> for PhysicalAddress {
     #[inline]
     fn sub_assign(&mut self, rhs: usize) {
         self.sub_assign(rhs as u64)
     }
 }
 
-impl Sub<PhysAddr> for PhysAddr {
+impl Sub<PhysicalAddress> for PhysicalAddress {
     type Output = u64;
     #[inline]
-    fn sub(self, rhs: PhysAddr) -> Self::Output {
+    fn sub(self, rhs: PhysicalAddress) -> Self::Output {
         self.as_u64().checked_sub(rhs.as_u64()).unwrap()
     }
 }

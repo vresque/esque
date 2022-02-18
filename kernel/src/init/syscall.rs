@@ -1,7 +1,7 @@
 use bks::Handover;
 
-use crate::syscall::syscall_handler;
 use crate::{
+    arch::syscall::syscall_handler,
     gdt::GdtEntryType,
     iobus::msr::{read_msr, write_msr, MsrRegister},
 };

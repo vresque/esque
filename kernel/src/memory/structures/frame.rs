@@ -1,32 +1,32 @@
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
-use super::PhysAddr;
+use super::PhysicalAddress;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Frame {
-    start: PhysAddr,
+    start: PhysicalAddress,
 }
 
 impl Frame {
-    pub fn from_start(addr: PhysAddr) -> Result<Self, ()> {
+    pub fn from_start(addr: PhysicalAddress) -> Result<Self, ()> {
         if !addr.is_aligned(bks::PAGE_SIZE) {
             return Err(());
         }
         Ok(unsafe { Self::from_start_unchecked(addr) })
     }
 
-    pub const fn from_start_unchecked(addr: PhysAddr) -> Self {
+    pub const fn from_start_unchecked(addr: PhysicalAddress) -> Self {
         Self { start: addr }
     }
 
     // Returns the Frame which contains the physical address
-    pub fn which_contains(addr: PhysAddr) -> Self {
+    pub fn which_contains(addr: PhysicalAddress) -> Self {
         Self {
             start: addr.align_down_and_get(bks::PAGE_SIZE),
         }
     }
 
-    pub const fn start(&self) -> PhysAddr {
+    pub const fn start(&self) -> PhysicalAddress {
         self.start
     }
 

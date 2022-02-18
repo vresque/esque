@@ -3,6 +3,7 @@ use core::mem::MaybeUninit;
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::init::memory::_KERNEL_OFFSET;
+use crate::math::is_aligned;
 use crate::{debug, info, kprintln};
 
 use crate::memory::bitmap::Bitmap;
@@ -222,36 +223,36 @@ impl<'a> PageFrameAllocator<'a> {
         );
     }
 
+    pub fn alloc_aligned(&mut self, align: u64) -> u64 {
+        let mut temp_index = self.last_bmap_index;
+        while temp_index < (self.bitmap.size as u64 * 8 as u64) {
+            if self.bitmap[temp_index as usize] == false {
+                if is_aligned(temp_index * PAGE_SIZE, align) {
+                    self.lock_page(temp_index * PAGE_SIZE);
+                    unsafe {
+                        ACCEPTS += 1;
+                    }
+                    return temp_index * PAGE_SIZE;
+                }
+            }
+            temp_index += 1;
+        }
+        unsafe {
+            REJECTS += 1;
+        }
+        panic!(
+            "Out of Memory: {} out of {} pages were allocated.",
+            unsafe { ACCEPTS },
+            self.total_memory() * PAGE_SIZE
+        );
+    }
+
     pub fn allocate_from_addr_to_count_unchecked(&mut self, addr: u64, count: usize) -> bool {
         return if self.lock_pages(addr, count) == true {
             true
         } else {
             false
         };
-    }
-
-    /// # Alloc First Fit
-    /// Locks the first consecutive `count` pages starting at  `addr`
-    pub fn find_first_consecutive_free_pages_of_count(&mut self, count: usize) -> u64 {
-        info!("Trying to find space for {} pages", count);
-        let mut current = self.last_bmap_index as usize + 1;
-        let is_current_index_good = |starting_at_idx: usize| -> bool {
-            for i in 0..count {
-                if self.bitmap[starting_at_idx + i] == true {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        loop {
-            if is_current_index_good(current) == true {
-                // The Index 'current' and the next 'count' pages are free
-                return current as u64 * PAGE_SIZE;
-            } else {
-                current += 1;
-            }
-        }
     }
 
     pub fn total_memory(&self) -> u64 {

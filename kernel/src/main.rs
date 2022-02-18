@@ -33,7 +33,7 @@ pub mod init;
 pub mod memory;
 pub mod panic;
 pub mod pci;
-use alloc::vec;
+use alloc::vec::{self, Vec};
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;
@@ -50,15 +50,29 @@ pub mod userspace;
 use bks::PAGE_SIZE;
 pub use config::config;
 pub use esys::process::Process;
+use memory::paging::{
+    page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
+};
+use scheduler::pit::sleep;
 pub use smp::Thread;
+use spin::Mutex;
+use syscall::env::setenv;
 pub use userspace::pid::{KernelPid, Pid};
 use userspace::{jump_to_userspace, launchpad::Launchpad};
+
+use crate::{
+    math::is_aligned,
+    memory::{PhysicalAddress, VirtualAddress},
+    syscall::env::getenv,
+};
 
 pub mod ipc;
 pub mod syscall;
 
 pub const HEAP_ADDRESS: u64 = 0x0000900000;
 pub const HEAP_LENGTH: usize = PAGE_SIZE as usize;
+
+static ENVIRONMENT: Mutex<Vec<&[u8]>> = Mutex::new(Vec::new());
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
@@ -103,8 +117,10 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     .with_pid(Pid::force_new(1))
     .launch();
 
+    let stack: Vec<u8> = Vec::with_capacity(0x1000);
+
     unsafe {
-        jump_to_userspace(kernel_userspace_stub as u32, vec!["kernel"], 0);
+        load_userspace();
     }
 
     loop {
@@ -113,4 +129,35 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
 }
 
 // This is the stub that will be called if no init is found
-pub extern "C" fn kernel_userspace_stub(argc: u32, argv: *const *const u8) {}
+pub unsafe extern "C" fn kernel_userspace_stub(argc: u32, argv: *const *const u8) {
+    core::arch::asm!(
+        "
+    nop
+    nop
+    nop"
+    )
+}
+
+pub unsafe fn load_userspace() {
+    setenv("SHELL", "/bin/sh");
+    setenv("KERNEL_VERSION", "0.1-rc1");
+    setenv("LICENSE", "GPLv2");
+    setenv("KERNEL", "esque");
+    setenv("HELLO", "lmao");
+
+    let shell = getenv("SHELL");
+    let kernel = getenv("KERNEL");
+    let version = getenv("KERNEL_VERSION");
+    let license = getenv("LICENSE");
+    let hello = getenv("HELLO");
+    success!(
+        "ENV: {:?}; {:?}; {:?}; {:?}; {:?}",
+        shell,
+        kernel,
+        version,
+        license,
+        hello
+    );
+    setenv("SHELL", "/bin/bash");
+    success!("CHANGED ENV: {:?}", getenv("SHELL").unwrap());
+}
