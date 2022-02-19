@@ -5,8 +5,10 @@ use core::ops::DerefMut;
 use core::ops::Sub;
 use core::ops::SubAssign;
 
+use crate::upper;
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TwoWayBound<const LOWER: i128, const UPPER: i128, const DEFAULT: i128 = UPPER> {
+pub struct TwoWayBound<const LOWER: i128, const UPPER: i128, const DEFAULT: i128 = -2303282> {
     inner: i128,
 }
 
@@ -15,21 +17,27 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128> TwoWayBound<LOWE
     where
         T: Into<i128>,
     {
-        let transformed = num.into();
         Self {
-            inner: (if transformed < UPPER || transformed > LOWER {
-                DEFAULT
-            } else {
-                transformed
-            }),
+            inner: Self::cap(num),
         }
     }
 
-    pub fn cap(num: i128) -> i128 {
-        if num < UPPER || num > LOWER {
-            DEFAULT
+    pub fn cap<T>(num: T) -> i128
+    where
+        T: Into<i128>,
+    {
+        let transformed = num.into();
+        let (upper_default, lower_default) = if DEFAULT == -2303282 {
+            (UPPER, LOWER)
         } else {
-            num
+            (DEFAULT, DEFAULT)
+        };
+        if transformed > UPPER {
+            upper_default
+        } else if transformed < LOWER {
+            lower_default
+        } else {
+            transformed
         }
     }
 }
