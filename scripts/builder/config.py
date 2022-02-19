@@ -33,6 +33,10 @@ OUT_IMG: str = ""
 MINIMAL_TOOLCHAIN: bool = False
 APPS_CARGO_FLAGS: str = ""
 
+BOOT_RUSTC_FLAGS: str = ""
+KERNEL_RUSTC_FLAGS: str = ""
+APPS_RUSTC_FLAGS: str = ""
+
 try:
     import toml
 except ImportError:
@@ -62,6 +66,9 @@ def adjust_config_values_based_on_parser(arguments):
     global OUT_IMG
     global MINIMAL_TOOLCHAIN
     global APPS_CARGO_FLAGS
+    global BOOT_RUSTC_FLAGS
+    global KERNEL_RUSTC_FLAGS
+    global APPS_RUSTC_FLAGS
 
     MODE = "release" if arguments.release else "debug"
     DOCUMENTATION = arguments.documentation
@@ -97,10 +104,15 @@ def adjust_config_values_based_on_parser(arguments):
     if KERNEL_MODE == "release":
         KERNEL_CARGO_FLAGS += "--release "
 
-    for f in [KERNEL_CARGO_FLAGS, BOOT_CARGO_FLAGS, APPS_CARGO_FLAGS]:
+    for f in [KERNEL_CARGO_FLAGS, BOOT_CARGO_FLAGS, APPS_CARGO_FLAGS, KERNEL_RUSTC_FLAGS, BOOT_RUSTC_FLAGS, APPS_RUSTC_FLAGS]:
         if f == "" or f[-1] != ' ':
             # Empty ones require a space - filled ones do not
             f += " "
+    
+    for f in [KERNEL_RUSTC_FLAGS, BOOT_RUSTC_FLAGS, APPS_RUSTC_FLAGS]:
+        if f == "" or f == " ":
+            f = "none"
+
     # Add Target Files
     KERNEL_CARGO_FLAGS += f"--target ../.targets/{ARCH}/kernel.json "
     BOOT_CARGO_FLAGS += f"--target ../.targets/{ARCH}/boot.json "
@@ -142,6 +154,9 @@ def parse_config(config_path):
     global OUT_IMG
     global MINIMAL_TOOLCHAIN
     global APPS_CARGO_FLAGS
+    global BOOT_RUSTC_FLAGS
+    global KERNEL_RUSTC_FLAGS
+    global APPS_RUSTC_FLAGS
 
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -157,18 +172,29 @@ def parse_config(config_path):
         DOCUMENTATION = cfg["package"]["documentation"]
         CUSTOM_INITRAMFS = cfg["package"]["initramfs"] if cfg["package"]["initramfs"] != "default" else "initramfs"
         flags = cfg["package"]["cargo-flags"]
+        rustc_flags = cfg["package"]["rustc-flags"]
         # Kernel Options
         KERNEL_MODE = cfg["kernel"]["mode"] if cfg["kernel"]["mode"] != "mirror" else MODE
         this_str = " ".join(cfg["kernel"]["cargo-flags"])
         KERNEL_CARGO_FLAGS = this_str if this_str != "mirror" else copy.deepcopy(flags)
+        rustc_string = " ".join(cfg["kernel"]["rustc-flags"])
+        KERNEL_RUSTC_FLAGS = rustc_string if rustc_string != "mirror" else copy.deepcopy(rustc_flags)
         KERNEL_FEATURES = cfg["kernel"]["features"]
 
+        # Application Options
         app_cargo_flags = " ".join(cfg["apps"]["cargo-flags"])
         APPS_CARGO_FLAGS = app_cargo_flags if app_cargo_flags != "mirror" else copy.deepcopy(flags)
+        rustc_apps_string = " ".join(cfg["apps"]["rustc-flags"])
+        BOOT_RUSTC_FLAGS = rustc_apps_string if rustc_apps_string != "mirror" else copy.deepcopy(rustc_apps_string)
+
+        
         # Bootloader Options
         BOOT_MODE = cfg["boot"]["mode"] if cfg["boot"]["mode"] != "mirror" else MODE
         my_str = " ".join(cfg["boot"]["cargo-flags"])
         BOOT_CARGO_FLAGS = my_str if my_str != "mirror" else copy.deepcopy(flags)
+        rustc_boot_string = " ".join(cfg["boot"]["rustc-flags"])
+        BOOT_RUSTC_FLAGS = rustc_boot_string if rustc_boot_string != "mirror" else copy.deepcopy(rustc_flags)
+
         BOOT_FEATURES = cfg["boot"]["features"]
         STRIP = cfg["package"]["strip"]
 

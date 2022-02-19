@@ -50,7 +50,7 @@ def all() -> int:
 
 def format() -> int:
     if not config.MINIMAL_TOOLCHAIN:
-        if cargo.run_cargo_command_in_workspace(".", "fmt", []) == None:
+        if cargo.run_cargo_command_in_workspace(".", "fmt", [], "none") == None:
             return 1
     return 0
 
@@ -98,12 +98,12 @@ def run_qemu(in_background=False, return_exit_code=False, exit_on_error=True) ->
     return 0
     
 def build_kernel() -> int:
-    cargo.run_cargo_command_in_workspace("kernel", "build", config.KERNEL_CARGO_FLAGS)
+    cargo.run_cargo_command_in_workspace("kernel", "build", config.KERNEL_CARGO_FLAGS, config.KERNEL_RUSTC_FLAGS)
     shutil.copy(f"target/kernel/{config.KERNEL_MODE}/kernel", "build/esque")
     return 0
 
 def build_boot() -> int:
-    cargo.run_cargo_command_in_workspace("boot", "build", config.BOOT_CARGO_FLAGS)
+    cargo.run_cargo_command_in_workspace("boot", "build", config.BOOT_CARGO_FLAGS, config.BOOT_RUSTC_FLAGS)
     shutil.copy(f"target/boot/{config.BOOT_MODE}/boot.efi", "build/BOOTX64.EFI")
     return 0
 
@@ -154,7 +154,7 @@ def count_unsafe():
     return 0
 
 def build_docs():
-    cargo.run_cargo_command_in_workspace(".", "doc", f"--no-deps")
+    cargo.run_cargo_command_in_workspace(".", "doc", f"--no-deps", "none")
 
 
     with open("target/doc/index.html", "w+") as f:
@@ -173,7 +173,7 @@ def setup():
     return 0
 
 def build_testing_kernel() -> int:
-    testing_kernel_bin = cargo.run_cargo_command_in_workspace("kernel", "test", "--no-run " + config.KERNEL_CARGO_FLAGS)
+    testing_kernel_bin = cargo.run_cargo_command_in_workspace("kernel", "test", "--no-run " + config.KERNEL_CARGO_FLAGS, config.KERNEL_RUSTC_FLAGS)
     shutil.copy(testing_kernel_bin[0], "build/esque")
     return 0
 
@@ -209,7 +209,7 @@ def apps() -> int:
     for app in apps:
         appname: str = apps.__str__().replace("\\", "/").split("/")[-1].replace("')]", "")
         binpath: str = f"target/apps/{config.MODE}/" + appname
-        run_cargo_command_in_workspace(app, "build", config.APPS_CARGO_FLAGS)
+        run_cargo_command_in_workspace(app, "build", config.APPS_CARGO_FLAGS, config.APPS_RUSTC_FLAGS)
         
         if os.path.exists(app / ".initramfs"):
             with open(app / ".initramfs") as initramfs:
@@ -238,7 +238,7 @@ def new_app() -> int:
         else:
             return 1
 
-    run_cargo_command_in_workspace(path_of_app, "init", ["--bin"], rerun=False)
+    run_cargo_command_in_workspace(path_of_app, "init", ["--bin"], "none", rerun=False)
     with open(path_of_app / "Cargo.toml", "a") as cargo:
         cargo.write("esque = { path = \"../../libesque/rust/esque\" }")
     

@@ -40,7 +40,41 @@ macro_rules! const_enum {
                 $visi fn $name_of_fn ($($arg : $typ)*) -> $ret $blck
             )*
         }
+    };
+    (
+        $(#[$attributes_of_enum:meta])*
+        uncounted $enum_visi:vis enum $name_of_enum:ident : $integer_type:ty => $(#[$impl_attributes_of_enum:meta])* {
+            $(
+                $(#[$attributes_of_variant:meta])*
+                $name_of_variant:ident = $value_of_variant:expr,
+            )*
+        }
+
+        impl { $(
+            $visi:vis fn $name_of_fn:ident ($($arg:ident : $typ:ty)*) -> $ret:ty $blck:block
+        )*}
+    ) => {
+        #[allow(non_snake_case)]
+        #[allow(unused)]
+        #[allow(non_upper_case_globals)]
+        $enum_visi mod $name_of_enum {
+            use super::*;
+            pub const len: usize = 0;
+            $(
+                // Allow it to be "Enum-Like" instead of "Const-Like"
+                #[allow(non_upper_case_globals)]
+                $(#[$attributes_of_variant])*
+                pub const $name_of_variant: $integer_type = $value_of_variant;
+            )*
+
+            type Me = $integer_type;
+
+            $(
+                $visi fn $name_of_fn ($($arg : $typ)*) -> $ret $blck
+            )*
+        }
     }
+
 }
 
 #[macro_export]

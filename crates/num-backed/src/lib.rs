@@ -8,6 +8,9 @@ macro_rules! num_backed {
         impl $name {
             #[allow(dead_code)]
             pub const fn inner(self) -> $backend { self.0 }
+
+            #[allow(dead_code)]
+            pub const fn new(x: $backend) -> Self { Self(x) }
         }
 
         impl Into<$backend> for $name {
@@ -25,110 +28,134 @@ macro_rules! num_backed {
                     .finish()
             }
         }
-        
+
         impl core::fmt::Binary for $name {
             #[inline]
             fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 core::fmt::Binary::fmt(&self.0, f)
             }
         }
-        
+
         impl core::fmt::LowerHex for $name {
             #[inline]
             fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 core::fmt::LowerHex::fmt(&self.0, f)
             }
         }
-        
+
         impl core::fmt::Octal for $name {
             #[inline]
             fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 core::fmt::Octal::fmt(&self.0, f)
             }
         }
-        
+
         impl core::fmt::UpperHex for $name {
             #[inline]
             fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 core::fmt::UpperHex::fmt(&self.0, f)
             }
         }
-        
+
         impl core::fmt::Pointer for $name {
             #[inline]
             fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 core::fmt::Pointer::fmt(&(self.0 as *const ()), f)
             }
         }
-        
-        impl Add<$backend> for $name {
+
+        impl ::core::ops::Add<$backend> for $name {
             type Output = Self;
             #[inline]
             fn add(self, rhs: $backend) -> Self::Output {
                 $name::new(self.0 + rhs)
             }
         }
-        
-        impl AddAssign<$backend> for $name {
+
+        impl ::core::ops::AddAssign<$backend> for $name {
             #[inline]
             fn add_assign(&mut self, rhs: $backend) {
-                *self = *self + rhs;
+                self.0 += self.0 - rhs;
             }
         }
-        
-        impl Add<usize> for $name {
+
+        impl ::core::ops::Add<$name> for $name {
+            type Output = Self;
+            #[inline]
+            fn add(self, rhs: $name) -> Self::Output {
+                self + rhs.inner()
+            }
+        }
+
+        impl ::core::ops::AddAssign<$name> for $name {
+            #[inline]
+            fn add_assign(&mut self, rhs: $name) {
+                self.add_assign(rhs.inner())
+            }
+        }
+
+
+        impl ::core::ops::Add<usize> for $name {
             type Output = Self;
             #[inline]
             fn add(self, rhs: usize) -> Self::Output {
                 self + rhs as $backend
             }
         }
-        
-        impl AddAssign<usize> for $name {
+
+        impl ::core::ops::AddAssign<usize> for $name {
             #[inline]
             fn add_assign(&mut self, rhs: usize) {
                 self.add_assign(rhs as $backend)
             }
         }
-        
-        impl Sub<$backend> for $name {
+
+        impl ::core::ops::Sub<$backend> for $name {
             type Output = Self;
             #[inline]
             fn sub(self, rhs: $backend) -> Self::Output {
                 $name::new(self.0.checked_sub(rhs).unwrap())
             }
         }
-        
-        impl SubAssign<$backend> for $name {
+
+        impl ::core::ops::SubAssign<$backend> for $name {
             #[inline]
             fn sub_assign(&mut self, rhs: $backend) {
-                *self = *self - rhs;
+                self.0 = self.0 - rhs;
             }
         }
-        
-        impl Sub<usize> for $name {
+
+        impl ::core::ops::Sub<usize> for $name {
             type Output = Self;
             #[inline]
             fn sub(self, rhs: usize) -> Self::Output {
                 self - rhs as $backend
             }
         }
-        
-        impl SubAssign<usize> for $name {
+
+        impl ::core::ops::SubAssign<usize> for $name {
             #[inline]
             fn sub_assign(&mut self, rhs: usize) {
                 self.sub_assign(rhs as $backend)
             }
         }
-        
-        impl Sub<$name> for $name {
+
+
+
+        impl ::core::ops::Sub<$name> for $name {
             type Output = $backend;
             #[inline]
             fn sub(self, rhs: $name) -> Self::Output {
-                self.as_u64().checked_sub(rhs.as_u64()).unwrap()
+                self.inner().checked_sub(rhs.inner()).unwrap()
             }
         }
-        
+
+        impl ::core::ops::SubAssign<$name> for $name {
+            #[inline]
+            fn sub_assign(&mut self, rhs: $name) {
+                self.sub_assign(rhs.inner() as $backend)
+            }
+        }
     };
 
     ($visi:vis $name:ident backed by $backend:ident;
@@ -143,43 +170,42 @@ macro_rules! num_backed {
         impl $atomic_name {
             #[allow(dead_code)]
             pub const fn new(x: $name) -> Self {
-                Self { container: $atomic_backend::new(x.into()) }
+                Self { container: $atomic_backend::new(x.inner()) }
             }
             #[allow(dead_code)]
             pub fn compare_exchange_weak(&self, current: $name, new: $name, order_on_success: ::core::sync::atomic::Ordering, order_on_failure: ::core::sync::atomic::Ordering) -> Result<$name, $name> {
-                match self.container.compare_exchange_weak(current.into(), new.into(), order_on_success, order_on_failure) {
-                    Ok(good) => Ok($name::from(good)),
-                    Err(bad) => Err($name:.from(bad)),
+                match self.container.compare_exchange_weak(current.inner(), new.inner(), order_on_success, order_on_failure) {
+                    Ok(good) => Ok($name::new(good)),
+                    Err(bad) => Err($name::new(bad)),
                 }
             }
 
             #[allow(dead_code)]
-            pub fn compare_exchange(&self, current: $name, new: $name, order_on_success: ::core::sync::atomic::Ordering, order_on_failure: ::core::sync::atomic::Ordering) -> Reuslt<$name, $name> {
-                match self.container.compare_exchange(current.into(), new.into(), order_on_success, order_on_failure) {
-                    Ok(good) => Ok($name::from(good)),
-                    Err(bad) => Err($name::from(bad)),
+            pub fn compare_exchange(&self, current: $name, new: $name, order_on_success: ::core::sync::atomic::Ordering, order_on_failure: ::core::sync::atomic::Ordering) -> Result<$name, $name> {
+                match self.container.compare_exchange(current.inner(), new.inner(), order_on_success, order_on_failure) {
+                    Ok(good) => Ok($name::new(good)),
+                    Err(bad) => Err($name::new(bad)),
                 }
             }
 
             #[allow(dead_code)]
             pub fn store(&self, value: $name, order: ::core::sync::atomic::Ordering) {
-                self.container.store(value.into(), order);
+                self.container.store(value.inner(), order);
             }
 
             #[allow(dead_code)]
             pub fn load(&self, order: ::core::sync::atomic::Ordering) -> $name {
-                $name::from(self.container.load(order))
+                $name::new(self.container.load(order))
             }
 
             #[allow(dead_code)]
             pub fn swap(&self, value: $name, order: ::core::sync::atomic::Ordering) -> $name {
-                $name::from(self.container.swap(value.into(), order))
+                $name::new(self.container.swap(value.inner(), order))
             }
         }
 
         impl Default for $atomic_name {
-            fn default() -> Self { Self::new($backend::from(0) ) }
+            fn default() -> Self { Self::new( $name::new(0) ) }
         }
-        
     }
 }

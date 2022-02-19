@@ -1,9 +1,15 @@
 import util
 import subprocess
 import json_handler
+import os
+import config
 
-def run_cargo_command_in_workspace(cwd, command, args, rerun=True):
+def run_cargo_command_in_workspace(cwd, command, args, flags, rerun=True):
     util.info(f"Executing cargo command 'cargo {command}' with flags '{args}' in directory '{cwd}'")
+    
+    if flags != "none":
+        os.environ["RUSTFLAGS"] = flags
+    
     # First Pass (With Output)
     if isinstance(args, str):
         list = args.split(" ")

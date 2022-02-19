@@ -4,6 +4,7 @@
 #![feature(arbitrary_enum_discriminant)]
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
+#![feature(ptr_internals)]
 #![feature(rustc_private)]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
@@ -11,6 +12,7 @@
 #![feature(custom_test_frameworks)]
 #![feature(int_log)]
 #![feature(slice_pattern)]
+#![feature(const_btree_new)]
 // Allow ---
 #![allow(unused_unsafe)]
 #![allow(dead_code)]
@@ -24,48 +26,53 @@
 #![reexport_test_harness_main = "test_main"]
 
 pub mod arch;
-pub mod math;
 pub mod error;
+pub mod math;
 extern crate alloc;
+pub mod common;
 pub mod framebuffer;
 pub mod gdt;
-pub mod common;
 pub mod init;
 pub mod memory;
 pub mod panic;
 pub mod pci;
-use alloc::vec::{self, Vec};
+use alloc::{
+    boxed::Box,
+    collections::BTreeMap,
+    sync::Arc,
+    vec::{self, Vec},
+};
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;
 pub mod drivers;
+pub mod env;
 pub mod heap;
 pub mod initramfs;
 pub mod interrupts;
-pub mod stratagem;
 pub mod iobus;
 pub mod pic;
 pub mod scheduler;
 pub mod smp;
+pub mod stratagem;
 pub mod test;
 pub mod userspace;
 use bks::PAGE_SIZE;
 pub use config::config;
+use env::{getenv, setenv, Environment};
 pub use esys::process::Process;
 use memory::paging::{
     page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
 };
 use scheduler::pit::sleep;
 pub use smp::Thread;
-use spin::Mutex;
-use syscall::env::setenv;
+use spin::{Mutex, RwLock};
 pub use userspace::pid::{KernelPid, Pid};
 use userspace::{jump_to_userspace, launchpad::Launchpad};
 
 use crate::{
     math::is_aligned,
     memory::{PhysicalAddress, VirtualAddress},
-    syscall::env::getenv,
 };
 
 pub mod ipc;
@@ -73,8 +80,6 @@ pub mod syscall;
 
 pub const HEAP_ADDRESS: u64 = 0x0000900000;
 pub const HEAP_LENGTH: usize = PAGE_SIZE as usize;
-
-static ENVIRONMENT: Mutex<Vec<&[u8]>> = Mutex::new(Vec::new());
 
 #[no_mangle]
 extern "sysv64" fn kmain(mut handover: Handover) -> u32 {

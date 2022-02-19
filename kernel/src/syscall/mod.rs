@@ -1,5 +1,3 @@
-pub mod env;
-
 pub fn syscall(
     a: usize,
     b: usize,
