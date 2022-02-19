@@ -11,6 +11,14 @@ pub struct RustTest {
 macro_rules! check {
     ($c:expr) => {
         if !($c) {
+            crate::debug!(concat!(
+                "\nTesting failed at the following statment: \n",
+                file!(),
+                ":",
+                line!(),
+                " ",
+                stringify!($c)
+            ));
             return 1;
         }
     };

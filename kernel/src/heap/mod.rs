@@ -314,7 +314,11 @@ impl<'header> Heap<'header> {
         );
         self.last_header.next = Some(Unique::new(header).unwrap());
         header.next = None;
-        header.len = length - size_of::<HeapSegmentHeader>();
+        header.len = if (length as i64 - size_of::<HeapSegmentHeader>() as i64) >= 0 {
+            length - size_of::<HeapSegmentHeader>()
+        } else {
+            size_of::<HeapSegmentHeader>()
+        };
         header.combine_with_last(self.last_header);
         self.last_header = header;
     }

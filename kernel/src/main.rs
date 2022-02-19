@@ -36,6 +36,7 @@ pub mod init;
 pub mod memory;
 pub mod panic;
 pub mod pci;
+pub mod tests;
 use alloc::{
     boxed::Box,
     collections::BTreeMap,
@@ -145,26 +146,4 @@ pub unsafe extern "C" fn kernel_userspace_stub(argc: u32, argv: *const *const u8
     )
 }
 
-pub unsafe fn load_userspace() {
-    setenv("SHELL", "/bin/sh");
-    setenv("KERNEL_VERSION", "0.1-rc1");
-    setenv("LICENSE", "GPLv2");
-    setenv("KERNEL", "esque");
-    setenv("HELLO", "lmao");
-
-    let shell = getenv("SHELL");
-    let kernel = getenv("KERNEL");
-    let version = getenv("KERNEL_VERSION");
-    let license = getenv("LICENSE");
-    let hello = getenv("HELLO");
-    success!(
-        "ENV: {:?}; {:?}; {:?}; {:?}; {:?}",
-        shell,
-        kernel,
-        version,
-        license,
-        hello
-    );
-    setenv("SHELL", "/bin/bash");
-    success!("CHANGED ENV: {:?}", getenv("SHELL").unwrap());
-}
+pub unsafe fn load_userspace() {}

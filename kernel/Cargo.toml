@@ -25,6 +25,7 @@ pci-lookup = { path = "../crates/pci-lookup" }
 bit_field = "0.10.1"
 num-backed = { path = "../crates/num-backed" }
 esyscall-support = { path = "../crates/esyscall-support" } 
+bounds = { path = "../crates/bounds" }
 
 [features]
 harsh-tests = [] # Exit on Failure of a test

@@ -3,6 +3,12 @@ use esys::ipc::IPCQueueHeader;
 
 use crate::{address_of, emergency, heap::malloc, success};
 
+#[cfg(feature = "harsh-tests")]
+pub const IS_TESTING_HARSHLY: bool = true;
+
+#[cfg(not(feature = "harsh-tests"))]
+pub const IS_TESTING_HARSHLY: bool = false;
+
 #[repr(u32)]
 #[cfg(feature = "harsh-tests")]
 // QEMU will execute `exit(((code << 1) | 1))`
@@ -33,12 +39,6 @@ impl QemuExitCode {
 #[esqtest::test]
 pub fn check_printing() {
     success!("printing works!");
-    all_good!()
-}
-
-#[esqtest::test]
-pub fn check_allocation() {
-    check_neq!(address_of!(malloc::<IPCQueueHeader>()), 0);
     all_good!()
 }
 

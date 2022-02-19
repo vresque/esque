@@ -1,6 +1,7 @@
 use crate::framebuffer::clear_screen;
 use crate::framebuffer::FRAMEBUFFER_GUARD;
 use crate::kcolorchange;
+use crate::test;
 use crate::{kprint, kprintln};
 use core::arch::asm;
 use core::panic::PanicInfo;
@@ -10,6 +11,12 @@ fn panic_handler(info: &PanicInfo) -> ! {
     // This is not performant code - This creates a pretty panic-screen.
     // This is the last thing that this OS does - It does not have to be performant
     use core::fmt::Write;
+
+    // If we are testing harshly, exit qemu here
+    #[cfg(feature = "harsh-tests")]
+    {
+        test::QemuExitCode::TotalFailure.exit_qemu()
+    }
 
     kcolorchange!(bg: 0x020936_u32, fg: 0xfac102_u32);
 
