@@ -13,7 +13,7 @@ use crate::alloc::vec::Vec;
 use alloc::vec;
 use bks::{Config, EfiMemoryDescriptor, Handover, KeyboardLayout, Language, PAGE_SIZE};
 use log::{error, info};
-use uefi::ResultExt;
+use uefi::{ResultExt, CStr16, CString16};
 use uefi::{
     prelude::*,
     proto::{
@@ -76,7 +76,7 @@ pub fn load_file<'a>(
             .expect_success("Failed to open root volume"),
     };
 
-    let filehandle = match directory.open(path, FileMode::Read, FileAttribute::READ_ONLY) {
+    let filehandle = match directory.open(&CString16::try_from(path).unwrap(), FileMode::Read, FileAttribute::READ_ONLY) {
         Ok(fh) => fh.unwrap(),
         Err(e) => {
             error!("Failed to open file '{}'\nError: {:?}", path, e);
