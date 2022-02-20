@@ -130,7 +130,7 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128> Add<usize>
     type Output = Self;
     #[inline]
     fn add(self, rhs: usize) -> Self::Output {
-        self + rhs
+        self + (rhs as u64)
     }
 }
 
@@ -168,7 +168,7 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128> Sub<usize>
     type Output = Self;
     #[inline]
     fn sub(self, rhs: usize) -> Self::Output {
-        self - rhs
+        self - (rhs as u64)
     }
 }
 
@@ -177,7 +177,7 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128> SubAssign<usize>
 {
     #[inline]
     fn sub_assign(&mut self, rhs: usize) {
-        self.sub_assign(rhs as usize)
+        self.sub_assign(rhs as u64)
     }
 }
 
@@ -187,6 +187,6 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128>
     type Output = i128;
     #[inline]
     fn sub(self, rhs: TwoWayBound<LOWER, UPPER, DEFAULT>) -> Self::Output {
-        self.inner - rhs.inner
+        Self::cap(self.inner - rhs.inner)
     }
 }

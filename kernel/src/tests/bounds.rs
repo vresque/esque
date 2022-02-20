@@ -15,7 +15,7 @@ pub fn test_bounds() {
     check_eq!(*TwoWayBound::<-20, 100>::new(-30), -20);
     check_eq!(*TwoWayBound::<-20, 100, 55>::new(-30), 55);
     let bound = TwoWayBound::<-20, 200>::new(120); // = 120
-    let snd = TwoWayBound::<-20, 200>::new(200); // = 130
+    let snd = TwoWayBound::<-20, 200>::new(130); // = 130
     check_eq!((bound - snd) /* = -10 */, -10);
     let trd = TwoWayBound::<-20, 200>::new(150); // = 150
     check_eq!(bound - trd /* -30 */, -20); /* Bounds must still be active at this point */
