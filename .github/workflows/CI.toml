@@ -17,16 +17,22 @@ never-run = false # Should any --run or ./y.py run be ignored?
 out-image-path = "build/esque-m.img"
 minimal-toolchain = true
 strip = true
+rustc-flags = [ "" ]
+
 
 [kernel]
 features = []
 cargo-flags = [ "mirror" ] # Also mirrors the global flags
 mode = "mirror" # Mirrors global mode
+rustc-flags = [ "" ]
+
 
 [boot]
 features = [ "" ]
 cargo-flags = [ "mirror" ]
 mode = "mirror"
+rustc-flags = [ "" ]
+
 
 [modules]
 no-modules = false
@@ -45,3 +51,4 @@ qemu-opts = [ "-display none"] # Additional arguments
 
 [apps]
 cargo-flags = [ "mirror" ]
+rustc-flags = [ "" ]
