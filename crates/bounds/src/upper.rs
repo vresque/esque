@@ -90,7 +90,7 @@ impl<const CAP: i128> Add<u64> for UpperBound<CAP> {
 impl<const CAP: i128> AddAssign<u64> for UpperBound<CAP> {
     #[inline]
     fn add_assign(&mut self, rhs: u64) {
-        self.inner = self.inner + rhs as i128;
+        self.inner = Self::cap(self.inner + rhs as i128);
     }
 }
 
@@ -98,7 +98,7 @@ impl<const CAP: i128> Add<usize> for UpperBound<CAP> {
     type Output = Self;
     #[inline]
     fn add(self, rhs: usize) -> Self::Output {
-        self + rhs
+        self + rhs as u64
     }
 }
 
@@ -128,14 +128,14 @@ impl<const CAP: i128> Sub<usize> for UpperBound<CAP> {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: usize) -> Self::Output {
-        self - rhs
+        self - rhs as u64
     }
 }
 
 impl<const CAP: i128> SubAssign<usize> for UpperBound<CAP> {
     #[inline]
     fn sub_assign(&mut self, rhs: usize) {
-        self.sub_assign(rhs as usize)
+        self.sub_assign(rhs as u64)
     }
 }
 
@@ -143,6 +143,6 @@ impl<const CAP: i128> Sub<UpperBound<CAP>> for UpperBound<CAP> {
     type Output = i128;
     #[inline]
     fn sub(self, rhs: UpperBound<CAP>) -> Self::Output {
-        self.inner - rhs.inner
+        Self::cap(self.inner - rhs.inner)
     }
 }

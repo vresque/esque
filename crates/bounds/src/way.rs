@@ -120,7 +120,7 @@ impl<const LOWER: i128, const UPPER: i128, const DEFAULT: i128> AddAssign<u64>
 {
     #[inline]
     fn add_assign(&mut self, rhs: u64) {
-        self.inner = self.inner + rhs as i128;
+        self.inner = Self::cap(self.inner + rhs as i128);
     }
 }
 

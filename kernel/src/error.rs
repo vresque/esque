@@ -1,10 +1,11 @@
-pub type Result<T, E = Error> = core::result::Result<T, E>;
+pub type Result<T, E = UnixError> = core::result::Result<T, E>;
 
 /// # Error
 /// A wrapper around an error type
-pub struct Error(i32);
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct UnixError(i32);
 
-impl Error {
+impl UnixError {
     pub const fn new(code: i32) -> Self {
         Self(code)
     }
@@ -35,11 +36,148 @@ impl Error {
     {
         if code <= 0 && -code <= ERROR_TEXTS.len() as i32 {
             /* Error Code */
-            Err(Error::new(-code))
+            Err(UnixError::new(-code))
         } else {
             /* No Error Code */
             Ok(T::from(code))
         }
+    }
+}
+
+impl core::fmt::Display for UnixError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        writeln!(f, "{}", self.text())?;
+        Ok(())
+    }
+}
+
+enumtastic::enum_with_options! {
+    pub enum Error: UnixError => {
+        OperationNotPermitted = UnixError::new(ErrorCode::EPERM),
+        NoSuchFileOrDirectory = UnixError::new(ErrorCode::ENOENT),
+        NoSuchProcess = UnixError::new(ErrorCode::ESRCH),
+        InterruptedSyscall = UnixError::new(ErrorCode::EINTR),
+        IOError = UnixError::new(ErrorCode::EIO),
+        NoSuchDeviceOrAddress= UnixError::new(ErrorCode::ENXIO),
+        ArgumentListTooLong = UnixError::new(ErrorCode::E2BIG),
+        ExecFormatError = UnixError::new(ErrorCode::ENOEXEC),
+        BadFileNumber = UnixError::new(ErrorCode::EBADF),
+        NoChildProcess = UnixError::new(ErrorCode::ECHILD),
+        TryAgain = UnixError::new(ErrorCode::EAGAIN),
+        OutOfMemory = UnixError::new(ErrorCode::ENOMEM),
+        PermissionDenied = UnixError::new(ErrorCode::EACCES),
+        BadFault = UnixError::new(ErrorCode::EFAULT),
+        BlockDeviceRequired = UnixError::new(ErrorCode::ENOTBLK),
+        DeviceOrResourceBusy = UnixError::new(ErrorCode::EBUSY),
+        FileExists = UnixError::new(ErrorCode::EEXIST),
+        CrossDeviceLink = UnixError::new(ErrorCode::EXDEV),
+        NoSuchDevice = UnixError::new(ErrorCode::ENODEV),
+        NotADirectory = UnixError::new(ErrorCode::ENOTDIR),
+        IsADirectory = UnixError::new(ErrorCode::EISDIR),
+        InvalidArgument = UnixError::new(ErrorCode::EINVAL),
+        FileTableOverflow = UnixError::new(ErrorCode::ENFILE),
+        TooManyOpenFiles = UnixError::new(ErrorCode::EMFILE),
+        NotTTY = UnixError::new(ErrorCode::ENOTTY),
+        TextFileBusy = UnixError::new(ErrorCode::ETXTBSY),
+        FileTooLarge = UnixError::new(ErrorCode::EFBIG),
+        NoSpaceLeftOnDevice = UnixError::new(ErrorCode::ENOSPC),
+        IllegalSeek = UnixError::new(ErrorCode::ESPIPE),
+        ReadOnlyFileSystem = UnixError::new(ErrorCode::EROFS),
+        TooManyLinks = UnixError::new(ErrorCode::EMLINK),
+        BrokenPipe = UnixError::new(ErrorCode::EPIPE),
+        MathArgumentOutOfDomainOfFunction = UnixError::new(ErrorCode::EDOM),
+        MathResultNotRepresentable = UnixError::new(ErrorCode::ERANGE),
+        ResourceDeadlockWouldOccur = UnixError::new(ErrorCode::EDEADLK),
+        FileNameTooLong = UnixError::new(ErrorCode::ENAMETOOLONG),
+        NoRecordLocksAvailable = UnixError::new(ErrorCode::ENOSYS),
+        DirectoryNotEmpty = UnixError::new(ErrorCode::ENOTEMPTY),
+        TooManySymbolicLinks = UnixError::new(ErrorCode::ELOOP),
+        OperationWouldBlock = UnixError::new(ErrorCode::EWOULDBLOCK),
+        NoMessageOfDesiredType = UnixError::new(ErrorCode::ENOMSG),
+        IdentifierRemoved = UnixError::new(ErrorCode::EIDRM),
+        ChannelNumberOutOfRange = UnixError::new(ErrorCode::ECHRNG),
+        Level2NotSynchronized = UnixError::new(ErrorCode::ECHRNG),
+        Level3Halted = UnixError::new(ErrorCode::EL3HLT),
+        Level3Reset = UnixError::new(ErrorCode::EL3RST),
+        LinkNumberOutOfRange = UnixError::new(ErrorCode::ELNRNG),
+        ProtocolDriverNotAttached = UnixError::new(ErrorCode::EUNATCH),
+        NoCSIStructureAvailable = UnixError::new(ErrorCode::ENOCSI),
+        Level2Halted = UnixError::new(ErrorCode::EL2HLT),
+        InvalidExchange = UnixError::new(ErrorCode::EBADE),
+        InvalidRequestDescriptor = UnixError::new(ErrorCode::EBADR),
+        ExchangeFull = UnixError::new(ErrorCode::EXFULL),
+        NoAnode = UnixError::new(ErrorCode::ENOANO),
+        InvalidRequestCode = UnixError::new(ErrorCode::EBADRQC),
+        InvalidSlot = UnixError::new(ErrorCode::EBADSLT),
+        ResourceDeadlockWouldOccur2 = UnixError::new(ErrorCode::EDEADLOCK),
+        BadFontFileFormat = UnixError::new(ErrorCode::EBFONT),
+        DeviceNotAStream = UnixError::new(ErrorCode::ENOSTR),
+        NoDataAvailable = UnixError::new(ErrorCode::ENODATA),
+        TimerExpired = UnixError::new(ErrorCode::ETIME),
+        OutOfStreamResources = UnixError::new(ErrorCode::ENOSR),
+        MachineIsNotOnTheNetwork = UnixError::new(ErrorCode::ENONET),
+        PackageNotInstalled = UnixError::new(ErrorCode::ENOPKG),
+        ObjectIsRemote = UnixError::new(ErrorCode::EREMOTE),
+        LinkHasBeenSevered = UnixError::new(ErrorCode::ENOLINK),
+        AdvertiseError = UnixError::new(ErrorCode::EADV),
+        SrmountError = UnixError::new(ErrorCode::ESRMNT),
+        CommunicationErrorOnSend = UnixError::new(ErrorCode::ECOMM),
+        ProtocolError = UnixError::new(ErrorCode::EPROTO),
+        MultihopAttempted = UnixError::new(ErrorCode::EMULTIHOP),
+        RFSSpecificError = UnixError::new(ErrorCode::EDOTDOT),
+        NotADataMessage = UnixError::new(ErrorCode::EBADMSG),
+        Overflow = UnixError::new(ErrorCode::EOVERFLOW),
+        NameNotUniqueOnNetwork = UnixError::new(ErrorCode::ENOTUNIQ),
+        FileDescriptorInBadState = UnixError::new(ErrorCode::EBADFD),
+        RemoteAddressChange = UnixError::new(ErrorCode::EREMCHG),
+        CannotAccessANeededSharedLibrary = UnixError::new(ErrorCode::ELIBACC),
+        AccessingACorruptedSharedLibrary = UnixError::new(ErrorCode::ELIBBAD),
+        LibSectionCorrupted = UnixError::new(ErrorCode::ELIBSCN),
+        AttemptingToLinkTooManySharedLibraries = UnixError::new(ErrorCode::ELIBMAX),
+        CannotExecASharedLibrary = UnixError::new(ErrorCode::ELIBEXEC),
+        IllegalByteSequence = UnixError::new(ErrorCode::EILSEQ),
+        InteruptedSyscallRestart = UnixError::new(ErrorCode::ERESTART),
+        StreamPipeError = UnixError::new(ErrorCode::ESTRPIPE),
+        TooManyUsers = UnixError::new(ErrorCode::EUSERS),
+        SocketOperationOnNonSocket = UnixError::new(ErrorCode::ENOTSOCK),
+        DestinationAddressRequired = UnixError::new(ErrorCode::EDESTADDRREQ),
+        MessageTooLong = UnixError::new(ErrorCode::EMSGSIZE),
+        ProtocolWrongTypeForSocket = UnixError::new(ErrorCode::EPROTO),
+        ProtocolNotAvailable = UnixError::new(ErrorCode::ENOPROTOOPT),
+        ProtocolNotSupported = UnixError::new(ErrorCode::ESOCKTNOSUPPORT),
+        OperationNotSupportedOnTransportEndpoing = UnixError::new(ErrorCode::EOPNOTSUPP),
+        AddressFamilyNotSupportedByProtocol = UnixError::new(ErrorCode::EAFNOSUPPORT),
+        AddressAlreadyInUse = UnixError::new(ErrorCode::EADDRINUSE),
+        CannotAssignRequestAddress = UnixError::new(ErrorCode::EADDRNOTAVAIL),
+        NetworkIsDown = UnixError::new(ErrorCode::ENETDOWN),
+        NetworkIsUnreachable = UnixError::new(ErrorCode::ENETUNREACH),
+        NetworkDroppedConnectionDueToReset = UnixError::new(ErrorCode::ENETRESET),
+        ConnectionAbortedBySoftware = UnixError::new(ErrorCode::ECONNABORTED),
+        ConnectionResetByPeer = UnixError::new(ErrorCode::ECONNRESET),
+        NoBufferSpaceAvailable = UnixError::new(ErrorCode::ENOBUFS),
+        TransportEndpointAlreadyConnected = UnixError::new(ErrorCode::EISCONN),
+        TransportEndpoingNotConnected = UnixError::new(ErrorCode::EISCONN),
+        EndpoingHasShutdown = UnixError::new(ErrorCode::ESHUTDOWN),
+        TooManyReferences = UnixError::new(ErrorCode::ETOOMANYREFS),
+        ConnectionTimedOut = UnixError::new(ErrorCode::ETIMEDOUT),
+        ConnectionRefused = UnixError::new(ErrorCode::ECONNREFUSED),
+        HostIsDown = UnixError::new(ErrorCode::EHOSTDOWN),
+        NoRouteToHost = UnixError::new(ErrorCode::EHOSTUNREACH),
+        OperationAlreadyInProgress = UnixError::new(ErrorCode::EINPROGRESS),
+        StaleNFSFileHandle = UnixError::new(ErrorCode::ESTALE),
+        StructureNeedsCleaning = UnixError::new(ErrorCode::EUCLEAN),
+        NotAXENIXNamedTypeFile = UnixError::new(ErrorCode::ENOTNAM),
+        NoXENIXSemaphoresAvailable = UnixError::new(ErrorCode::EISNAM),
+        RemoteIOError = UnixError::new(ErrorCode::EREMOTEIO),
+        QuotaExceeded = UnixError::new(ErrorCode::EDQUOT),
+        NoMediumFound = UnixError::new(ErrorCode::ENOMEDIUM),
+        WrongMediumType = UnixError::new(ErrorCode::EMEDIUMTYPE),
+        RequiredKeyNotAvailable = UnixError::new(ErrorCode::ENOKEY),
+        KeyHasExpired = UnixError::new(ErrorCode::EKEYEXPIRED),
+        KeyHasBeenRevoked = UnixError::new(ErrorCode::EKEYREVOKED),
+        KeyWasRejectedByService = UnixError::new(ErrorCode::EKEYREJECTED),
+        OwnerDied = UnixError::new(ErrorCode::EOWNERDEAD),
+        StateNotRecoverable = UnixError::new(ErrorCode::ENOTRECOVERABLE),
     }
 }
 
