@@ -3,6 +3,8 @@
 #[macro_export]
 macro_rules! num_backed {
     ($visi:vis $name:ident backed by $backend:ident) => {
+
+        #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
         $visi struct $name($backend);
 
         impl $name {

@@ -115,8 +115,11 @@ It is a micro-kernel featuring a Windows-like userspace.
 As mentioned above, it's main inspirations are Linux and Windows, when it comes
 to kernel-design, but, when for the userspace-design, Windows is used.
 
-I recommend that one read our [Syscall Documentation](Documentation/syscall.md) as well as the [HAL IPC Documentation](Documentation/hal_ipc.md)
+### Linux Compatibility
 
+Due to the huge availability of software on linux, esque aims to be somewhat compatible with it. It achieves filesystem compatibility due to the use of a `fake-root`. There are two major. The *real root* and the *fake root*. An example of a *fake path* would be `/home/user/` or `/bin/*`. A *real root* path starts with the *device:PATH* scheme. Examples: `initramfs:/myfile`, `C:/Binaries/*`, `B:/BOOT/EFI/BOOTX64.EFI`, `C:/Users/User/`or `proc:/CpuInfo`.
+
+Linux syscalls are located at their actual location (0, 1, 2, 3, 4...) while esque syscalls (Windows Like) are located at (SYS_NUM + 0x1000)
 
 ### Does everything run in Userspace?
 

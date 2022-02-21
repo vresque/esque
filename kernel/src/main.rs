@@ -17,6 +17,7 @@
 #![allow(unused_unsafe)]
 #![allow(dead_code)]
 #![allow(unstable_features)]
+#![feature(naked_functions)]
 // Deny ---
 // Functions and structs may not be used immediately, but may be added in case it will ever be needed
 #![deny(unreachable_patterns)] // May lead to certain code not being reached due to bad code
@@ -29,6 +30,7 @@ pub mod arch;
 pub mod error;
 pub mod math;
 extern crate alloc;
+
 pub mod common;
 pub mod framebuffer;
 pub mod gdt;
@@ -46,6 +48,7 @@ use alloc::{
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;
+pub mod device;
 pub mod drivers;
 pub mod env;
 pub mod heap;
@@ -55,7 +58,6 @@ pub mod iobus;
 pub mod pic;
 pub mod scheduler;
 pub mod smp;
-pub mod stratagem;
 pub mod test;
 pub mod userspace;
 use bks::PAGE_SIZE;

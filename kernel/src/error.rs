@@ -51,7 +51,7 @@ impl core::fmt::Display for UnixError {
     }
 }
 
-enumtastic::enum_with_options! {
+enumtastic::const_enum! {
     pub enum Error: UnixError => {
         OperationNotPermitted = UnixError::new(ErrorCode::EPERM),
         NoSuchFileOrDirectory = UnixError::new(ErrorCode::ENOENT),
@@ -69,7 +69,7 @@ enumtastic::enum_with_options! {
         BadFault = UnixError::new(ErrorCode::EFAULT),
         BlockDeviceRequired = UnixError::new(ErrorCode::ENOTBLK),
         DeviceOrResourceBusy = UnixError::new(ErrorCode::EBUSY),
-        FileExists = UnixError::new(ErrorCode::EEXIST),
+        AlreadyExists = UnixError::new(ErrorCode::EEXIST),
         CrossDeviceLink = UnixError::new(ErrorCode::EXDEV),
         NoSuchDevice = UnixError::new(ErrorCode::ENODEV),
         NotADirectory = UnixError::new(ErrorCode::ENOTDIR),
@@ -179,6 +179,8 @@ enumtastic::enum_with_options! {
         OwnerDied = UnixError::new(ErrorCode::EOWNERDEAD),
         StateNotRecoverable = UnixError::new(ErrorCode::ENOTRECOVERABLE),
     }
+
+    impl {}
 }
 
 enumtastic::const_enum! {

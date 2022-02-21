@@ -6,6 +6,7 @@ use self::{
 pub mod exceptions;
 pub mod idt;
 pub mod interrupt_frame;
+pub mod register;
 
 pub fn set_interrupt_handler(offset: u64, handler: extern "x86-interrupt" fn(InterruptFrame)) {
     let idt_desc =

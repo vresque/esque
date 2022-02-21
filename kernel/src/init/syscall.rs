@@ -16,7 +16,7 @@ pub fn init_syscalls(_: &mut Handover) {
     write_msr(MsrRegister::LStar, syscall_handler as u64);
 
     // Clear Trap Flag
-    write_msr(MsrRegister::SyscallMask, 0x300);
+    write_msr(MsrRegister::SyscallMask, 0x0300);
 
     let efer_val = read_msr(MsrRegister::Efer);
     write_msr(MsrRegister::Efer, efer_val | 1);
