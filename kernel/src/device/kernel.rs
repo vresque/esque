@@ -1,4 +1,3 @@
-use alloc::{fmt::format, string::ToString};
 use rlibc::memcpy;
 
 use super::{traits::Device, DeviceID};
@@ -21,13 +20,13 @@ impl Device for Kernel {
     fn read(&self, id: usize, buffer: &mut [u8]) -> super::traits::Result<u32> {
         unsafe {
             let (ptr, size) = {
-                format!(
+                alloc::format!(
                     "
-                    {
+                    {{
                         \"kernel\": \"esque\",
                         \"version\": {},
                         \"authors\": {},
-                    }
+                    }}
             ",
                     env!("CARGO_PKG_VERSION"),
                     env!("CARGO_PKG_AUTHORS"),

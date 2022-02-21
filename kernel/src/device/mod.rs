@@ -1,4 +1,4 @@
-use core::sync::atomic::{AtomicU64, AtomicUsize};
+use core::sync::atomic::AtomicU64;
 
 use crate::alloc::string::ToString;
 use alloc::{boxed::Box, collections::BTreeMap, sync::Arc};
@@ -13,18 +13,18 @@ pub mod traits;
 pub type ArcDevice = Arc<dyn Device + Send + Sync>;
 
 num_backed::num_backed!(
-    Namespace backed by u64;
-    atomic: AtomicNamespace backed by AtomicU64
+    pub Namespace backed by u64;
+    atomic: pub AtomicNamespace backed by AtomicU64
 );
 
 num_backed::num_backed!(
-    DeviceID backed by u64;
-    atomic: AtomicDeviceID backed by AtomicU64
+    pub DeviceID backed by u64;
+    atomic: pub AtomicDeviceID backed by AtomicU64
 );
 
 num_backed::num_backed!(
-    FileHandle backed by u64;
-    atomic: AtomicFileHandle backed by AtomicU64
+    pub FileHandle backed by u64;
+    atomic: pub AtomicFileHandle backed by AtomicU64
 );
 
 pub struct DeviceTracker {
@@ -82,7 +82,10 @@ impl DeviceTracker {
         let real = real_name.to_string().into_boxed_str();
         // Does it already exist?
         if let Some(name) = self.namespaces.get(&namespace) {
-            if name.contains_key(&(real, fake)) {
+            if name.contains_key(&(
+                real.clone(), /* BAD!! FIXME */
+                fake.clone(), /* BAD!!! FIXME */
+            )) {
                 return Err(Error::AlreadyExists);
             }
         }

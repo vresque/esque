@@ -1,12 +1,5 @@
 use crate::{interrupts::register::Registers, syscall};
-use core::arch::{asm, global_asm};
-
-global_asm!(include_str!("syscall.s"));
-
-extern "C" {
-    #[naked]
-    pub fn syscall_handler();
-}
+use core::arch::asm;
 
 #[no_mangle]
 pub unsafe extern "C" fn syscall_dispatcher(regs: *mut Registers) {
@@ -127,7 +120,10 @@ pub unsafe extern "C" fn syscall_handler() {
             swapgs
             iretq
         ", 
-        sp
-        options(noreturn)
+        sp = const(2),
+        cs_sel = const(0),
+        ss_sel = const(0),
+        ksp = const(0),
+        options(noreturn),
     );
 }

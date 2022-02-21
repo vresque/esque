@@ -29,36 +29,36 @@ pub struct Registers {
 
 impl core::fmt::Display for Registers {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        writeln!(f, "rflag: {:016x}", self.rflags);
-        writeln!(f, "cs:    {:016x}", self.cs);
-        writeln!(f, "rip:   {:016x}", self.rip);
+        writeln!(f, "rflag: {:016x}", { self.rflags });
+        writeln!(f, "cs:    {:016x}", { self.cs });
+        writeln!(f, "rip:   {:016x}", { self.rip });
 
         if self.cs & 0b11 != 0b00 {
-            writeln!(f, "rsp:   {:016x}", self.rsp)?;
-            writeln!(f, "ss:    {:016x}", self.ss)?;
+            writeln!(f, "rsp:   {:016x}", { self.rsp })?;
+            writeln!(f, "ss:    {:016x}", { self.ss })?;
         }
 
         let fsbase = read_msr(MsrRegister::FsBase);
         let gsbase = read_msr(MsrRegister::KernelBase);
         let kgsbase = read_msr(MsrRegister::GsBase);
-        writeln!(f, "fsbase: {:016x}", fsbase);
-        writeln!(f, "gsbase: {:016x}", gsbase);
-        writeln!(f, "kgsbase: {:016x}", kgsbase);
-        writeln!(f, "rax:   {:016x}", self.rax)?;
-        writeln!(f, "rcx:   {:016x}", self.rcx)?;
-        writeln!(f, "rdx:   {:016x}", self.rdx)?;
-        writeln!(f, "rdi:   {:016x}", self.rdi)?;
-        writeln!(f, "rsi:   {:016x}", self.rsi)?;
-        writeln!(f, "r8:    {:016x}", self.r8)?;
-        writeln!(f, "r9:    {:016x}", self.r9)?;
-        writeln!(f, "r10:   {:016x}", self.r10)?;
-        writeln!(f, "r11:   {:016x}", self.r11)?;
-        writeln!(f, "rbx:   {:016x}", self.rbx)?;
-        writeln!(f, "rbp:   {:016x}", self.rbp)?;
-        writeln!(f, "r12:   {:016x}", self.r12)?;
-        writeln!(f, "r13:   {:016x}", self.r13)?;
-        writeln!(f, "r14:   {:016x}", self.r14)?;
-        writeln!(f, "r15:   {:016x}", self.r15)?;
+        writeln!(f, "fsbase: {:016x}", fsbase)?;
+        writeln!(f, "gsbase: {:016x}", gsbase)?;
+        writeln!(f, "kgsbase: {:016x}", kgsbase)?;
+        writeln!(f, "rax:   {:016x}", { self.rax })?;
+        writeln!(f, "rcx:   {:016x}", { self.rcx })?;
+        writeln!(f, "rdx:   {:016x}", { self.rdx })?;
+        writeln!(f, "rdi:   {:016x}", { self.rdi })?;
+        writeln!(f, "rsi:   {:016x}", { self.rsi })?;
+        writeln!(f, "r8:    {:016x}", { self.r8 })?;
+        writeln!(f, "r9:    {:016x}", { self.r9 })?;
+        writeln!(f, "r10:   {:016x}", { self.r10 })?;
+        writeln!(f, "r11:   {:016x}", { self.r11 })?;
+        writeln!(f, "rbx:   {:016x}", { self.rbx })?;
+        writeln!(f, "rbp:   {:016x}", { self.rbp })?;
+        writeln!(f, "r12:   {:016x}", { self.r12 })?;
+        writeln!(f, "r13:   {:016x}", { self.r13 })?;
+        writeln!(f, "r14:   {:016x}", { self.r14 })?;
+        writeln!(f, "r15:   {:016x}", { self.r15 })?;
         Ok(())
     }
 }

@@ -24,7 +24,7 @@ use uefi::{
     },
     table::boot::{AllocateType, MemoryType, OpenProtocolAttributes, OpenProtocolParams},
 };
-use uefi::{CStr16, CString16, ResultExt};
+use uefi::{CString16, ResultExt};
 use xmas_elf::{
     header::sanity_check,
     program::{self, ProgramHeader, SegmentData},

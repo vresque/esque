@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, vec::Vec};
+use alloc::vec::Vec;
 
 pub mod launchpad;
 pub mod pid;

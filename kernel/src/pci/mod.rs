@@ -6,7 +6,7 @@ use pci_lookup::{
 
 use crate::{
     acpi::{config::DeviceConfig, ACPITable, MCFGHeader},
-    address_of, debug, from_addr,
+    address_of, from_addr,
     memory::paging::page_table_manager::PAGE_TABLE_MANAGER,
 };
 

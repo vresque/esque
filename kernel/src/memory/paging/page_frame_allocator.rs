@@ -4,7 +4,7 @@ use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
 use crate::init::memory::_KERNEL_OFFSET;
 use crate::math::is_aligned;
-use crate::{debug, info, kprintln};
+use crate::{debug, kprintln};
 
 use crate::memory::bitmap::Bitmap;
 use spin::Mutex;

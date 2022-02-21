@@ -1,16 +1,14 @@
-use core::{borrow::Borrow, ops::Deref, str::FromStr};
+use core::str::FromStr;
 
 use alloc::{
-    borrow::{Cow, ToOwned},
+    borrow::ToOwned,
     boxed::Box,
     collections::{btree_map::Iter, BTreeMap},
-    string::{String, ToString},
+    string::String,
     sync::Arc,
     vec::Vec,
 };
 use spin::{Once, RwLock, RwLockReadGuard, RwLockWriteGuard};
-
-use crate::{debug, error, info};
 
 static ENVIRONMENT: Once<Arc<RwLock<Environment>>> = Once::new();
 

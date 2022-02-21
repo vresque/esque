@@ -1,8 +1,6 @@
 use bounds::{LowerBound, TwoWayBound, UpperBound};
 use esqtest::*;
 
-use crate::debug;
-
 #[esqtest::test]
 pub fn test_bounds() {
     check_eq!(*UpperBound::<100>::new(110), 100);

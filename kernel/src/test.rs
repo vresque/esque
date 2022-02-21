@@ -1,5 +1,4 @@
-use esqtest::{all_good, check_neq};
-use esys::ipc::IPCQueueHeader;
+use esqtest::all_good;
 
 use crate::{address_of, emergency, heap::malloc, success};
 

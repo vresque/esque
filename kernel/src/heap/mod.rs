@@ -4,11 +4,8 @@ use bks::PAGE_SIZE;
 use spin::Mutex;
 use unique::Unique;
 
-use crate::{
-    debug, kprintln,
-    memory::paging::{
-        page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
-    },
+use crate::memory::paging::{
+    page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
 };
 pub static GLOBAL_HEAP: Mutex<MaybeUninit<Heap>> = Mutex::new(MaybeUninit::uninit());
 

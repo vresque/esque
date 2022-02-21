@@ -28,7 +28,7 @@ impl PageDescriptorEntry {
     }
 
     pub fn set_unused(&mut self) {
-        self.entry == 0;
+        let _ = self.entry = 0;
     }
 
     #[inline]

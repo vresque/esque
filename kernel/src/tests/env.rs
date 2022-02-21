@@ -1,4 +1,3 @@
-use alloc::boxed::Box;
 use esqtest::all_good;
 use esqtest::*;
 

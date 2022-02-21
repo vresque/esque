@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 // Features ---
+#![feature(asm_const)]
 #![feature(arbitrary_enum_discriminant)]
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
@@ -39,12 +40,7 @@ pub mod memory;
 pub mod panic;
 pub mod pci;
 pub mod tests;
-use alloc::{
-    boxed::Box,
-    collections::BTreeMap,
-    sync::Arc,
-    vec::{self, Vec},
-};
+use alloc::vec::Vec;
 pub use bks::Handover;
 pub mod acpi;
 pub mod config;
@@ -58,25 +54,15 @@ pub mod iobus;
 pub mod pic;
 pub mod scheduler;
 pub mod smp;
+#[cfg(test)]
 pub mod test;
 pub mod userspace;
 use bks::PAGE_SIZE;
 pub use config::config;
-use env::{getenv, setenv, Environment};
 pub use esys::process::Process;
-use memory::paging::{
-    page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PAGE_TABLE_MANAGER,
-};
-use scheduler::pit::sleep;
 pub use smp::Thread;
-use spin::{Mutex, RwLock};
+use userspace::launchpad::Launchpad;
 pub use userspace::pid::{KernelPid, Pid};
-use userspace::{jump_to_userspace, launchpad::Launchpad};
-
-use crate::{
-    math::is_aligned,
-    memory::{PhysicalAddress, VirtualAddress},
-};
 
 pub mod ipc;
 pub mod syscall;

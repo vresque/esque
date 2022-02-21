@@ -1,9 +1,8 @@
 use bks::{Handover, PAGE_SIZE};
 
 use crate::heap::Heap;
-use crate::memory::memset;
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
-use crate::{address_of, debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
+use crate::{debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
