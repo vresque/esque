@@ -1,5 +1,7 @@
 ![](binaries/brand/twitter_header_photo_2.png)
 
+## Note: I am currently mostly focused on school, as well as other projects (Ex: text editor). Development may resume soon
+
 <p align="center">
     <h1 align="center">Esque</h1>
 </p>
