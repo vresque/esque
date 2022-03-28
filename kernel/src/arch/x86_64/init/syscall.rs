@@ -1,12 +1,12 @@
 use bks::Handover;
 
 use crate::{
+    arch::gdt::GdtEntryType,
+    arch::iobus::msr::{read_msr, write_msr, MsrRegister},
     arch::syscall::syscall_handler,
-    gdt::GdtEntryType,
-    iobus::msr::{read_msr, write_msr, MsrRegister},
 };
 
-pub fn init_syscalls(_: &mut Handover) {
+pub fn init_syscalls() {
     let syscall_base = GdtEntryType::KernelCode << 3;
     let sysret_base = (GdtEntryType::UserCode32Unused << 3) | 3;
 

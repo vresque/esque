@@ -10,7 +10,7 @@ use crate::{address_of, kprintln, memory::paging::page_frame_allocator::request_
 pub static PAGE_TABLE_MANAGER: Mutex<MaybeUninit<PageTableManager>> =
     Mutex::new(MaybeUninit::uninit());
 
-use super::super::memset;
+use crate::memory::memset;
 #[repr(transparent)]
 #[derive(Copy, Clone)]
 pub struct PageDescriptorEntry {

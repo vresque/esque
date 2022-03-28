@@ -1,6 +1,6 @@
 use core::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::scheduler::pit::TIME_SINCE_BOOT;
+use crate::arch::scheduler::pit::TIME_SINCE_BOOT;
 
 pub static LAST_PID: AtomicUsize = AtomicUsize::new(0);
 pub use esys::process::pid::Pid;

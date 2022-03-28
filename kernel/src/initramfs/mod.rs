@@ -5,7 +5,7 @@ use bks::Handover;
 use spin::Mutex;
 use tar::tar::*;
 
-use crate::memory::paging::page_table_manager::PAGE_TABLE_MANAGER;
+use crate::{config::handover, memory::paging::page_table_manager::PAGE_TABLE_MANAGER};
 
 pub static INITRAMFS: Mutex<MaybeUninit<InitRamFs>> = Mutex::new(MaybeUninit::uninit());
 
@@ -33,7 +33,8 @@ pub mod fs {
     }
 }
 
-pub fn load_initramfs(handover: &mut Handover) {
+pub fn load_initramfs() {
+    let mut handover = handover();
     let ptr = handover.initramfs_base;
     unsafe {
         PAGE_TABLE_MANAGER
@@ -85,7 +86,7 @@ impl<'tar> InitRamFs<'tar> {
     }
 }
 
-pub fn load_system_space_applications(_handover: &mut Handover) {
+pub fn load_system_space_applications() {
     unsafe {
         let _sys_files = INITRAMFS
             .lock()

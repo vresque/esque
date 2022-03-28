@@ -1,4 +1,4 @@
-use crate::interrupts::register::Registers;
+use crate::arch::interrupts::register::Registers;
 
 pub fn syscall(
     rax: u64,

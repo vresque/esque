@@ -1,10 +1,10 @@
 use enumtastic::const_enum;
 
 use crate::{
+    arch::interrupts::interrupt_frame::InterruptFrame,
+    arch::iobus::{inb, outb},
+    arch::pic,
     debug,
-    interrupts::interrupt_frame::InterruptFrame,
-    iobus::{inb, outb},
-    pic,
 };
 
 pub const MOUSE_TIMEOUT: u64 = 100_000;

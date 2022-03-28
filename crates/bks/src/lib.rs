@@ -3,6 +3,7 @@
 use core::slice;
 
 use enumtastic::enum_with_options;
+use unique::Unique;
 pub const PAGE_SIZE: u64 = 0x1000; // 4096
 
 enum_with_options! {
@@ -113,7 +114,7 @@ pub struct Handover {
     font: Psf1Font,
     #[allow(unused)]
     pub mmap_size: usize,
-    memory_map: *mut EfiMemoryDescriptor,
+    memory_map: Unique<EfiMemoryDescriptor>,
     pub mmap_entries: usize,
     pub mmap_entry_size: usize,
     pub config: Config,
@@ -135,6 +136,7 @@ impl Handover {
         initramfs_size: usize,
         rsdp: u64,
     ) -> Self {
+        let mmap = unsafe { Unique::new_const_unchecked(mmap) };
         Self {
             checknum: 42,
             framebuffer: fb,
@@ -171,11 +173,11 @@ impl Handover {
     }
 
     pub fn raw_memory_map(&mut self) -> *mut EfiMemoryDescriptor {
-        self.memory_map
+        self.memory_map.as_mut_ptr()
     }
 
     unsafe fn retrieve_memory_map(&mut self) -> &mut [EfiMemoryDescriptor] {
-        core::slice::from_raw_parts_mut(self.memory_map, self.mmap_entries)
+        core::slice::from_raw_parts_mut(self.memory_map.as_mut_ptr(), self.mmap_entries)
     }
 
     pub fn move_initramfs_to(&mut self, addr: u64) {

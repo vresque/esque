@@ -1,4 +1,4 @@
-use crate::{interrupts::register::Registers, syscall};
+use crate::{arch::interrupts::register::Registers, syscall};
 use core::arch::asm;
 
 #[no_mangle]
@@ -121,9 +121,9 @@ pub unsafe extern "C" fn syscall_handler() {
             iretq
         ", 
         sp = const(2),
-        cs_sel = const(0),
         ss_sel = const(0),
         ksp = const(0),
+        cs_sel = const(0),
         options(noreturn),
     );
 }

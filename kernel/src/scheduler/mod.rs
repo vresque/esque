@@ -1,1 +1,1 @@
-pub mod pit;
+pub use crate::arch::scheduler;

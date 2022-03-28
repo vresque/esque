@@ -2,7 +2,7 @@ use crate::memory::paging::{
     page_frame_allocator::PAGE_FRAME_ALLOCATOR, page_table_manager::PageTable,
 };
 
-use super::{Frame, PhysicalAddress, VirtualAddress};
+use super::mem::{Frame, PhysicalAddress, VirtualAddress};
 
 /// # Memory Space
 /// This structure represents a *virtual* address space.

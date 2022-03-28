@@ -4,10 +4,10 @@ use spin::Mutex;
 use crate::config;
 use crate::framebuffer::FRAMEBUFFER_GUARD;
 use crate::{
-    interrupts::interrupt_frame::InterruptFrame,
-    iobus::inb,
+    arch::interrupts::interrupt_frame::InterruptFrame,
+    arch::iobus::inb,
+    arch::pic::{end_main_pic, PicPort},
     kprintln,
-    pic::{end_main_pic, PicPort},
 };
 use core::fmt::Write;
 

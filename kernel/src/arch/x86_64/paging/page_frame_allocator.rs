@@ -2,7 +2,7 @@ use core::mem::MaybeUninit;
 
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
-use crate::init::memory::_KERNEL_OFFSET;
+use crate::arch::init::memory::_KERNEL_OFFSET;
 use crate::math::is_aligned;
 use crate::{debug, kprintln};
 

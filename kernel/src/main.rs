@@ -3,6 +3,7 @@
 // Features ---
 #![feature(asm_const)]
 #![feature(arbitrary_enum_discriminant)]
+#![feature(thread_local)]
 #![feature(panic_info_message)]
 #![feature(format_args_nl)]
 #![feature(ptr_internals)]
@@ -34,7 +35,6 @@ extern crate alloc;
 
 pub mod common;
 pub mod framebuffer;
-pub mod gdt;
 pub mod init;
 pub mod memory;
 pub mod panic;
@@ -49,9 +49,7 @@ pub mod drivers;
 pub mod env;
 pub mod heap;
 pub mod initramfs;
-pub mod interrupts;
 pub mod iobus;
-pub mod pic;
 pub mod scheduler;
 pub mod smp;
 #[cfg(test)]
@@ -67,33 +65,19 @@ pub use userspace::pid::{KernelPid, Pid};
 pub mod ipc;
 pub mod syscall;
 
-pub const HEAP_ADDRESS: u64 = 0x0000900000;
-pub const HEAP_LENGTH: usize = PAGE_SIZE as usize;
-
-#[no_mangle]
-extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
-    init::config::init_config(&mut handover);
-    init::gdt::init_gdt(&mut handover);
-    // -#---#@@- Enables Print Macros -@@#---#-
-    init::common::init_common(&mut handover);
-    init::memory::init_paging(&mut handover);
-    init::interrupts::init_interrupts(&mut handover);
-    init::pic::init_pic(&mut handover);
-    init::pit::init_pit(&mut handover);
-    init::memory::map_memory(&mut handover);
-    init::acpi::init_acpi(&mut handover);
+pub fn main() -> ! {
+    init::acpi::init_acpi();
     // -#---#@@- Enables Memory Allocation -@@#---#-
-    init::memory::init_heap(&mut handover);
-    init::smp::init_smp(&mut handover);
+    init::heap::init_heap();
 
     Thread::new(ipc::kernel_ipc_handler).launch();
 
-    drivers::init_drivers(&mut handover);
-    initramfs::load_initramfs(&mut handover);
+    drivers::init_drivers();
+    initramfs::load_initramfs();
 
     // -#---#@@- Enables System Calls -@@#---#-
-    init::syscall::init_syscalls(&mut handover);
-    initramfs::load_system_space_applications(&mut handover);
+    arch::init::syscall::init_syscalls();
+    initramfs::load_system_space_applications();
 
     for i in unsafe { initramfs::INITRAMFS.lock().assume_init_mut().entries() } {
         debug!("{:?}", i.filename);

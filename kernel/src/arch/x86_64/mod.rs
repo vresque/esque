@@ -1,8 +1,22 @@
+pub mod segment;
 pub mod syscall;
 
 use spin::Once;
 
 use crate::memory::VirtualAddress;
+pub mod gdt;
+pub mod init;
+pub mod interrupts;
+pub mod iobus;
+pub mod main;
+pub mod paging;
+pub mod pic;
+pub mod scheduler;
+pub mod structures;
+pub mod tss;
+
+pub const HEAP_ADDRESS: u64 = 0x0000900000;
+pub const HEAP_LENGTH: usize = bks::PAGE_SIZE as usize;
 
 pub const USERSPACE_STACK_SIZE: u64 = 0x64000;
 pub const USERSPACE_ADDRESS_MASK_SHIFT: u64 = 47; // If we ever do lvl 5 paging: 56

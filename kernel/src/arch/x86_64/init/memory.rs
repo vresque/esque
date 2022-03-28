@@ -2,7 +2,7 @@ use bks::{Handover, PAGE_SIZE};
 
 use crate::heap::Heap;
 use crate::memory::paging::page_table_manager::{PageTable, PageTableManager, PAGE_TABLE_MANAGER};
-use crate::{debug, info, kprint, success, HEAP_ADDRESS, HEAP_LENGTH};
+use crate::{arch::HEAP_ADDRESS, arch::HEAP_LENGTH, debug, info, kprint, success};
 use crate::{
     kprintln,
     memory::paging::page_frame_allocator::{PageFrameAllocator, PAGE_FRAME_ALLOCATOR},
@@ -22,13 +22,9 @@ pub static _KERNEL_END: u64 = 0;
 pub static _KERNEL_OFFSET: u64 = 0;
 
 /// Initializes the memory (Paging, Heap, etc)
-pub fn init_paging(handover: &mut Handover) {
+pub fn init_initial_paging(handover: &mut Handover) {
     info!("Preparing Memory");
     unsafe {
-        debug!(
-            "ENT: {}, SZ: {}, ENTSZ: {}",
-            handover.mmap_entries, handover.mmap_size, handover.mmap_entry_size
-        );
         // Set the Global PageFrameAllocator
         PAGE_FRAME_ALLOCATOR.lock().write(PageFrameAllocator::new(
             handover.raw_memory_map() as *mut u8,
@@ -123,14 +119,5 @@ pub fn map_memory(handover: &mut Handover) {
             *xyy = 24;
             debug!("{}", *xyy);
         }
-    }
-}
-
-pub fn init_heap(_handover: &mut Handover) {
-    info!("Initializing Heap!");
-    unsafe {
-        crate::heap::GLOBAL_HEAP
-            .lock()
-            .write(Heap::new(HEAP_ADDRESS, HEAP_LENGTH));
     }
 }

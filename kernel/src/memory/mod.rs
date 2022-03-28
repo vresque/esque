@@ -1,9 +1,9 @@
 pub mod bitmap;
 pub mod memset;
 pub mod paging;
+pub mod structures;
 pub use memset::memset;
 pub mod allocator;
-pub mod structures;
 pub mod userspace;
 pub use structures::*;
 

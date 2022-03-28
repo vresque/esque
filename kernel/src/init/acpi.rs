@@ -1,3 +1,4 @@
+use crate::config::handover;
 use crate::{
     acpi::{
         acpi_base::{ACPIFindable, ACPITable},
@@ -8,7 +9,8 @@ use crate::{
 };
 use bks::Handover;
 
-pub fn init_acpi(handover: &mut Handover) {
+pub fn init_acpi() {
+    let handover = handover();
     info!("Preparing ACPI...");
     let rsdp = Rsdp2::new(handover.rsdp).unwrap();
     let xsdt = SDTHeader::new(rsdp.xsdt_address).unwrap();
