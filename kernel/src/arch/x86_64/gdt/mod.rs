@@ -16,10 +16,10 @@ enumtastic::const_enum! {
         KernelData = 2,
         KernelTls = 3,
         UserCode32Unused = 4,
-        GdtUserData = 5,
-        GdtUserCode = 6,
-        GdtTss = 7,
-        GdtTssHigh = 9,
+        UserData = 5,
+        UserCode = 6,
+        Tss = 7,
+        TssHigh = 9,
     }
 
     impl {}

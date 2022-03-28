@@ -28,32 +28,16 @@ impl Segment {
     }
 }
 
-core::arch::global_asm!(
-    "
-.global upload_to_cs_asm
-upload_to_cs_asm:
-    mov rdi, rax
-    push rax
-    push rdi
-    retfq
-"
-);
-
-extern "C" {
-    pub fn upload_to_cs_asm(bits: u16);
-}
-
 pub unsafe fn upload_to_cs(seg: Segment) {
-    upload_to_cs_asm(seg.bits());
-    //asm!(
-    //    "push {sel}",
-    //    //"lea {temp_r}, [1f + rip]",
-    //    "push {temp_r}",
-    //    "retfq",
-    //    "1:", sel = in(reg) (u64::from(seg.bits())),
-    //    temp_r = lateout(reg) _, // stub
-    //    options(preserves_flags),
-    //);
+    asm!(
+        "push {sel}",
+        "lea {temp_r}, [1f + rip]",
+        "push {temp_r}",
+        "retfq",
+        "1:", sel = in(reg) (u64::from(seg.bits())),
+        temp_r = lateout(reg) _, // stub
+        options(preserves_flags),
+    );
 }
 
 pub unsafe fn upload_to_ss(seg: Segment) {

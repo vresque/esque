@@ -12,6 +12,7 @@
 #![feature(alloc_error_handler)]
 #![feature(stmt_expr_attributes)]
 #![feature(custom_test_frameworks)]
+#![feature(const_ptr_offset_from)]
 #![feature(int_log)]
 #![feature(slice_pattern)]
 #![feature(const_btree_new)]

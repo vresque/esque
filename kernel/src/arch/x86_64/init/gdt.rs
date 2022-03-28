@@ -15,8 +15,6 @@ pub fn init_gdt(_: &mut Handover) {
         upload_to_fs(Segment::new(Ring::Ring0, GdtEntryType::KernelData)); // 0x10
         upload_to_gs(Segment::new(Ring::Ring0, GdtEntryType::KernelData)); // 0x10
         upload_to_ss(Segment::new(Ring::Ring0, GdtEntryType::KernelData)); // 0x10
-        upload_to_cs(Segment::new(Ring::Ring0, GdtEntryType::KernelCode)); // 0x08                                                  //upload_to_cs(Segment::raw(0x08)); // 0x08
-        loop {}
+                                                                           // FIXME: upload_to_cs(Segment::new(Ring::Ring0, GdtEntryType::KernelCode)); // 0x08                                                  //upload_to_cs(Segment::raw(0x08)); // 0x08
     };
-    loop {}
 }

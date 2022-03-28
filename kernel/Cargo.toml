@@ -26,7 +26,7 @@ bit_field = "0.10.1"
 num-backed = { path = "../crates/num-backed" }
 esyscall-support = { path = "../crates/esyscall-support" } 
 bounds = { path = "../crates/bounds" }
-
+memoffset = { version = "0.6.5", features = ["unstable_const"] }
 [features]
 harsh-tests = [] # Exit on Failure of a test
 default = ["rlibc"]

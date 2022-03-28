@@ -115,9 +115,9 @@ pub fn map_memory(handover: &mut Handover) {
                 .lock()
                 .assume_init_mut()
                 .map_memory(0x6_0000_0000, 0x800_000);
-            let xyy = 0x6_0000_0000 as *mut u64;
-            *xyy = 24;
-            debug!("{}", *xyy);
+            //let xyy = 0x6_0000_0000 as *mut u64;
+            //*xyy = 24;
+            //debug!("{}", *xyy);
         }
     }
 }

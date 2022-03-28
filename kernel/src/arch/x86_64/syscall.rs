@@ -1,8 +1,15 @@
+use super::gdt::GdtEntryType;
+use super::gdt::Ring;
+use super::segment::Segment;
+use super::tss::ProcessorControl;
+use crate::arch::tss::Tss;
+use crate::info;
 use crate::{arch::interrupts::register::Registers, syscall};
 use core::arch::asm;
 
 #[no_mangle]
 pub unsafe extern "C" fn syscall_dispatcher(regs: *mut Registers) {
+    info!("Called syscall!");
     let regs = &mut *regs;
     // Return code is in rax
     regs.rax = {
@@ -12,10 +19,7 @@ pub unsafe extern "C" fn syscall_dispatcher(regs: *mut Registers) {
     }
 }
 
-// Do i understand this code? Mostly (Except for the first part)
-// Did i copy it mostly from the Redox Repo? Yes
-// Will i credit the author? Also yes
-// Do i feel bad for copying this assembly? Not at all
+// The following code was copied from the redox kernel: https://gitlab.redox-os.org/redox-os/kernel
 // MIT License
 //
 // Copyright (c) 2017 Jeremy Soller
@@ -40,10 +44,10 @@ pub unsafe extern "C" fn syscall_dispatcher(regs: *mut Registers) {
 // Source of this assembly code: https://github.com/redox-os/kernel/blob/master/src/arch/x86_64/interrupt/syscall.rs
 // Lines 64-139
 #[naked]
+#[no_mangle]
 pub unsafe extern "C" fn syscall_handler() {
     asm!(
         "
-        // ESQUE: If you need help with this, pray.
         swapgs                    // Set gs segment to TSS
         mov gs:[{sp}], rsp        // Save userspace stack pointer
         mov rsp, gs:[{ksp}]       // Load kernel stack pointer
@@ -86,8 +90,6 @@ pub unsafe extern "C" fn syscall_handler() {
         pop rcx
         pop rax
 
-        // This is where the magic code starts again.
-        // I thank you so much, Redox OS
 
         // Return
         //
@@ -120,10 +122,10 @@ pub unsafe extern "C" fn syscall_handler() {
             swapgs
             iretq
         ", 
-        sp = const(2),
-        ss_sel = const(0),
-        ksp = const(0),
-        cs_sel = const(0),
+        sp = const(memoffset::offset_of!(ProcessorControl, user_rsp)),
+        ss_sel = const(Segment::new(Ring::Ring3, GdtEntryType::UserData).bits()),
+        ksp = const((memoffset::offset_of!(ProcessorControl, tss) + memoffset::offset_of!(Tss, rsp))),
+        cs_sel = const(Segment::new(Ring::Ring3, GdtEntryType::UserCode).bits()),
         options(noreturn),
     );
 }

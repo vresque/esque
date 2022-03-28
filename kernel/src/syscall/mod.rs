@@ -11,5 +11,5 @@ pub fn syscall(
     rbp: u64,
     regs: &mut Registers,
 ) -> u64 {
-    10
+    22
 }
