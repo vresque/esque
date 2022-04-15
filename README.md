@@ -1,6 +1,6 @@
 ![](binaries/brand/twitter_header_photo_2.png)
 
-## Note: I am currently mostly focused on school, as well as other projects (Ex: text editor). Development may resume soon
+## Note: This project was deprecated in favour of [Clecx](https://github.com/visionizer/clecx)
 
 <p align="center">
     <h1 align="center">Esque</h1>
