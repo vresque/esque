@@ -67,8 +67,8 @@ impl IDTDescriptorEntry {
     pub fn get_offset(&self) -> u64 {
         let mut offset = 0;
         offset |= (self.offset_0) as u64;
-        offset |= (self.offset_1 << 16) as u64;
-        offset |= (self.offset_2 << 32) as u64;
+        offset |= (self.offset_1 as u64) << (16 as u64);
+        offset |= (self.offset_2 as u64) << (32 as u64);
         offset
     }
 }

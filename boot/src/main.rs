@@ -48,7 +48,7 @@ pub fn load_file<'a>(
                 },
                 OpenProtocolAttributes::Exclusive,
             )
-            .expect_success("Failed to load the LoadedImage Protocol")
+            .expect("Failed to load the LoadedImage Protocol")
             .interface
             .get())
     };
@@ -64,7 +64,7 @@ pub fn load_file<'a>(
                 },
                 OpenProtocolAttributes::Exclusive,
             )
-            .expect_success("Failed to open Root Filesystem")
+            .expect("Failed to open Root Filesystem")
             .interface
             .get())
     };
@@ -73,7 +73,7 @@ pub fn load_file<'a>(
         Some(d) => d,
         None => filesystem
             .open_volume()
-            .expect_success("Failed to open root volume"),
+            .expect("Failed to open root volume"),
     };
 
     let filehandle = match directory.open(
@@ -81,7 +81,7 @@ pub fn load_file<'a>(
         FileMode::Read,
         FileAttribute::READ_ONLY,
     ) {
-        Ok(fh) => fh.unwrap(),
+        Ok(fh) => fh,
         Err(e) => {
             error!("Failed to open file '{}'\nError: {:?}", path, e);
             return Err(Status::NOT_FOUND);
@@ -95,7 +95,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
     let mut info_buf: [u8; 512] = [0; 512];
     let info = kfile
         .get_info::<FileInfo>(&mut info_buf)
-        .expect_success("Failed to load Kernel File Info");
+        .expect("Failed to load Kernel File Info");
     info!("Kernel File Size: {}", info.file_size());
     let size = info.file_size() as usize;
     let mut file: Vec<u8> = vec![0; size];
@@ -103,7 +103,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
     // Reads all contents of KFILE into buffer
     let read = kfile
         .read(file.as_mut_slice())
-        .expect_success("Failed to load file into buffer");
+        .expect("Failed to load file into buffer");
     // read == the bytes that were read (aka size). If not true, nothing was read
     assert_eq!(read, size);
 
@@ -133,7 +133,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
                             MemoryType::LOADER_DATA,
                             pages as usize,
                         )
-                        .expect_success("Failed to load Data into Memory");
+                        .expect("Failed to load Data into Memory");
 
                     let data = match hdr.get_data(&elf).expect("Failed to read phdr data") {
                         SegmentData::Undefined(u) => u,
@@ -163,14 +163,13 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     unsafe {
         //let tr = core::mem::transmute_copy(&table);
         uefi_services::init(&mut *(&mut table as *mut SystemTable<Boot> as *mut _))
-            .expect("Failed to setup Logging")
-            .expect("Completio failed");
+            .expect("Failed to setup Logging");
     };
 
     table
         .stdout()
         .reset(false)
-        .expect_success("Failed to reset output buffer");
+        .expect("Failed to reset output buffer");
 
     {
         let rev = table.uefi_revision();
@@ -221,7 +220,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     info!("Exiting boot services...");
     let (mut rt_table, map_iter) = table
         .exit_boot_services(handle, &mut storage[..])
-        .expect_success("Failed to exit boot services");
+        .expect("Failed to exit boot services");
 
     let rsdp = handover::find_rsdp(&mut rt_table);
 

@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uefi = { git = "https://github.com/rust-osdev/uefi-rs", features = ["exts"] }
+uefi = { version= "0.16.1", features = ["exts"] }
 log = { version = "0.4.14", default-features = false }
-uefi-services = { git = "https://github.com/rust-osdev/uefi-rs" }
+uefi-services = { version ="0.13.1" }
 xmas-elf = "0.8.0"
 bks = { path = "../crates/bks" }
 collect_slice = { git = "https://github.com/visionizer/collect_slice" }

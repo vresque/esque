@@ -23,7 +23,7 @@ pub fn init_gop(_handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
         &mut *(table
             .boot_services()
             .locate_protocol::<GraphicsOutput>()
-            .expect_success("Failed to locate GOP")
+            .expect("Failed to locate GOP")
             .get())
     };
 
@@ -42,12 +42,11 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
     let ptr = table
         .boot_services()
         .allocate_pool(MemoryType::LOADER_DATA, core::mem::size_of::<Psf1Header>())
-        .expect_success("Failed to allocate memory for font header");
+        .expect("Failed to allocate memory for font header");
 
     let size = core::mem::size_of::<Psf1Header>();
     let buffer = unsafe { core::slice::from_raw_parts_mut(ptr, size) };
-    file.read(buffer)
-        .expect_success("Failed to read data into buffer");
+    file.read(buffer).expect("Failed to read data into buffer");
 
     let header: Psf1Header = unsafe { core::ptr::read(buffer.as_ptr() as *const _) };
 
@@ -66,18 +65,18 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
         ((header.charsize) as usize * 256) as usize
     };
     file.set_position(core::mem::size_of::<Psf1Header>() as u64)
-        .expect_success("Failed to set font position");
+        .expect("Failed to set font position");
 
     info!("Loading font into memory...");
     let buffer_ptr = table
         .boot_services()
         .allocate_pool(MemoryType::LOADER_DATA, buffer_size)
-        .expect_success("Failed to allocate memory for font header");
+        .expect("Failed to allocate memory for font header");
 
     info!("Creating glyph buffer...");
     let glyph_buffer = unsafe { core::slice::from_raw_parts_mut(buffer_ptr, buffer_size) };
     file.read(glyph_buffer)
-        .expect_success("Failed to read data into buffer");
+        .expect("Failed to read data into buffer");
     let font = Psf1Font::new(header, glyph_buffer.as_mut_ptr(), buffer_size as usize);
     info!("Finished creating font");
     Some(font)
@@ -89,7 +88,7 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
     let mut info_buf: [u8; 512] = [0; 512];
     let info = initramfs_file
         .get_info::<FileInfo>(&mut info_buf)
-        .expect_success("Failed to load InitRamFs File Info");
+        .expect("Failed to load InitRamFs File Info");
     info!("InitRamFs File Size: {}", info.file_size());
     let size = info.file_size() as usize;
 
@@ -101,13 +100,13 @@ pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64,
             MemoryType::LOADER_DATA,
             pages,
         )
-        .expect_success("Failed to allocate for the InitRamFs");
+        .expect("Failed to allocate for the InitRamFs");
     let file = unsafe { core::slice::from_raw_parts_mut(ptr as *mut u8, size) };
 
     // Reads all contents of the file into a buffer
     let read = initramfs_file
         .read(file)
-        .expect_success("Failed to load file into buffer");
+        .expect("Failed to load file into buffer");
     // read == the bytes that were read (aka size). If not true, nothing was read
     assert_eq!(read, size);
     info!("{} -> {}", read, size);

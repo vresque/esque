@@ -1,7 +1,5 @@
 ![](binaries/brand/twitter_header_photo_2.png)
 
-## Note: This project was deprecated in favour of [Clecx](https://github.com/visionizer/clecx)
-## This project was deprecated, as a lot of code (~10.000 lines) that I had written on a vacation and not yet pushed was accidently deleted. 
 <p align="center">
     <h1 align="center">Esque</h1>
 </p>
@@ -10,14 +8,14 @@
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://github.com/visionizer/esque)
 [![license](https://img.shields.io/github/license/visionizer/esque?style=for-the-badge)](https://github.com/visionizer/esque)
 
-A modern microkernel - Uniting Past and Present
+A modern exokernel
 
 
 ## Building (Using y.py)
 
 ### Esque.toml
 
-Before even talking about the hand-written build-system, I need to mentionvEsque.toml. This is a configuration file with a plethora of options available for customization. Setting this up took a lot of time, which is why it is now the standard for building the Esque OS.
+Before even talking about the hand-written build-system, I need to mention Esque.toml. This is a configuration file with a plethora of options available for customization. Setting this up took a lot of time, which is why it is now the standard for building the Esque OS.
 
 ### Dependencies (On Linux)
 - `cargo`
@@ -52,7 +50,7 @@ to see all options.
 
 **First, you must enter `Esque.toml` and change `enable-kvm` to false.**
 
-Building on Windows is not recommended. I am long-time linux user and the entire build process iis designed for me. As I have a work laptop which, unfortunately, comes preinstalled with a proprietary guard on my harddrive which prohibits the usage of any non-secureboot verified operating systems, I had to become proficient in "Windows Administrative Skills". This is also the reason why `winy` exists.
+Building on Windows is not recommended. I am long-time linux user and the entire build process is designed for me, however, building using `winy.ps1`is possible, yet not optimized.
 
 
 On Windows, only certain `y.py` commands may be executed in the same way as on Linux (Example: `./y.py` build runs `dd` to create an IMG file). Therefore, you are presented with two options
@@ -111,17 +109,14 @@ While it may produce bigger binaries then, let's say, C, it still produces small
 
 
 ## Philosophy
-Esque is a Windows-NT-esque and Minix-esque operating system.
-It is a micro-kernel featuring a Windows-like userspace.
-
-As mentioned above, it's main inspirations are Linux and Windows, when it comes
-to kernel-design, but, when for the userspace-design, Windows is used.
+Esque is a kernel which seeks to unite aspects of linux and windows, while being an exokernel-like system.
+An exokernel is a kernel which provides just the basic things and any additional things (such as network stacks) are loaded via modules.
 
 ### Linux Compatibility
 
 Due to the huge availability of software on linux, esque aims to be somewhat compatible with it. It achieves filesystem compatibility due to the use of a `fake-root`. There are two major. The *real root* and the *fake root*. An example of a *fake path* would be `/home/user/` or `/bin/*`. A *real root* path starts with the *device:PATH* scheme. Examples: `initramfs:/myfile`, `C:/Binaries/*`, `B:/BOOT/EFI/BOOTX64.EFI`, `C:/Users/User/`or `proc:/CpuInfo`.
 
-Linux syscalls are located at their actual location (0, 1, 2, 3, 4...) while esque syscalls (Windows Like) are located at (SYS_NUM + 0x1000)
+Linux syscalls are located at their actual location (0, 1, 2, 3, 4...) while esque syscalls are located at (SYS_NUM + 0x1000)
 
 ### Does everything run in Userspace?
 
@@ -136,10 +131,6 @@ There is
 
 I understand that not many are willing to use their time on a kernel
 such as this one. I will still gladly welcome any contribution, no matter how big or small. Please read the [Contributions File](CONTRIBUTING.md) and take a look at the files in the [Documentation Directory](Documentation)
-
-## Microkernel? Why would you do that?
-
-While the current narrative is that Monolithic kernel's are better than Microkernels, I believe that there may be a compromise between those two - The system described above. This system is loosely inspired by Windows NT's design - Which is also an entire system revolving around the Windows NT microkernel.
 
 ## The InitRamFs
 In the InitRamFs, as of right now, no directories are supported.
