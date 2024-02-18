@@ -1,7 +1,7 @@
 ![](binaries/brand/twitter_header_photo_2.png)
 
 ## Note: This project was deprecated in favour of [Clecx](https://github.com/visionizer/clecx)
-
+## This project was deprecated, as a lot of code (~10.000 lines) that I had written on a vacation and not yet pushed was accidently deleted. 
 <p align="center">
     <h1 align="center">Esque</h1>
 </p>
