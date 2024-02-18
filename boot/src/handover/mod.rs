@@ -1,3 +1,5 @@
+use core::ffi::CStr;
+
 use bks::Framebuffer;
 use bks::Psf1Font;
 use bks::Psf1Header;
@@ -11,6 +13,7 @@ use uefi::proto::media::file::FileInfo;
 use uefi::table::boot::AllocateType;
 use uefi::table::boot::MemoryType;
 use uefi::table::Runtime;
+use uefi::CStr16;
 use uefi::Handle;
 
 use crate::load_file;
@@ -18,14 +21,11 @@ use crate::load_file;
 const PSF1_MAGIC0: u8 = 0x36;
 const PSF1_MAGIC1: u8 = 0x04;
 
-pub fn init_gop(_handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
-    let gop = unsafe {
-        &mut *(table
-            .boot_services()
-            .locate_protocol::<GraphicsOutput>()
-            .expect("Failed to locate GOP")
-            .get())
-    };
+pub fn init_gop(handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
+    let mut gop = table
+        .boot_services()
+        .open_protocol_exclusive::<GraphicsOutput>(handle)
+        .expect("Failed to open GOP");
 
     Framebuffer::new(
         gop.frame_buffer().as_mut_ptr() as u64,
@@ -37,7 +37,14 @@ pub fn init_gop(_handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
 }
 
 pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font> {
-    let file = &mut load_file(None, "font.psf", handle, table).unwrap();
+    let mut strbuf = [0; 9];
+    let file = &mut load_file(
+        None,
+        CStr16::from_str_with_buf("font.psf", &mut strbuf).unwrap(),
+        handle,
+        table,
+    )
+    .unwrap();
 
     let ptr = table
         .boot_services()
@@ -83,7 +90,14 @@ pub fn create_font(handle: Handle, table: &SystemTable<Boot>) -> Option<Psf1Font
 }
 
 pub fn read_initramfs(handle: Handle, table: &SystemTable<Boot>) -> Option<(u64, usize)> {
-    let initramfs_file = &mut load_file(None, "initramfs.tar", handle, table).unwrap();
+    let mut strbuf = [0; 14];
+    let initramfs_file = &mut load_file(
+        None,
+        CStr16::from_str_with_buf("initramfs.tar", &mut strbuf).unwrap(),
+        handle,
+        table,
+    )
+    .unwrap();
 
     let mut info_buf: [u8; 512] = [0; 512];
     let info = initramfs_file

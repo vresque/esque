@@ -7,6 +7,8 @@ extern crate uefi;
 extern crate uefi_services;
 
 mod handover;
+use core::ffi::CStr;
+
 use uefi::table::{Boot, SystemTable};
 
 use crate::alloc::vec::Vec;
@@ -24,7 +26,7 @@ use uefi::{
     },
     table::boot::{AllocateType, MemoryType, OpenProtocolAttributes, OpenProtocolParams},
 };
-use uefi::{CString16, ResultExt};
+use uefi::{CStr16, ResultExt};
 use xmas_elf::{
     header::sanity_check,
     program::{self, ProgramHeader, SegmentData},
@@ -33,41 +35,18 @@ use xmas_elf::{
 
 pub fn load_file<'a>(
     dir: Option<Directory>,
-    path: &str,
+    path: &CStr16,
     handle: Handle,
     table: &SystemTable<Boot>,
 ) -> Result<RegularFile, Status> {
-    let loaded_img = unsafe {
-        &mut *(table
-            .boot_services()
-            .open_protocol::<LoadedImage>(
-                OpenProtocolParams {
-                    handle: handle,
-                    agent: handle,
-                    controller: None,
-                },
-                OpenProtocolAttributes::Exclusive,
-            )
-            .expect("Failed to load the LoadedImage Protocol")
-            .interface
-            .get())
-    };
-
-    let filesystem = unsafe {
-        &mut *(table
-            .boot_services()
-            .open_protocol::<SimpleFileSystem>(
-                OpenProtocolParams {
-                    handle: loaded_img.device(),
-                    agent: loaded_img.device(),
-                    controller: None,
-                },
-                OpenProtocolAttributes::Exclusive,
-            )
-            .expect("Failed to open Root Filesystem")
-            .interface
-            .get())
-    };
+    let loaded_image = table
+        .boot_services()
+        .open_protocol_exclusive::<LoadedImage>(handle)
+        .expect("Failed to open LoadedImage procotol");
+    let mut filesystem = table
+        .boot_services()
+        .open_protocol_exclusive::<SimpleFileSystem>(handle)
+        .expect("Failed to open Simple Filesystem protocol");
 
     let mut directory = match dir {
         Some(d) => d,
@@ -76,11 +55,7 @@ pub fn load_file<'a>(
             .expect("Failed to open root volume"),
     };
 
-    let filehandle = match directory.open(
-        &CString16::try_from(path).unwrap(),
-        FileMode::Read,
-        FileAttribute::READ_ONLY,
-    ) {
+    let filehandle = match directory.open(path, FileMode::Read, FileAttribute::READ_ONLY) {
         Ok(fh) => fh,
         Err(e) => {
             error!("Failed to open file '{}'\nError: {:?}", path, e);
@@ -125,7 +100,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
                         hdr.physical_addr
                     );
                     let pages = (hdr.mem_size + PAGE_SIZE - 1) / PAGE_SIZE;
-                    let segment = hdr.physical_addr as usize;
+                    let segment = hdr.physical_addr;
                     table
                         .boot_services()
                         .allocate_pages(
@@ -182,7 +157,13 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     };
 
     info!("Loading Kernel... (/esque)");
-    let kernel = match load_file(None, "esque", handle, &mut table) {
+    let mut strbuf = [0; 6];
+    let kernel = match load_file(
+        None,
+        CStr16::from_str_with_buf("esque", &mut strbuf).unwrap(),
+        handle,
+        &mut table,
+    ) {
         Ok(k) => k,
         Err(e) => {
             error!("Failed to find kernel!\n Error: {:?}", e);
@@ -213,20 +194,18 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
 
     let sizes = table.boot_services().memory_map_size();
     let max_mmap_size = sizes.map_size + 2 * sizes.entry_size;
-    let mut storage = vec![0_u8; max_mmap_size].into_boxed_slice();
     let entries = sizes.map_size / sizes.entry_size;
     let slice = &mut vec![EfiMemoryDescriptor::empty(); entries][..];
 
     info!("Exiting boot services...");
-    let (mut rt_table, map_iter) = table
-        .exit_boot_services(handle, &mut storage[..])
-        .expect("Failed to exit boot services");
+    let (mut rt_table, map_iter) = table.exit_boot_services(MemoryType::LOADER_DATA);
 
     let rsdp = handover::find_rsdp(&mut rt_table);
 
     let mut ents = 0;
     unsafe {
         let _ = map_iter
+            .entries()
             .copied()
             .zip(slice.iter_mut())
             .fold(0, |count, (a, b)| {

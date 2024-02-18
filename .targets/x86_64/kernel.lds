@@ -7,46 +7,24 @@ SECTIONS
 	. = 2M;
 	_KERNEL_START = .;
 
-    .text : ALIGN(0x1000)
+	.text : ALIGN(0x1000)
 	{
-		__text_start = .;
-		*(.text .text.*)
-		. = ALIGN(4096);
-		__text_end = .;
+		*(.text)
+	}
+	.data : ALIGN(0x1000)
+	{
+		*(.data)
 	}
 	.rodata : ALIGN(0x1000)
 	{
-		__rodata_start = .;
-		*(.rodata .rodata.*)
-		. = ALIGN(4096);
-		__rodata_end = .;
+		*(.rodata)
 	}
-
-	.tdata : ALIGN(0x1000)
-	{
-		__tdata_start = .;
-		KEEP(*(.tdata*))
-		KEEP(*(.tbss*))
-		__tdata_end = ALIGN(8);
-	}
-
-	.data : ALIGN(0x1000)
-	{
-		__data_start = .;
-		*(.data .data.*)
-		. = ALIGN(4096);
-		__data_end = .;
-	}
-
-
-	.bss :
+	.bss : ALIGN(0x1000)
 	{
 		*(COMMON)
-		__bss_start = .;
-		*(.bss .bss.*)
-		. = ALIGN(4096);
-		__bss_end = .;
+		*(.bss)
 	}
+	
 	_KERNEL_END = .;
 
 	/DISCARD/ : {

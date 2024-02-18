@@ -11,11 +11,11 @@ use core::arch::asm;
 
 // Defined in Linker Script
 #[no_mangle]
-pub static _KERNEL_START: u64 = 0;
+pub static _KERNEL_END: u64 = 0;
 
 // Defined in Linker Script
 #[no_mangle]
-pub static _KERNEL_END: u64 = 2;
+pub static _KERNEL_START: u64 = 0;
 
 // Defined in Linker Script
 #[no_mangle]
