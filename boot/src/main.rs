@@ -66,7 +66,10 @@ pub fn load_file<'a>(
     Ok(unsafe { RegularFile::new(filehandle) })
 }
 
-pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<u64, Status> {
+pub fn load_kernel(
+    mut kfile: RegularFile,
+    table: &SystemTable<Boot>,
+) -> Result<(u64, u64, usize), Status> {
     let mut info_buf: [u8; 512] = [0; 512];
     let info = kfile
         .get_info::<FileInfo>(&mut info_buf)
@@ -86,60 +89,58 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
     sanity_check(&elf).expect("Failed to verify elf integrity");
 
     info!("Found entry point at {:#x?}", elf.header.pt2.entry_point());
-    for phdr in elf.program_iter() {
-        program::sanity_check(phdr, &elf).expect("Failed to verify program header integrity");
-        // We only support 64 bits, therefore
-        // All 32 bit headers can be discarded
-        // Otherwise, all hdr calls match the header
-        // Which can be quite resource intense
-        if let ProgramHeader::Ph64(hdr) = phdr {
-            match hdr.get_type().unwrap() {
-                program::Type::Load => {
-                    info!(
-                        "Allocating for program header (at {:#x?})",
-                        hdr.physical_addr
-                    );
-                    let pages = (hdr.mem_size + PAGE_SIZE - 1) / PAGE_SIZE;
-                    let segment = hdr.virtual_addr;
-                    table
-                        .boot_services()
-                        .allocate_pages(
-                            AllocateType::Address(segment),
-                            MemoryType::LOADER_DATA,
-                            pages as usize,
-                        )
-                        .expect("Failed to load Data into Memory");
-
-                    let data = match hdr.get_data(&elf).expect("Failed to read phdr data") {
-                        SegmentData::Undefined(u) => u,
-                        a => {
-                            error!("Found unhandable phdr data: {:#?}", a);
-                            return Err(Status::UNSUPPORTED);
-                        }
-                    };
-
-                    unsafe {
-                        core::ptr::copy(data.as_ptr(), segment as *mut u8, data.len());
-                    };
-                }
-                _ => {}
-            }
-        } else {
-            error!("Found unsupported Program Header");
-            return Err(Status::UNSUPPORTED);
-        }
-    }
-
-    Ok(elf.header.pt2.entry_point())
+    let pages = (size as usize + PAGE_SIZE as usize - 1) / PAGE_SIZE as usize;
+    let ptr = table
+        .boot_services()
+        .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, pages)
+        .expect("Failed to allocate for kernel");
+    unsafe { core::ptr::copy(file.as_ptr(), ptr as *mut u8, size) };
+    //        program::sanity_check(phdr, &elf).expect("Failed to verify program header integrity");
+    //        // We only support 64 bits, therefore
+    //        // All 32 bit headers can be discarded
+    //        // Otherwise, all hdr calls match the header
+    //        // Which can be quite resource intense
+    //        if let ProgramHeader::Ph64(hdr) = phdr {
+    //            match hdr.get_type().unwrap() {
+    //                program::Type::Load => {
+    //                    let pages = (hdr.mem_size + PAGE_SIZE - 1) / PAGE_SIZE;
+    //                    info!(
+    //                        "Allocating for program header (at {:#x?}) with size {}",
+    //                        hdr.physical_addr, pages
+    //                    );
+    //
+    //                    let segment = hdr.physical_addr;
+    //                    table
+    //                        .boot_services()
+    //                        .allocate_pages(AllocateType::Address(segment), MemoryType::LOADER_DATA, 1)
+    //                        .expect("Failed to load Data into Memory");
+    //
+    //                    let data = match hdr.get_data(&elf).expect("Failed to read phdr data") {
+    //                        SegmentData::Undefined(u) => u,
+    //                        a => {
+    //                            error!("Found unhandable phdr data: {:#?}", a);
+    //                            return Err(Status::UNSUPPORTED);
+    //                        }
+    //                    };
+    //
+    //                    unsafe {
+    //                        core::ptr::copy(data.as_ptr(), segment as *mut u8, data.len());
+    //                    };
+    //                }
+    //                _ => {}
+    //            }
+    //        } else {
+    //            error!("Found unsupported Program Header");
+    //            return Err(Status::UNSUPPORTED);
+    //        }
+    //    }
+    //
+    Ok((elf.header.pt2.entry_point(), ptr, size))
 }
 
 #[entry]
 fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
-    unsafe {
-        //let tr = core::mem::transmute_copy(&table);
-        uefi_services::init(&mut *(&mut table as *mut SystemTable<Boot> as *mut _))
-            .expect("Failed to setup Logging");
-    };
+    uefi_services::init(&mut table).unwrap();
 
     table
         .stdout()
@@ -148,7 +149,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
 
     {
         let rev = table.uefi_revision();
-        info!("Launching Gaia v{}.{}", rev.major(), rev.minor());
+        info!("Launching Gaia with UEFI v{}.{}", rev.major(), rev.minor());
     }
 
     let (initramfs_base, initramfs_size) = match handover::read_initramfs(handle, &mut table) {
@@ -171,7 +172,7 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         }
     };
 
-    let entry = match load_kernel(kernel, &mut table) {
+    let (entry, kernel_start, kernel_size) = match load_kernel(kernel, &mut table) {
         Ok(e) => e,
         Err(e) => {
             error!("Failed to load kernel!");
@@ -181,7 +182,8 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
 
     let config = Config::new(Language::English, KeyboardLayout::German);
 
-    let kmain: extern "sysv64" fn(info: Handover) = unsafe { core::mem::transmute(entry) };
+    let kmain: extern "sysv64" fn(info: Handover) =
+        unsafe { core::mem::transmute(entry + kernel_start) };
     // Exiting the boot services is required to get the memory map
     //let (rt_table, mut handover) = create_handover_and_exit_boot_services(handle, table);
 
@@ -241,6 +243,8 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
         initramfs_base,
         initramfs_size,
         rsdp,
+        kernel_start,
+        kernel_size,
     );
 
     kmain(handover);

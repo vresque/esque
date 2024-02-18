@@ -121,6 +121,8 @@ pub struct Handover {
     pub initramfs_base: u64,
     pub initramfs_size: usize,
     pub rsdp: u64,
+    pub kernel_start: u64,
+    pub kernel_size: usize,
 }
 
 impl Handover {
@@ -135,6 +137,8 @@ impl Handover {
         initramfs_base: u64,
         initramfs_size: usize,
         rsdp: u64,
+        kernel_start: u64,
+        kernel_size: usize,
     ) -> Self {
         let mmap = unsafe { Unique::new_const_unchecked(mmap) };
         Self {
@@ -149,6 +153,8 @@ impl Handover {
             initramfs_base,
             initramfs_size,
             rsdp,
+            kernel_start,
+            kernel_size,
         }
     }
 

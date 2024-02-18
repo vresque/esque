@@ -1,12 +1,9 @@
 OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(kmain)
 
-_KERNEL_OFFSET = 2M;
 SECTIONS
 {
-    . = 0xffffffff80000000;
 	_KERNEL_START = .;
-
 	.text : ALIGN(0x1000)
 	{
 		*(.text)

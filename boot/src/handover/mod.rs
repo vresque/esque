@@ -12,6 +12,8 @@ use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileInfo;
 use uefi::table::boot::AllocateType;
 use uefi::table::boot::MemoryType;
+use uefi::table::boot::OpenProtocolAttributes;
+use uefi::table::boot::OpenProtocolParams;
 use uefi::table::Runtime;
 use uefi::CStr16;
 use uefi::Handle;
@@ -22,10 +24,14 @@ const PSF1_MAGIC0: u8 = 0x36;
 const PSF1_MAGIC1: u8 = 0x04;
 
 pub fn init_gop(handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
+    let gop_handle = table
+        .boot_services()
+        .get_handle_for_protocol::<GraphicsOutput>()
+        .unwrap();
     let mut gop = table
         .boot_services()
-        .open_protocol_exclusive::<GraphicsOutput>(handle)
-        .expect("Failed to open GOP");
+        .open_protocol_exclusive::<GraphicsOutput>(gop_handle)
+        .unwrap();
 
     Framebuffer::new(
         gop.frame_buffer().as_mut_ptr() as u64,
