@@ -45,7 +45,7 @@ pub fn load_file<'a>(
         .expect("Failed to open LoadedImage procotol");
     let mut filesystem = table
         .boot_services()
-        .open_protocol_exclusive::<SimpleFileSystem>(handle)
+        .open_protocol_exclusive::<SimpleFileSystem>(loaded_image.device().unwrap())
         .expect("Failed to open Simple Filesystem protocol");
 
     let mut directory = match dir {
@@ -100,7 +100,7 @@ pub fn load_kernel(mut kfile: RegularFile, table: &SystemTable<Boot>) -> Result<
                         hdr.physical_addr
                     );
                     let pages = (hdr.mem_size + PAGE_SIZE - 1) / PAGE_SIZE;
-                    let segment = hdr.physical_addr;
+                    let segment = hdr.virtual_addr;
                     table
                         .boot_services()
                         .allocate_pages(
