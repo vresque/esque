@@ -15,7 +15,7 @@ pub static _KERNEL_START: u64 = 0;
 
 // Defined in Linker Script
 #[no_mangle]
-pub static _KERNEL_END: u64 = 0;
+pub static _KERNEL_END: u64 = 2;
 
 // Defined in Linker Script
 #[no_mangle]
@@ -48,6 +48,8 @@ pub fn init_initial_paging(handover: &mut Handover) {
 
 pub fn map_memory(handover: &mut Handover) {
     unsafe {
+        debug!("{_KERNEL_END}, {_KERNEL_START}, {_KERNEL_OFFSET}");
+        return;
         {
             let kernel_size = _KERNEL_END - _KERNEL_START;
             let kernel_pages = kernel_size / PAGE_SIZE + 1;
@@ -57,7 +59,7 @@ pub fn map_memory(handover: &mut Handover) {
                 .assume_init_mut()
                 .lock_pages(_KERNEL_START, kernel_pages as usize);
         }
-
+        return;
         {
             // The PageMapLevel4
             let pml4: &mut PageTable;

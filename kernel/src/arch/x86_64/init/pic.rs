@@ -2,6 +2,7 @@ use bks::Handover;
 
 use crate::{
     arch::pic::{self, PicPort, PicUtilValue},
+    debug,
     iobus::outb,
     kprintln,
 };
@@ -18,4 +19,5 @@ pub fn init_pic(_: &mut Handover) {
     unsafe {
         comasm::reload_interrupt_flags();
     };
+    debug!("Initialized PIC");
 }

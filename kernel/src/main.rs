@@ -67,6 +67,9 @@ pub mod ipc;
 pub mod syscall;
 
 pub fn main() -> ! {
+    loop {
+        unsafe { comasm::halt() };
+    }
     init::acpi::init_acpi();
     // -#---#@@- Enables Memory Allocation -@@#---#-
     init::heap::init_heap();

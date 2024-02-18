@@ -90,7 +90,7 @@ impl IDTRegister {
 pub fn upload_idt_entry_at(offset: u64, value: IDTDescriptorEntry) {
     let idt_entry = unsafe {
         &mut *((IDT_REGISTER.lock().assume_init_mut().offset
-            + (offset * core::mem::size_of::<IDTDescriptorEntry>() as u64))
+            + (offset * (core::mem::size_of::<IDTDescriptorEntry>() as u64)))
             as *mut u64 as *mut IDTDescriptorEntry)
     };
 

@@ -1,4 +1,5 @@
 use core::mem::MaybeUninit;
+use core::ptr::NonNull;
 
 use bks::{EfiMemoryDescriptor, MemoryType, PAGE_SIZE};
 
@@ -75,11 +76,11 @@ impl<'a> PageFrameAllocator<'a> {
         }
 
         let mem_sz = self.total_memory();
-        debug!("{}mb", mem_sz / 1024 / 1024 / 1024);
+        debug!("{}mb is the total memory size", mem_sz / 1024 / 1024);
         self.free = mem_sz as i64;
         // One for each page
         let bitmap_size = mem_sz / PAGE_SIZE / 8 + 1;
-        debug!("{}", bitmap_size);
+        debug!("{} is the size of the bitmap", bitmap_size);
 
         // Initialize Bitmap
         self.initialize_bitmap(bitmap_size as usize, current_largest_free_segment);
@@ -102,7 +103,7 @@ impl<'a> PageFrameAllocator<'a> {
         }
         self.last_conventional_mem = last_conventional_mem;
         self.first_conventional_mem = first_conventional_mem;
-        debug!("{}", self.free);
+        debug!("{} is the amount of free space", self.free);
     }
 
     fn initialize_bitmap(&mut self, bmp_size: usize, addr: u64) {
@@ -291,6 +292,7 @@ impl<'a> PageFrameAllocator<'a> {
 
 pub fn request_page<'retval, T>() -> &'retval mut T {
     unsafe {
-        &mut *(PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page() as *mut u64 as *mut T)
+        let addr = PAGE_FRAME_ALLOCATOR.lock().assume_init_mut().request_page();
+        NonNull::new_unchecked(addr as *mut T).as_mut()
     }
 }

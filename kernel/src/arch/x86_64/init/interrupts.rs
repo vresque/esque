@@ -9,7 +9,7 @@ use crate::drivers::input::ps2_keyboard::ps2_keyboard_int_handler;
 use crate::drivers::input::ps2_mouse::ps2_mouse_interrupt_handler;
 use crate::memory::paging::page_frame_allocator::request_page;
 use crate::{arch::interrupts::exceptions::IDTException, kprintln};
-use crate::{info, success};
+use crate::{debug, info, success};
 
 use crate::arch::interrupts::idt::{upload_idt, IDTRegister, IDT_REGISTER};
 
@@ -17,14 +17,14 @@ pub fn init_interrupts(_: &mut Handover) {
     info!("Initializing Interrupts");
     let idtr_limit = 0x0FFF;
     let idtr_offset = request_page::<u64>();
-    let idtr = IDTRegister::new(idtr_limit, *idtr_offset);
+    let idtr = IDTRegister::new(idtr_limit, idtr_offset as *mut u64 as u64);
     unsafe {
         IDT_REGISTER.force_unlock();
     }
     IDT_REGISTER.lock().write(idtr);
 
     crate::arch::scheduler::pit::set_divisor(65535 / 3);
-
+    return;
     set_interrupt_handler(
         IDTException::PageFault as u64,
         ExceptionHandler::<PageFault>::handle,

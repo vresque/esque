@@ -17,9 +17,13 @@ pub fn set_handover(mut hand: Handover) {
 }
 
 pub fn handover() -> RwLockReadGuard<'static, Handover> {
-    HANDOVER.call_once(|| panic!()).read()
+    HANDOVER
+        .call_once(|| panic!("Failed to get the Handover"))
+        .read()
 }
 
 pub fn handover_mut() -> RwLockWriteGuard<'static, Handover> {
-    HANDOVER.call_once(|| panic!("")).write()
+    HANDOVER
+        .call_once(|| panic!("Failed to unlock the mutable Handover"))
+        .write()
 }

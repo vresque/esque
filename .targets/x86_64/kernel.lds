@@ -1,22 +1,20 @@
 OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(kmain)
 
-KERNEL_OFFSET = 2M;
-_KERNEL_OFFSET = KERNEL_OFFSET;
+_KERNEL_OFFSET = 2M;
 SECTIONS
 {
-	. = KERNEL_OFFSET;
+	. = 2M;
 	_KERNEL_START = .;
-	. = ALIGN(4K);
-    .text :
+
+    .text : ALIGN(0x1000)
 	{
 		__text_start = .;
 		*(.text .text.*)
 		. = ALIGN(4096);
 		__text_end = .;
 	}
-	. = ALIGN(4K);
-	.rodata :
+	.rodata : ALIGN(0x1000)
 	{
 		__rodata_start = .;
 		*(.rodata .rodata.*)
@@ -24,8 +22,7 @@ SECTIONS
 		__rodata_end = .;
 	}
 
-	. = ALIGN(4K);
-	.tdata :
+	.tdata : ALIGN(0x1000)
 	{
 		__tdata_start = .;
 		KEEP(*(.tdata*))
@@ -33,8 +30,7 @@ SECTIONS
 		__tdata_end = ALIGN(8);
 	}
 
-	. = ALIGN(4K);
-	.data :
+	.data : ALIGN(0x1000)
 	{
 		__data_start = .;
 		*(.data .data.*)
@@ -43,7 +39,6 @@ SECTIONS
 	}
 
 
-	. = ALIGN(4K);
 	.bss :
 	{
 		*(COMMON)
@@ -52,8 +47,6 @@ SECTIONS
 		. = ALIGN(4096);
 		__bss_end = .;
 	}
-
-	__end = .;
 	_KERNEL_END = .;
 
 	/DISCARD/ : {

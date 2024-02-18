@@ -11,6 +11,7 @@ extern "sysv64" fn kmain(mut handover: Handover) -> u32 {
     init::pic::init_pic(&mut handover);
     init::pit::init_pit(&mut handover);
     init::memory::map_memory(&mut handover);
+    crate::main();
     init::smp::init_smp(&mut handover);
     set_handover(handover);
     crate::main();
