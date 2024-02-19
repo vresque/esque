@@ -89,12 +89,12 @@ pub fn load_kernel(
     sanity_check(&elf).expect("Failed to verify elf integrity");
 
     info!("Found entry point at {:#x?}", elf.header.pt2.entry_point());
-    let pages = (size as usize + PAGE_SIZE as usize - 1) / PAGE_SIZE as usize;
-    let ptr = table
-        .boot_services()
-        .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, pages)
-        .expect("Failed to allocate for kernel");
-    unsafe { core::ptr::copy(file.as_ptr(), ptr as *mut u8, size) };
+    //let pages = (size as usize + PAGE_SIZE as usize - 1) / PAGE_SIZE as usize;
+    //let ptr = table
+    //    .boot_services()
+    //    .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, pages)
+    //    .expect("Failed to allocate for kernel");
+    //unsafe { core::ptr::copy(file.as_ptr(), ptr as *mut u8, size) };
     //        program::sanity_check(phdr, &elf).expect("Failed to verify program header integrity");
     //        // We only support 64 bits, therefore
     //        // All 32 bit headers can be discarded
@@ -135,7 +135,7 @@ pub fn load_kernel(
     //        }
     //    }
     //
-    Ok((elf.header.pt2.entry_point(), ptr, size))
+    Ok((elf.header.pt2.entry_point(), file.as_ptr() as u64, size))
 }
 
 #[entry]
@@ -181,19 +181,18 @@ fn efi_main(handle: uefi::Handle, mut table: SystemTable<Boot>) -> Status {
     };
 
     let config = Config::new(Language::English, KeyboardLayout::German);
-
+    info!("Preparing kernel jump...");
     let kmain: extern "sysv64" fn(info: Handover) =
         unsafe { core::mem::transmute(entry + kernel_start) };
     // Exiting the boot services is required to get the memory map
     //let (rt_table, mut handover) = create_handover_and_exit_boot_services(handle, table);
-
+    info!("Preparing framebuffer");
     let framebuffer = handover::init_gop(handle, &mut table);
     info!("{}", framebuffer);
     let font = match handover::create_font(handle, &mut table) {
         Some(t) => t,
         None => panic!("Failed to find font"),
     };
-
     let sizes = table.boot_services().memory_map_size();
     let max_mmap_size = sizes.map_size + 2 * sizes.entry_size;
     let entries = sizes.map_size / sizes.entry_size;

@@ -28,11 +28,12 @@ pub fn init_gop(handle: Handle, table: &SystemTable<Boot>) -> Framebuffer {
         .boot_services()
         .get_handle_for_protocol::<GraphicsOutput>()
         .unwrap();
+    info!("L, {:?}", gop_handle);
     let mut gop = table
         .boot_services()
         .open_protocol_exclusive::<GraphicsOutput>(gop_handle)
         .unwrap();
-
+    info!("D");
     Framebuffer::new(
         gop.frame_buffer().as_mut_ptr() as u64,
         gop.frame_buffer().size(),
